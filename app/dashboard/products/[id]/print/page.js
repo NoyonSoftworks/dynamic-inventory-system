@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, use } from "react";
+import { useEffect, useState, useRef, useMemo, use, Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
@@ -57,7 +57,7 @@ const THERMAL_PAGE_STYLE = `
   }
 `;
 
-export default function PrintStickersPage({ params }) {
+function PrintStickersContent({ params }) {
   // Support both useParams and React 19 unwrapped params Promise safely
   const clientParams = useParams();
   const resolvedParams = params ? (typeof params.then === "function" ? use(params) : params) : null;
@@ -501,5 +501,19 @@ function Spinner({ size = 20 }) {
         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
       />
     </svg>
+  );
+}
+
+export default function PrintStickersPage(props) {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <Spinner size={32} />
+        </main>
+      }
+    >
+      <PrintStickersContent {...props} />
+    </Suspense>
   );
 }

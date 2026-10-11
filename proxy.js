@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
-// Role-based route access control
+const ADMIN_EMAIL = (
+  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
+)
+  .toLowerCase()
+  .trim();
+
+// Role-based route access control for general dashboard
 const ROLE_ACCESS = {
   viewer: ["/", "/reports", "/login", "/update-password"],
   operator: [
@@ -36,7 +43,7 @@ function hasAccess(role, pathname) {
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
 
-  // Skip static files, api routes, images
+  // 1. Skip static assets, Next.js internal files, and API endpoints
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -45,84 +52,124 @@ export async function proxy(request) {
     return NextResponse.next();
   }
 
-  // Allow login page and auth callbacks to process securely
+  // 2. Allow authentication routes without redirection
   if (pathname === "/login" || pathname.startsWith("/auth/")) {
     return NextResponse.next();
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  // Service role key bypasses RLS — required for middleware admin lookups
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.next();
   }
 
-  // Read auth token from cookies
-  const accessToken = request.cookies.get("sb-access-token")?.value;
+  // 3. Initialize Supabase SSR Middleware Client properly
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-  if (!accessToken) {
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value)
+        );
+        response = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
+
+  // 4. Retrieve current authenticated user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Also check manual token cookie fallback if SSR cookie is not present
+  let currentUser = user;
+  if (!currentUser) {
+    const rawToken = request.cookies.get("sb-access-token")?.value;
+    if (rawToken) {
+      const fallbackClient = createClient(supabaseUrl, supabaseAnonKey);
+      const { data: rawData } = await fallbackClient.auth.getUser(rawToken);
+      if (rawData?.user) {
+        currentUser = rawData.user;
+      }
+    }
+  }
+
+  const userEmail = (currentUser?.email || "").toLowerCase().trim();
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  // 5. REQUIREMENT: Handle /admin Route Security
+  if (isAdminRoute) {
+    // If not logged in OR email does NOT match admin email -> strictly redirect to /?denied=1
+    if (!currentUser || userEmail !== ADMIN_EMAIL) {
+      const deniedUrl = new URL("/", request.url);
+      deniedUrl.searchParams.set("denied", "1");
+      return NextResponse.redirect(deniedUrl);
+    }
+
+    // If they ARE the admin -> allow access to proceed
+    return response;
+  }
+
+  // 6. REQUIREMENT: Ensure other existing dashboard protection rules remain intact
+  // Unauthenticated users are redirected to /login
+  if (!currentUser) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Validate the user's JWT token
-  const authClient = createClient(supabaseUrl, supabaseAnonKey);
-  const {
-    data: { user },
-    error: userError,
-  } = await authClient.auth.getUser(accessToken);
-
-  // No valid user → clear stale cookies and redirect to login
-  if (userError || !user) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    const response = NextResponse.redirect(loginUrl);
-    response.cookies.delete("sb-access-token");
-    response.cookies.delete("sb-refresh-token");
-    return response;
-  }
-
-  // Use service role key (bypasses RLS) for admin lookups in middleware.
-  // Falls back to anon key + user's Bearer token if service key isn't set.
+  // Look up user role and business workspace
   const dbClient = serviceRoleKey
     ? createClient(supabaseUrl, serviceRoleKey)
-    : createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: `Bearer ${accessToken}` } },
-      });
+    : supabase;
 
-  // Fetch role AND business_id in a single query
   const { data: roleData } = await dbClient
     .from("user_roles")
     .select("role, business_id")
-    .eq("id", user.id)
-    .single();
+    .eq("id", currentUser.id)
+    .maybeSingle();
 
-  const role = roleData?.role || "viewer";
+  let role = roleData?.role || "viewer";
   const businessId = roleData?.business_id || "";
 
-  // Check route access
-  if (!hasAccess(role, pathname)) {
-    const dashUrl = new URL("/", request.url);
-    dashUrl.searchParams.set("denied", "1");
-    return NextResponse.redirect(dashUrl);
+  // Admin email always has admin role across all standard client views
+  if (userEmail === ADMIN_EMAIL) {
+    role = "admin";
   }
 
-  // Pass user + tenant info via headers so pages can read them
-  const response = NextResponse.next({
-    request: {
-      headers: new Headers(request.headers),
-    },
-  });
+  // Role-based route check
+  if (!hasAccess(role, pathname)) {
+    const deniedUrl = new URL("/", request.url);
+    deniedUrl.searchParams.set("denied", "1");
+    return NextResponse.redirect(deniedUrl);
+  }
 
-  response.headers.set("x-user-email", user.email || "");
+  // Pass user headers downstream
+  response.headers.set("x-user-email", currentUser.email || "");
   response.headers.set("x-user-role", role);
   response.headers.set("x-user-business-id", businessId);
 
   return response;
 }
+
+// Support both `proxy` and `middleware` naming conventions
+export const middleware = proxy;
+export default proxy;
 
 export const config = {
   matcher: [

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { supabase } from "@/utils/supabase/client";
 
 // ── date helpers ─────────────────────────────────────────
@@ -25,7 +25,7 @@ const FILTERS = [
 
 const LOW_STOCK_THRESHOLD = 5;
 
-export default function ReportsPage() {
+function ReportsContent() {
   const [transactions, setTransactions] = useState([]);
   const [lowStockVariants, setLowStockVariants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -475,5 +475,19 @@ function DownloadIcon() {
         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
       />
     </svg>
+  );
+}
+
+export default function ReportsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+        </main>
+      }
+    >
+      <ReportsContent />
+    </Suspense>
   );
 }

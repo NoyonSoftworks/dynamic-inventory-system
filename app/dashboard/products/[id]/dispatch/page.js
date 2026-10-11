@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef, use, Suspense } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
@@ -14,7 +14,7 @@ const COURIERS = [
   { id: "Carrybee", name: "Carrybee Logistics", badge: "Economy", color: "bg-amber-50 text-amber-700 border-amber-200" },
 ];
 
-export default function ProductDispatchPage({ params }) {
+function ProductDispatchContent({ params }) {
   const router = useRouter();
   const clientParams = useParams();
   const resolvedParams = params ? (typeof params.then === "function" ? use(params) : params) : null;
@@ -267,24 +267,56 @@ export default function ProductDispatchPage({ params }) {
         );
       }
 
-      // ==============================================================
-      // // TODO: Trigger Courier API (Pathao / Steadfast / RedX / Paperfly / Carrybee)
-      // Example payload to send to Courier webhook / server action:
-      // const courierBooking = {
-      //   courier: selectedCourier,
-      //   order_id: orderData?.id,
-      //   recipient_name: customerName,
-      //   recipient_phone: customerPhone,
-      //   recipient_address: customerAddress,
-      //   amount_to_collect: grandTotal,
-      //   item_description: `${product.name} (x${scannedItems.length})`,
-      // };
-      // ==============================================================
+      // 3. Trigger Courier API (Steadfast Integration)
+      if (selectedCourier === "Steadfast") {
+        try {
+          const courierRes = await fetch("/api/courier/steadfast", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              order_id: orderData?.id,
+              customer_name: customerName.trim(),
+              customer_phone: customerPhone.trim(),
+              customer_address: customerAddress.trim(),
+              amount_to_collect: grandTotal,
+              invoice_note:
+                orderNotes.trim() ||
+                `${product.name} (Qty: ${scannedItems.length})`,
+            }),
+          });
 
-      showToast(
-        "success",
-        `🎉 Order successfully dispatched via ${selectedCourier}! ${scannedItems.length} unit(s) marked as SHIPPED.`
-      );
+          const courierData = await courierRes.json().catch(() => null);
+
+          if (courierRes.ok && courierData?.success) {
+            const trackId =
+              courierData.consignment_id ||
+              courierData.tracking_code ||
+              "Generated";
+            showToast(
+              "success",
+              `🎉 Order created & Steadfast tracking generated! Tracking ID: #${trackId}`
+            );
+          } else {
+            showToast(
+              "error",
+              `⚠️ Order saved locally (#${orderData?.id || "N/A"}), but Steadfast API warning: ${courierData?.error || "Dispatch sync failed"}`
+            );
+          }
+        } catch (courierErr) {
+          console.error("Courier API dispatch error:", courierErr);
+          showToast(
+            "error",
+            `⚠️ Order saved locally (#${orderData?.id || "N/A"}), but could not contact Steadfast API.`
+          );
+        }
+      } else {
+        showToast(
+          "success",
+          `🎉 Order successfully dispatched via ${selectedCourier}! ${scannedItems.length} unit(s) marked as SHIPPED.`
+        );
+      }
 
       // Remove dispatched items from available local inventory
       setAvailableItems((prev) =>
@@ -779,5 +811,19 @@ function Spinner({ size = 20 }) {
         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
       />
     </svg>
+  );
+}
+
+export default function ProductDispatchPage(props) {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <Spinner size={32} />
+        </main>
+      }
+    >
+      <ProductDispatchContent {...props} />
+    </Suspense>
   );
 }

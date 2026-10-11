@@ -189,11 +189,32 @@ export default function SettingsPage() {
               Manage your workspace, team members, and access permissions.
             </p>
           </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/settings"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+            >
+              ⚡ Courier &amp; Webhook APIs
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition"
+            >
+              ← Dashboard
+            </Link>
+          </div>
+        </div>
+
+        {/* ── Sub Navigation Tabs ─────────────────────────── */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-2">
+          <span className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-600/20">
+            <span>👥</span> Team &amp; Business Profile
+          </span>
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition"
+            href="/dashboard/settings"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition"
           >
-            ← Dashboard
+            <span>⚡</span> Courier &amp; Webhook API Settings →
           </Link>
         </div>
 

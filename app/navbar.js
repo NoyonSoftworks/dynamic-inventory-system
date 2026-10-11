@@ -12,6 +12,7 @@ const ALL_LINKS = [
   { href: "/bulk-orders", label: "Bulk Orders", roles: ["operator", "admin"] },
   { href: "/reports", label: "Reports", roles: ["viewer", "operator", "admin"] },
   { href: "/dashboard/products/add", label: "+ Add Product", roles: ["admin"] },
+  { href: "/dashboard/settings", label: "⚡ API & Couriers", roles: ["admin"] },
   { href: "/settings", label: "⚙️ Settings", roles: ["admin"] },
 ];
 
@@ -33,8 +34,14 @@ export default function Navbar() {
     window.location.href = "/login";
   }
 
-  // Don't show navbar on login page
-  if (pathname === "/login") return null;
+  // Don't show client navbar on login page or any admin console routes
+  if (
+    pathname === "/login" ||
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/")
+  ) {
+    return null;
+  }
 
   const visibleLinks = ALL_LINKS.filter((l) => l.roles.includes(role));
 
