@@ -153,13 +153,13 @@ export default function SettingsPage() {
       setToast({
         type: "error",
         message: error.message.includes("duplicate")
-          ? "This email already has an account."
-          : `Failed to invite: ${error.message}`,
+          ? "This email is already registered."
+          : `Failed to add staff: ${error.message}`,
       });
     } else {
       setToast({
         type: "success",
-        message: `Invited ${inviteEmail} as ${inviteRole}. They can now sign up and see your data!`,
+        message: "Staff added! Tell them to sign up with this email or use Google Login.",
       });
       setInviteEmail("");
       setInviteRole("operator");
@@ -241,14 +241,15 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {/* ── invite staff card ──────────────────────── */}
+        {/* ── pre-register staff card ──────────────────────── */}
         <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200 space-y-4">
           <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            ✉️ Add Team Member
+            👥 Add Staff Member (Pre-Registration)
           </h2>
           <p className="text-sm text-gray-500">
-            Enter the email of the person you want to invite. When they sign up with this email,
-            they will automatically join your business with the selected role.
+            Pre-register staff members here. No SMTP setup required! Simply enter their email and
+            assign a role. Once added, tell them to sign up or log in with Google using this email,
+            and they will automatically be linked to your business workspace.
           </p>
           <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-3">
             <input
@@ -273,7 +274,7 @@ export default function SettingsPage() {
               disabled={inviting}
               className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              {inviting ? "Adding…" : "+ Add Member"}
+              {inviting ? "Adding…" : "+ Add Staff"}
             </button>
           </form>
         </div>

@@ -8,14 +8,19 @@ const VIEW = {
   SIGN_IN: "signin",
   SIGN_UP: "signup",
   RESET: "reset",
+  OTP_VERIFICATION: "otp_verification",
 };
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpType, setOtpType] = useState("signup"); // "signup" | "recovery"
   const [view, setView] = useState(VIEW.SIGN_IN);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(60);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -43,10 +48,50 @@ export default function LoginPage() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // ── 60-Second Cooldown Countdown Timer ─────────────────
+  useEffect(() => {
+    if (resendTimer <= 0) return;
+    const interval = setInterval(() => {
+      setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
   function switchView(v) {
     setView(v);
     setError(null);
     setMessage(null);
+    setOtp("");
+  }
+
+  // ── Resend OTP Code Handler ────────────────────────────
+  async function handleResendCode() {
+    if (resendTimer > 0 || resendLoading || !email.trim()) return;
+    setResendLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      if (otpType === "recovery") {
+        const { error: resendErr } = await supabase.auth.resetPasswordForEmail(
+          email.trim()
+        );
+        if (resendErr) throw resendErr;
+      } else {
+        const { error: resendErr } = await supabase.auth.resend({
+          type: "signup",
+          email: email.trim(),
+        });
+        if (resendErr) throw resendErr;
+      }
+
+      setMessage("A fresh 6-digit verification code has been sent to your email.");
+      setResendTimer(60);
+    } catch (err) {
+      setError(err.message || "Failed to resend code. Please try again.");
+    } finally {
+      setResendLoading(false);
+    }
   }
 
   // ── Form Submission ────────────────────────────────────
@@ -57,23 +102,53 @@ export default function LoginPage() {
     setMessage(null);
 
     try {
+      // 1. ── OTP Verification Mode ────────────────────────
+      if (view === VIEW.OTP_VERIFICATION) {
+        if (!otp.trim() || otp.trim().length !== 6) {
+          throw new Error("Please enter a valid 6-digit verification code.");
+        }
+
+        const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+          email: email.trim(),
+          token: otp.trim(),
+          type: otpType, // 'signup' | 'recovery'
+        });
+
+        if (verifyErr) {
+          throw new Error(verifyErr.message || "Invalid or expired verification code.");
+        }
+
+        // Set cookies immediately before redirect
+        if (data?.session) {
+          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
+          document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
+        }
+
+        setMessage("Verification successful! Redirecting to dashboard...");
+        window.location.href = "/";
+        return;
+      }
+
+      // 2. ── Reset Password (Request OTP) ────────────────
       if (view === VIEW.RESET) {
-        // ── forgot password ──────────────────────────────
         const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
-          email,
-          { redirectTo: `${window.location.origin}/auth/callback?next=/update-password` }
+          email.trim()
         );
         if (resetErr) throw resetErr;
+
+        setOtpType("recovery");
+        setResendTimer(60);
+        setView(VIEW.OTP_VERIFICATION);
         setMessage(
-          "Password reset link sent! Check your email inbox (and spam folder)."
+          "Password reset code sent! Please enter the 6-digit code from your email."
         );
         return;
       }
 
+      // 3. ── Sign Up (Triggers OTP) ───────────────────────
       if (view === VIEW.SIGN_UP) {
-        // ── sign up ──────────────────────────────────────
         const { data, error: signUpErr } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
         });
 
@@ -92,40 +167,93 @@ export default function LoginPage() {
           );
         }
 
+        setOtpType("signup");
+        setResendTimer(60);
+        setView(VIEW.OTP_VERIFICATION);
         setMessage(
-          "Account created! Please check your email to confirm your account, then sign in."
+          "Account created! Please enter the 6-digit verification code sent to your email."
         );
         setPassword("");
-      } else {
-        // ── sign in ──────────────────────────────────────
-        const { error: signInErr, data } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInErr) {
-          if (signInErr.message.includes("Invalid login credentials")) {
-            throw new Error(
-              "Invalid email or password. Please check your credentials and try again."
-            );
-          }
-          if (signInErr.message.includes("Email not confirmed")) {
-            throw new Error(
-              "Your email is not confirmed yet. Please check your inbox for a confirmation link."
-            );
-          }
-          throw signInErr;
-        }
-
-        // Set cookies immediately before redirect to prevent race conditions
-        if (data?.session) {
-          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
-          document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
-        }
-
-        window.location.href = "/";
         return;
       }
+
+      // 4. ── Standard Sign In (with Email Confirmation Intercept) ─
+      const { error: signInErr, data } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInErr) {
+        // Intercept 'Email not confirmed' specifically
+        if (
+          signInErr.message.toLowerCase().includes("email not confirmed") ||
+          signInErr.message.toLowerCase().includes("email address not confirmed")
+        ) {
+          // Trigger a fresh OTP code to be sent to them
+          try {
+            await supabase.auth.resend({
+              type: "signup",
+              email: email.trim(),
+            });
+          } catch (resendErr) {
+            console.warn("Auto-resend OTP error:", resendErr);
+          }
+
+          setOtpType("signup");
+          setOtp("");
+          setResendTimer(60);
+          setView(VIEW.OTP_VERIFICATION);
+          setMessage(
+            "Your email is not confirmed yet. We've sent a new 6-digit verification code to your email."
+          );
+          return;
+        }
+
+        if (signInErr.message.includes("Invalid login credentials")) {
+          throw new Error(
+            "Invalid email or password. Please check your credentials and try again."
+          );
+        }
+
+        throw signInErr;
+      }
+
+      // ── Manual Frontend Email Confirmation Security Lock ──
+      if (!data?.user?.email_confirmed_at) {
+        // 1. Immediately destroy unverified session
+        await supabase.auth.signOut();
+        document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+        document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+
+        // 2. Automatically trigger a new OTP
+        try {
+          await supabase.auth.resend({
+            type: "signup",
+            email: email.trim(),
+          });
+        } catch (resendErr) {
+          console.warn("Auto-resend OTP error:", resendErr);
+        }
+
+        // 3. Switch UI back to OTP_VERIFICATION and start 60s cooldown
+        setOtpType("signup");
+        setOtp("");
+        setResendTimer(60);
+        setView(VIEW.OTP_VERIFICATION);
+
+        // 4. Set error message
+        setError("Please verify your email first. A new 6-digit code has been sent to your email.");
+        return;
+      }
+
+      // Set cookies immediately before redirect to prevent race conditions
+      if (data?.session) {
+        document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
+        document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
+      }
+
+      window.location.href = "/";
+      return;
     } catch (err) {
       setError(
         err.message || "An unexpected error occurred. Please try again."
@@ -144,7 +272,6 @@ export default function LoginPage() {
       const { error: oauthErr } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          // Redirect directly to the callback to process the token on the server
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
@@ -155,7 +282,7 @@ export default function LoginPage() {
     }
   }
 
-  // ── heading config per view ────────────────────────────
+  // ── heading config per view ────────────────────
   const headings = {
     [VIEW.SIGN_IN]: {
       title: "Welcome Back",
@@ -167,7 +294,11 @@ export default function LoginPage() {
     },
     [VIEW.RESET]: {
       title: "Reset Password",
-      sub: "We'll send you a link to reset your password",
+      sub: "We'll send a 6-digit verification code to your email",
+    },
+    [VIEW.OTP_VERIFICATION]: {
+      title: "Enter 6-Digit Code",
+      sub: `Enter the code sent to ${email || "your email address"}`,
     },
   };
 
@@ -232,170 +363,246 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* ── email field ─────────────────────────────── */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-indigo-100/80">
-              Email Address
-            </label>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-300/50">
-                <MailIcon />
-              </span>
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-4 text-sm text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
-              />
-            </div>
-          </div>
-
-          {/* ── password field (hidden in RESET) ───────── */}
-          {view !== VIEW.RESET && (
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-indigo-100/80">
-                Password
-              </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-300/50">
-                  <LockIcon />
-                </span>
+          {/* ── VIEW: OTP VERIFICATION ──────────────────── */}
+          {view === VIEW.OTP_VERIFICATION ? (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-indigo-100/80 text-center">
+                  6-Digit Verification Code
+                </label>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
                   required
-                  minLength={6}
-                  autoComplete={
-                    view === VIEW.SIGN_IN ? "current-password" : "new-password"
-                  }
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-12 text-sm text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  placeholder="123456"
+                  className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3.5 px-4 text-center text-3xl font-mono tracking-widest text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
                 />
+              </div>
+
+              <div className="rounded-lg bg-white/[0.04] p-3 text-center">
+                <p className="text-xs text-indigo-200/60">
+                  Code sent to <span className="font-semibold text-white">{email}</span>
+                </p>
+              </div>
+
+              {/* Verify Button */}
+              <button
+                type="submit"
+                disabled={loading || otp.length !== 6}
+                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />
+                {loading ? (
+                  <span className="inline-flex items-center gap-2.5">
+                    <Spinner /> Verifying Code…
+                  </span>
+                ) : (
+                  "Verify & Continue"
+                )}
+              </button>
+
+              {/* Resend Code Text Button with 60s Cooldown */}
+              <div className="text-center pt-1">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-indigo-300/50 hover:text-indigo-200 transition"
-                  tabIndex={-1}
+                  onClick={handleResendCode}
+                  disabled={resendTimer > 0 || resendLoading}
+                  className="text-xs font-medium text-indigo-300/80 hover:text-white disabled:text-indigo-300/40 disabled:cursor-not-allowed transition"
                 >
-                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  {resendLoading ? (
+                    "Sending new code…"
+                  ) : resendTimer > 0 ? (
+                    <span>
+                      Resend code in{" "}
+                      <strong className="text-white font-mono">{resendTimer}s</strong>
+                    </span>
+                  ) : (
+                    "Resend Code"
+                  )}
                 </button>
               </div>
-              {view === VIEW.SIGN_UP && (
-                <p className="text-xs text-indigo-300/40">
-                  Must be at least 6 characters
-                </p>
-              )}
-            </div>
-          )}
 
-          {/* ── forgot password link (sign-in only) ────── */}
-          {view === VIEW.SIGN_IN && (
-            <div className="flex justify-end">
+              {/* Back to sign in */}
               <button
                 type="button"
-                onClick={() => switchView(VIEW.RESET)}
-                className="text-xs font-medium text-indigo-300/60 hover:text-indigo-200 transition"
-              >
-                Forgot Password?
-              </button>
-            </div>
-          )}
-
-          {/* ── submit button ──────────────────────────── */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-          >
-            {/* shimmer */}
-            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />
-
-            {loading ? (
-              <span className="inline-flex items-center gap-2.5">
-                <Spinner />
-                {view === VIEW.RESET
-                  ? "Sending Link…"
-                  : view === VIEW.SIGN_UP
-                  ? "Creating Account…"
-                  : "Signing In…"}
-              </span>
-            ) : view === VIEW.RESET ? (
-              "Send Reset Link"
-            ) : view === VIEW.SIGN_UP ? (
-              "Create Account"
-            ) : (
-              "Sign In"
-            )}
-          </button>
-
-          {/* ── back to login (reset view only) ────────── */}
-          {view === VIEW.RESET && (
-            <button
-              type="button"
-              onClick={() => switchView(VIEW.SIGN_IN)}
-              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-indigo-200 hover:bg-white/[0.08] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition-all duration-200"
-            >
-              ← Back to Sign In
-            </button>
-          )}
-
-          {/* ── OAuth + toggle (sign-in / sign-up views) ─ */}
-          {(view === VIEW.SIGN_IN || view === VIEW.SIGN_UP) && (
-            <>
-              {/* divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-3 text-indigo-300/40 bg-[rgba(15,15,30,0.5)]">
-                    or continue with
-                  </span>
-                </div>
-              </div>
-
-              {/* Google button */}
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={googleLoading}
-                className="group w-full flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-6 py-3 text-sm font-medium text-white hover:bg-white/[0.12] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {googleLoading ? <Spinner /> : <GoogleLogo />}
-                {googleLoading ? "Redirecting…" : "Sign in with Google"}
-              </button>
-
-              {/* toggle sign-in / sign-up */}
-              <div className="relative mt-2">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-3 text-indigo-300/40 bg-[rgba(15,15,30,0.5)]">
-                    {view === VIEW.SIGN_UP
-                      ? "Already registered?"
-                      : "New here?"}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  switchView(
-                    view === VIEW.SIGN_UP ? VIEW.SIGN_IN : VIEW.SIGN_UP
-                  )
-                }
+                onClick={() => switchView(VIEW.SIGN_IN)}
                 className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-indigo-200 hover:bg-white/[0.08] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition-all duration-200"
               >
-                {view === VIEW.SIGN_UP
-                  ? "Sign in to existing account"
-                  : "Create a new account"}
+                ← Back to Sign In
               </button>
+            </div>
+          ) : (
+            /* ── VIEW: SIGN IN / SIGN UP / RESET ──────────── */
+            <>
+              {/* email field */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-indigo-100/80">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-300/50">
+                    <MailIcon />
+                  </span>
+                  <input
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-4 text-sm text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
+                  />
+                </div>
+              </div>
+
+              {/* password field (hidden in RESET) */}
+              {view !== VIEW.RESET && (
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-indigo-100/80">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-300/50">
+                      <LockIcon />
+                    </span>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      autoComplete={
+                        view === VIEW.SIGN_IN ? "current-password" : "new-password"
+                      }
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-12 text-sm text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-indigo-300/50 hover:text-indigo-200 transition"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+                  {view === VIEW.SIGN_UP && (
+                    <p className="text-xs text-indigo-300/40">
+                      Must be at least 6 characters
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* forgot password link (sign-in only) */}
+              {view === VIEW.SIGN_IN && (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => switchView(VIEW.RESET)}
+                    className="text-xs font-medium text-indigo-300/60 hover:text-indigo-200 transition"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
+
+              {/* submit button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />
+
+                {loading ? (
+                  <span className="inline-flex items-center gap-2.5">
+                    <Spinner />
+                    {view === VIEW.RESET
+                      ? "Sending Code…"
+                      : view === VIEW.SIGN_UP
+                      ? "Creating Account…"
+                      : "Signing In…"}
+                  </span>
+                ) : view === VIEW.RESET ? (
+                  "Send 6-Digit Code"
+                ) : view === VIEW.SIGN_UP ? (
+                  "Sign Up with Code"
+                ) : (
+                  "Sign In"
+                )}
+              </button>
+
+              {/* back to login (reset view only) */}
+              {view === VIEW.RESET && (
+                <button
+                  type="button"
+                  onClick={() => switchView(VIEW.SIGN_IN)}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-indigo-200 hover:bg-white/[0.08] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition-all duration-200"
+                >
+                  ← Back to Sign In
+                </button>
+              )}
+
+              {/* OAuth + toggle (sign-in / sign-up views) */}
+              {(view === VIEW.SIGN_IN || view === VIEW.SIGN_UP) && (
+                <>
+                  {/* divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-white/10" />
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="px-3 text-indigo-300/40 bg-[rgba(15,15,30,0.5)]">
+                        or continue with
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Google button */}
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    disabled={googleLoading}
+                    className="group w-full flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-6 py-3 text-sm font-medium text-white hover:bg-white/[0.12] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    {googleLoading ? <Spinner /> : <GoogleLogo />}
+                    {googleLoading ? "Redirecting…" : "Sign in with Google"}
+                  </button>
+
+                  {/* toggle sign-in / sign-up */}
+                  <div className="relative mt-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-white/10" />
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="px-3 text-indigo-300/40 bg-[rgba(15,15,30,0.5)]">
+                        {view === VIEW.SIGN_UP
+                          ? "Already registered?"
+                          : "New here?"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      switchView(
+                        view === VIEW.SIGN_UP ? VIEW.SIGN_IN : VIEW.SIGN_UP
+                      )
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-indigo-200 hover:bg-white/[0.08] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition-all duration-200"
+                  >
+                    {view === VIEW.SIGN_UP
+                      ? "Sign in to existing account"
+                      : "Create a new account"}
+                  </button>
+                </>
+              )}
             </>
           )}
         </form>

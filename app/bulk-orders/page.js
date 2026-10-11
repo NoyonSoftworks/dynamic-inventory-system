@@ -204,7 +204,7 @@ export default function BulkOrdersPage() {
             href="/"
             className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition"
           >
-            \u2190 Dashboard
+            ← Dashboard
           </Link>
         </div>
 
@@ -217,7 +217,7 @@ export default function BulkOrdersPage() {
                 : "border-red-200 bg-red-50 text-red-700"
             }`}
           >
-            {toast.type === "success" ? "\u2713" : "\u2717"} {toast.message}
+            {toast.type === "success" ? "✓" : "✗"} {toast.message}
           </div>
         )}
 
@@ -252,7 +252,7 @@ export default function BulkOrdersPage() {
                   onChange={(e) => updateRow(i, "productId", e.target.value)}
                   className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
                 >
-                  <option value="">\u2014 Product \u2014</option>
+                  <option value="">— Select Product —</option>
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} ({p.category})
@@ -272,7 +272,7 @@ export default function BulkOrdersPage() {
                   className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none disabled:opacity-50"
                 >
                   <option value="">
-                    {row.productId ? "\u2014 Variant \u2014" : "Select product first"}
+                    {row.productId ? "— Select Variant —" : "Select product first"}
                   </option>
                   {(variantsMap[row.productId] || []).map((v) => (
                     <option key={v.id} value={v.id}>
@@ -328,10 +328,10 @@ export default function BulkOrdersPage() {
         >
           {loading ? (
             <span className="inline-flex items-center gap-3">
-              <Spinner /> Processing Orders\u2026
+              <Spinner /> Processing Orders…
             </span>
           ) : (
-            <span>\u26a1 Process Daily Orders ({rows.filter((r) => r.productId && r.variantId && Number(r.quantity) > 0).length} valid rows)</span>
+            <span>⚡ Process Daily Orders ({rows.filter((r) => r.productId && r.variantId && Number(r.quantity) > 0).length} valid rows)</span>
           )}
         </button>
       </div>
