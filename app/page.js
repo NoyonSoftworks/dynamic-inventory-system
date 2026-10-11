@@ -45,7 +45,7 @@ export default function DashboardPage() {
           </div>
 
           <Link
-            href="/add-product"
+            href="/dashboard/products/add"
             className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500/40 focus:outline-none transition"
           >
             <PlusIcon />
@@ -214,7 +214,7 @@ function EmptyState() {
         Get started by adding your first product.
       </p>
       <Link
-        href="/add-product"
+        href="/dashboard/products/add"
         className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition"
       >
         <PlusIcon size={16} /> Add Product

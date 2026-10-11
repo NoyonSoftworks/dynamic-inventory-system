@@ -11,7 +11,7 @@ const ALL_LINKS = [
   { href: "/operations", label: "Operations", roles: ["operator", "admin"] },
   { href: "/bulk-orders", label: "Bulk Orders", roles: ["operator", "admin"] },
   { href: "/reports", label: "Reports", roles: ["viewer", "operator", "admin"] },
-  { href: "/add-product", label: "+ Add Product", roles: ["admin"] },
+  { href: "/dashboard/products/add", label: "+ Add Product", roles: ["admin"] },
   { href: "/settings", label: "⚙️ Settings", roles: ["admin"] },
 ];
 

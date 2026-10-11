@@ -6,6 +6,7 @@ const ROLE_ACCESS = {
   viewer: ["/", "/reports", "/login", "/update-password"],
   operator: [
     "/",
+    "/dashboard",
     "/reports",
     "/operations",
     "/bulk-orders",
@@ -14,6 +15,7 @@ const ROLE_ACCESS = {
   ],
   admin: [
     "/",
+    "/dashboard",
     "/reports",
     "/operations",
     "/bulk-orders",
