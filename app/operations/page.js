@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
+import { useBusinessContext } from "@/utils/supabase/business";
 
 export default function OperationsPage() {
   // ── data state ──────────────────────────────────────
@@ -21,6 +22,7 @@ export default function OperationsPage() {
 
   // ── recent transactions ─────────────────────────────
   const [recent, setRecent] = useState([]);
+  const { businessId, loading: ctxLoading } = useBusinessContext();
 
   // ── fetch products on mount ─────────────────────────
   useEffect(() => {
@@ -38,8 +40,10 @@ export default function OperationsPage() {
   // ── fetch variants when product changes ─────────────
   useEffect(() => {
     if (!selectedProductId) {
-      setVariants([]);
-      setSelectedVariantId("");
+      queueMicrotask(() => {
+        setVariants([]);
+        setSelectedVariantId("");
+      });
       return;
     }
     async function load() {
@@ -64,8 +68,16 @@ export default function OperationsPage() {
   }, []);
 
   useEffect(() => {
-    fetchRecent();
-  }, [fetchRecent]);
+    async function loadInitialRecent() {
+      const { data } = await supabase
+        .from("stock_transactions")
+        .select("*, products(name), variants(attributes)")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      setRecent(data || []);
+    }
+    loadInitialRecent();
+  }, []);
 
   // ── auto-dismiss toast ──────────────────────────────
   useEffect(() => {
@@ -127,6 +139,7 @@ export default function OperationsPage() {
           transaction_type: action,
           quantity: qty,
           reference_note: note.trim() || null,
+          business_id: businessId,
         });
 
       if (txErr) throw txErr;
@@ -160,7 +173,7 @@ export default function OperationsPage() {
   // ── selected variant info ───────────────────────────
   const selectedVariant = variants.find((v) => v.id === selectedVariantId);
 
-  if (pageLoading) {
+  if (pageLoading || ctxLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <Spinner size={32} />

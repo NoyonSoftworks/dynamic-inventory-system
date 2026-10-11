@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
+import { useBusinessContext } from "@/utils/supabase/business";
 
 export default function DashboardPage() {
+  const { businessName } = useBusinessContext();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +37,7 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Inventory Dashboard
+              {businessName ? `${businessName} Dashboard` : "Inventory Dashboard"}
             </h1>
             <p className="mt-1 text-sm text-gray-500">
               Overview of all products and their variants.

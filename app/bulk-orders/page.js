@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
+import { useBusinessContext } from "@/utils/supabase/business";
 
 function emptyRow() {
   return { productId: "", variantId: "", quantity: "" };
@@ -15,6 +16,7 @@ export default function BulkOrdersPage() {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const { businessId, loading: ctxLoading } = useBusinessContext();
 
   // fetch products
   useEffect(() => {
@@ -139,6 +141,7 @@ export default function BulkOrdersPage() {
           transaction_type: "OUT",
           quantity: qty,
           reference_note: `Bulk daily order - ${new Date().toLocaleDateString()}`,
+          business_id: businessId,
         });
 
         // Update local stock map for subsequent checks
@@ -176,7 +179,7 @@ export default function BulkOrdersPage() {
     }
   }
 
-  if (pageLoading) {
+  if (pageLoading || ctxLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <Spinner size={32} />

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/utils/supabase/client";
+import { useBusinessContext } from "@/utils/supabase/business";
 
 // ── helpers ───────────────────────────────────────────────
 function emptyAttribute() {
@@ -20,6 +21,7 @@ export default function AddProductPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const { businessId, loading: ctxLoading } = useBusinessContext();
 
   // ── variant helpers ──────────────────────────────────
   function addVariant() {
@@ -82,6 +84,7 @@ export default function AddProductPage() {
       if (!productName.trim()) throw new Error("Product name is required.");
       if (!category.trim()) throw new Error("Category is required.");
       if (variants.length === 0) throw new Error("Add at least one variant.");
+      if (!businessId) throw new Error("Business context not loaded. Please try again.");
 
       for (const [i, v] of variants.entries()) {
         if (!v.price || Number(v.price) <= 0)
@@ -93,7 +96,7 @@ export default function AddProductPage() {
       // 2. Insert product
       const { data: product, error: productErr } = await supabase
         .from("products")
-        .insert({ name: productName.trim(), category: category.trim() })
+        .insert({ name: productName.trim(), category: category.trim(), business_id: businessId })
         .select()
         .single();
 
@@ -111,6 +114,7 @@ export default function AddProductPage() {
           price: Number(v.price),
           stock_quantity: Number(v.stock),
           attributes: attrs, // stored as JSONB
+          business_id: businessId,
         };
       });
 
@@ -134,6 +138,14 @@ export default function AddProductPage() {
   }
 
   // ── render ───────────────────────────────────────────
+  if (ctxLoading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <Spinner />
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <form

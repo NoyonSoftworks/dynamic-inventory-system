@@ -50,6 +50,8 @@ export async function proxy(request) {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Service role key bypasses RLS — required for middleware admin lookups
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.next();
@@ -64,33 +66,40 @@ export async function proxy(request) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Explicitly pass the token to getUser()
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  // Validate the user's JWT token
+  const authClient = createClient(supabaseUrl, supabaseAnonKey);
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser(accessToken);
+  } = await authClient.auth.getUser(accessToken);
 
   // No valid user → clear stale cookies and redirect to login
   if (userError || !user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     const response = NextResponse.redirect(loginUrl);
-
-    // Clear the invalid cookies so we don't get stuck in a loop
     response.cookies.delete("sb-access-token");
     response.cookies.delete("sb-refresh-token");
     return response;
   }
 
-  // Get role from user_roles table
-  const { data: roleData } = await supabase
+  // Use service role key (bypasses RLS) for admin lookups in middleware.
+  // Falls back to anon key + user's Bearer token if service key isn't set.
+  const dbClient = serviceRoleKey
+    ? createClient(supabaseUrl, serviceRoleKey)
+    : createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      });
+
+  // Fetch role AND business_id in a single query
+  const { data: roleData } = await dbClient
     .from("user_roles")
-    .select("role")
-    .eq("email", user.email)
+    .select("role, business_id")
+    .eq("id", user.id)
     .single();
 
   const role = roleData?.role || "viewer";
+  const businessId = roleData?.business_id || "";
 
   // Check route access
   if (!hasAccess(role, pathname)) {
@@ -99,7 +108,7 @@ export async function proxy(request) {
     return NextResponse.redirect(dashUrl);
   }
 
-  // Pass user info via headers so pages can read it
+  // Pass user + tenant info via headers so pages can read them
   const response = NextResponse.next({
     request: {
       headers: new Headers(request.headers),
@@ -108,6 +117,7 @@ export async function proxy(request) {
 
   response.headers.set("x-user-email", user.email || "");
   response.headers.set("x-user-role", role);
+  response.headers.set("x-user-business-id", businessId);
 
   return response;
 }

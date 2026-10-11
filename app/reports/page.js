@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 
 // ── date helpers ─────────────────────────────────────────
