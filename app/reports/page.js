@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 
@@ -24,20 +24,23 @@ const FILTERS = [
   { label: "All Time", from: () => null },
 ];
 
+const LOW_STOCK_THRESHOLD = 5;
+
 export default function ReportsPage() {
   const [transactions, setTransactions] = useState([]);
+  const [lowStockVariants, setLowStockVariants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState(0); // index into FILTERS
+  const [activeFilter, setActiveFilter] = useState(0);
 
-  // ── fetch on mount + filter change ──────────────────
+  // ── fetch transactions ─────────────────────────────────
   useEffect(() => {
-    async function fetch() {
+    async function fetchData() {
       setLoading(true);
       const from = FILTERS[activeFilter].from();
 
       let query = supabase
         .from("stock_transactions")
-        .select("*, products(name, category), variants(attributes, price)")
+        .select("*, products(name, category), variants(attributes, price, stock_quantity)")
         .order("created_at", { ascending: false });
 
       if (from) {
@@ -48,10 +51,23 @@ export default function ReportsPage() {
       setTransactions(data || []);
       setLoading(false);
     }
-    fetch();
+    fetchData();
   }, [activeFilter]);
 
-  // ── computed stats ──────────────────────────────────
+  // ── fetch low stock variants ───────────────────────────
+  useEffect(() => {
+    async function fetchLow() {
+      const { data } = await supabase
+        .from("variants")
+        .select("id, price, stock_quantity, attributes, products(name, category)")
+        .lt("stock_quantity", LOW_STOCK_THRESHOLD)
+        .order("stock_quantity", { ascending: true });
+      setLowStockVariants(data || []);
+    }
+    fetchLow();
+  }, [transactions]); // re-fetch when transactions change
+
+  // ── computed stats ─────────────────────────────────────
   const stats = useMemo(() => {
     let totalIn = 0;
     let totalOut = 0;
@@ -70,6 +86,80 @@ export default function ReportsPage() {
     return { totalIn, totalOut, inCount, outCount, total: transactions.length };
   }, [transactions]);
 
+  // ── today's sales summary (grouped by variant) ────────
+  const todaySummary = useMemo(() => {
+    const todayStart = startOfDay(new Date()).toISOString();
+    const todayTx = transactions.filter(
+      (tx) =>
+        tx.transaction_type === "OUT" &&
+        tx.created_at >= todayStart
+    );
+
+    const grouped = {};
+    for (const tx of todayTx) {
+      const attrs = tx.variants?.attributes || {};
+      const label =
+        Object.values(attrs).join(", ") ||
+        `Variant`;
+      const productName = tx.products?.name || "Unknown";
+      const key = `${productName} — ${label}`;
+
+      grouped[key] = (grouped[key] || 0) + tx.quantity;
+    }
+
+    return Object.entries(grouped).map(([name, qty]) => ({ name, qty }));
+  }, [transactions]);
+
+  // ── CSV export ─────────────────────────────────────────
+  const handleExportCSV = useCallback(() => {
+    if (transactions.length === 0) return;
+
+    const headers = [
+      "Date/Time",
+      "Product",
+      "Category",
+      "Variant Details",
+      "Type",
+      "Quantity",
+      "Note",
+    ];
+
+    const rows = transactions.map((tx) => {
+      const variantDetails = tx.variants?.attributes
+        ? Object.entries(tx.variants.attributes)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join("; ")
+        : "";
+
+      return [
+        new Date(tx.created_at).toLocaleString(),
+        tx.products?.name || "",
+        tx.products?.category || "",
+        variantDetails,
+        tx.transaction_type,
+        tx.quantity,
+        tx.reference_note || "",
+      ];
+    });
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `inventory-report-${FILTERS[activeFilter].label.replace(/\s/g, "-").toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [transactions, activeFilter]);
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
@@ -77,27 +167,93 @@ export default function ReportsPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Daily Reports
+              Daily Reports & Analytics
             </h1>
             <p className="mt-1 text-sm text-gray-500">
-              Transaction history and stock movement analytics.
+              Transaction history, stock alerts, and exportable reports.
             </p>
           </div>
           <div className="flex gap-2">
-            <Link
-              href="/operations"
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition"
+            <button
+              onClick={handleExportCSV}
+              disabled={transactions.length === 0}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              ⚙ Operations
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition"
-            >
-              ← Dashboard
-            </Link>
+              <DownloadIcon /> Download CSV
+            </button>
           </div>
         </div>
+
+        {/* ── low stock alerts ─────────────────────── */}
+        {lowStockVariants.length > 0 && (
+          <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⚠️</span>
+              <h2 className="text-lg font-bold text-amber-800">
+                Low Stock Alerts
+              </h2>
+              <span className="rounded-full bg-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                {lowStockVariants.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {lowStockVariants.map((v) => {
+                const attrs = v.attributes || {};
+                const attrStr = Object.entries(attrs)
+                  .map(([k, val]) => `${k}: ${val}`)
+                  .join(", ");
+                return (
+                  <div
+                    key={v.id}
+                    className="flex items-center justify-between rounded-lg bg-white border border-amber-200 px-4 py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {v.products?.name || "Unknown"}
+                      </p>
+                      <p className="text-xs text-gray-500">{attrStr || "No attributes"}</p>
+                    </div>
+                    <span
+                      className={`text-lg font-bold ${
+                        v.stock_quantity === 0
+                          ? "text-red-600"
+                          : "text-amber-600"
+                      }`}
+                    >
+                      {v.stock_quantity}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── today's sales summary ───────────────── */}
+        {todaySummary.length > 0 && (
+          <div className="rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 p-5 text-white shadow-lg">
+            <h2 className="text-lg font-bold opacity-90">
+              Today&apos;s Sales Summary
+            </h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {todaySummary.map((item) => (
+                <span
+                  key={item.name}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-3 py-1.5 text-sm font-medium"
+                >
+                  {item.name}{" "}
+                  <span className="rounded-full bg-white text-indigo-700 px-2 py-0.5 text-xs font-bold">
+                    {item.qty}
+                  </span>
+                </span>
+              ))}
+            </div>
+            <p className="mt-2 text-sm opacity-70">
+              Total:{" "}
+              {todaySummary.reduce((s, i) => s + i.qty, 0)} units sold today
+            </p>
+          </div>
+        )}
 
         {/* ── stat cards ───────────────────────────── */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -118,7 +274,11 @@ export default function ReportsPage() {
           <StatCard
             label="Net Movement"
             value={(stats.totalIn - stats.totalOut).toLocaleString()}
-            sub={stats.totalIn - stats.totalOut >= 0 ? "Stock grew" : "Stock reduced"}
+            sub={
+              stats.totalIn - stats.totalOut >= 0
+                ? "Stock grew"
+                : "Stock reduced"
+            }
             gradient="from-indigo-500 to-violet-600"
             icon="⇅"
           />
@@ -131,8 +291,8 @@ export default function ReportsPage() {
           />
         </div>
 
-        {/* ── filter tabs ──────────────────────────── */}
-        <div className="flex flex-wrap gap-2">
+        {/* ── filter tabs + CSV ────────────────────── */}
+        <div className="flex flex-wrap items-center gap-2">
           {FILTERS.map((f, i) => (
             <button
               key={f.label}
@@ -212,15 +372,16 @@ export default function ReportsPage() {
                       </td>
                       <td className="px-5 py-3 text-xs text-gray-600">
                         {tx.variants?.attributes
-                          ? Object.entries(tx.variants.attributes)
-                              .map(([k, v]) => (
+                          ? Object.entries(tx.variants.attributes).map(
+                              ([k, v]) => (
                                 <span
                                   key={k}
                                   className="inline-flex mr-1.5 mb-1 items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
                                 >
                                   {k}: {v}
                                 </span>
-                              ))
+                              )
+                            )
                           : "—"}
                       </td>
                       <td className="whitespace-nowrap px-5 py-3">
@@ -294,5 +455,26 @@ function SkeletonRows() {
         </div>
       ))}
     </div>
+  );
+}
+
+// ── download icon ────────────────────────────────────────
+function DownloadIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={16}
+      height={16}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+      />
+    </svg>
   );
 }
