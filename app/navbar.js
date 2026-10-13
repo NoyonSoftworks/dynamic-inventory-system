@@ -8,6 +8,7 @@ import { useBusinessContext } from "@/utils/supabase/business";
 
 const ALL_LINKS = [
   { href: "/", label: "Dashboard", roles: ["viewer", "operator", "admin"] },
+  { href: "/dashboard/scanner", label: "📱 Scanner", roles: ["operator", "admin"] },
   { href: "/operations", label: "Operations", roles: ["operator", "admin"] },
   { href: "/bulk-orders", label: "Bulk Orders", roles: ["operator", "admin"] },
   { href: "/reports", label: "Reports", roles: ["viewer", "operator", "admin"] },
