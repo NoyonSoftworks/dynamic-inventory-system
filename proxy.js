@@ -8,9 +8,14 @@ const ADMIN_EMAIL = (
   .toLowerCase()
   .trim();
 
-// Role-based route access control for general dashboard
 const ROLE_ACCESS = {
-  viewer: ["/", "/reports", "/login", "/update-password"],
+  viewer: [
+    "/",
+    "/dashboard/products",
+    "/reports",
+    "/login",
+    "/update-password",
+  ],
   operator: [
     "/",
     "/dashboard",

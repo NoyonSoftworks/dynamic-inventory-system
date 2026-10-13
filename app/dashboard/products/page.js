@@ -6,7 +6,7 @@ import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
 
 export default function ProductsListPage() {
-  const { businessName } = useBusinessContext();
+  const { businessId, businessName, loading: ctxLoading } = useBusinessContext();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,39 +22,58 @@ export default function ProductsListPage() {
     let isMounted = true;
 
     async function loadData() {
+      // 1. Wait until tenant context is resolved
+      if (ctxLoading) return;
+
+      // 2. If no businessId resolved, set empty array (never query global records)
+      if (!businessId) {
+        if (isMounted) {
+          setProducts([]);
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
 
-        // 1. Fetch products catalog
+        // 3. Strictly fetch products for THIS tenant workspace
         const { data: prods, error: pErr } = await supabase
           .from("products")
           .select("*")
+          .eq("business_id", businessId)
           .order("created_at", { ascending: false });
 
         if (pErr) throw pErr;
 
-        // 2. Fetch inventory items to count items where status = 'IN_STOCK'
-        const { data: items, error: iErr } = await supabase
-          .from("inventory_items")
-          .select("product_id, status");
-
+        const prodList = prods || [];
         const inStockCountMap = {};
         const totalItemsMap = {};
 
-        if (!iErr && items) {
-          items.forEach((item) => {
-            totalItemsMap[item.product_id] =
-              (totalItemsMap[item.product_id] || 0) + 1;
-            if (item.status === "IN_STOCK") {
-              inStockCountMap[item.product_id] =
-                (inStockCountMap[item.product_id] || 0) + 1;
-            }
-          });
+        // 4. Fetch inventory items ONLY for this tenant's products
+        const prodIds = prodList.map((p) => p.id);
+
+        if (prodIds.length > 0) {
+          const { data: items, error: iErr } = await supabase
+            .from("inventory_items")
+            .select("product_id, status")
+            .in("product_id", prodIds);
+
+          if (!iErr && items) {
+            items.forEach((item) => {
+              totalItemsMap[item.product_id] =
+                (totalItemsMap[item.product_id] || 0) + 1;
+              if (item.status === "IN_STOCK") {
+                inStockCountMap[item.product_id] =
+                  (inStockCountMap[item.product_id] || 0) + 1;
+              }
+            });
+          }
         }
 
-        // 3. Merge products with live inventory quantities
-        const enriched = (prods || []).map((p) => ({
+        // 5. Merge products with live inventory quantities
+        const enriched = prodList.map((p) => ({
           ...p,
           inStockCount: inStockCountMap[p.id] ?? 0,
           totalCount: totalItemsMap[p.id] ?? 0,
@@ -79,7 +98,7 @@ export default function ProductsListPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [businessId, ctxLoading]);
 
   // ── unique categories for dropdown filter ────────────────
   const categories = useMemo(() => {

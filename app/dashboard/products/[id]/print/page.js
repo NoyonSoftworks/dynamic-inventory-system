@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
 import Barcode from "react-barcode";
 import { supabase } from "@/utils/supabase/client";
+import { useBusinessContext } from "@/utils/supabase/business";
 
 // ── Thermal Label Specifications (Standard 2" × 1" / 50mm × 25mm) ──
 const THERMAL_PAGE_STYLE = `
@@ -62,6 +63,7 @@ function PrintStickersContent({ params }) {
   const clientParams = useParams();
   const resolvedParams = params ? (typeof params.then === "function" ? use(params) : params) : null;
   const productId = resolvedParams?.id || clientParams?.id;
+  const { businessId } = useBusinessContext();
 
   const [product, setProduct] = useState(null);
   const [items, setItems] = useState([]);
@@ -90,6 +92,10 @@ function PrintStickersContent({ params }) {
 
         if (prodErr || !prodData) {
           throw new Error(prodErr?.message || "Product not found.");
+        }
+
+        if (prodData.business_id && businessId && prodData.business_id !== businessId) {
+          throw new Error("Unauthorized: Product belongs to another workspace.");
         }
 
         // 2. Fetch Associated Inventory Items (Barcodes)
@@ -121,7 +127,7 @@ function PrintStickersContent({ params }) {
     return () => {
       isMounted = false;
     };
-  }, [productId]);
+  }, [productId, businessId]);
 
   // ── react-to-print Integration ─────────────────────────────
   const handlePrint = useReactToPrint({

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { supabase } from "@/utils/supabase/client";
+import { useBusinessContext } from "@/utils/supabase/business";
 
 // ── date helpers ─────────────────────────────────────────
 function startOfDay(d) {
@@ -26,6 +27,7 @@ const FILTERS = [
 const LOW_STOCK_THRESHOLD = 5;
 
 function ReportsContent() {
+  const { businessId, loading: ctxLoading } = useBusinessContext();
   const [transactions, setTransactions] = useState([]);
   const [lowStockVariants, setLowStockVariants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,12 +36,20 @@ function ReportsContent() {
   // ── fetch transactions ─────────────────────────────────
   useEffect(() => {
     async function fetchData() {
+      if (ctxLoading) return;
+      if (!businessId) {
+        setTransactions([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       const from = FILTERS[activeFilter].from();
 
       let query = supabase
         .from("stock_transactions")
         .select("*, products(name, category), variants(attributes, price, stock_quantity)")
+        .eq("business_id", businessId)
         .order("created_at", { ascending: false });
 
       if (from) {
@@ -51,20 +61,42 @@ function ReportsContent() {
       setLoading(false);
     }
     fetchData();
-  }, [activeFilter]);
+  }, [activeFilter, businessId, ctxLoading]);
 
   // ── fetch low stock variants ───────────────────────────
   useEffect(() => {
     async function fetchLow() {
-      const { data } = await supabase
+      if (!businessId) {
+        setLowStockVariants([]);
+        return;
+      }
+
+      let vQuery = supabase
         .from("variants")
-        .select("id, price, stock_quantity, attributes, products(name, category)")
+        .select("id, price, stock_quantity, attributes, products(name, category, business_id)")
         .lt("stock_quantity", LOW_STOCK_THRESHOLD)
         .order("stock_quantity", { ascending: true });
-      setLowStockVariants(data || []);
+
+      // If variants has business_id column, filter by it directly
+      const { data, error } = await vQuery.eq("business_id", businessId);
+
+      if (!error && data) {
+        setLowStockVariants(data);
+      } else {
+        // Fallback filter by joined product business_id
+        const fallback = await supabase
+          .from("variants")
+          .select("id, price, stock_quantity, attributes, products(name, category, business_id)")
+          .lt("stock_quantity", LOW_STOCK_THRESHOLD)
+          .order("stock_quantity", { ascending: true });
+        const filtered = (fallback.data || []).filter(
+          (v) => v.products?.business_id === businessId
+        );
+        setLowStockVariants(filtered);
+      }
     }
     fetchLow();
-  }, [transactions]); // re-fetch when transactions change
+  }, [transactions, businessId]); // re-fetch when transactions change
 
   // ── computed stats ─────────────────────────────────────
   const stats = useMemo(() => {

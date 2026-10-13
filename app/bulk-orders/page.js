@@ -21,15 +21,22 @@ export default function BulkOrdersPage() {
   // fetch products
   useEffect(() => {
     async function load() {
+      if (ctxLoading) return;
+      if (!businessId) {
+        setProducts([]);
+        setPageLoading(false);
+        return;
+      }
       const { data } = await supabase
         .from("products")
         .select("id, name, category")
+        .eq("business_id", businessId)
         .order("name");
       setProducts(data || []);
       setPageLoading(false);
     }
     load();
-  }, []);
+  }, [businessId, ctxLoading]);
 
   // auto-dismiss toast
   useEffect(() => {

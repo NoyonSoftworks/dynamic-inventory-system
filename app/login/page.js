@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 
 // ── view modes ───────────────────────────────────────────
@@ -12,6 +13,7 @@ const VIEW = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -125,7 +127,7 @@ export default function LoginPage() {
         }
 
         setMessage("Verification successful! Redirecting to dashboard...");
-        window.location.href = "/";
+        router.push("/");
         return;
       }
 
@@ -252,7 +254,7 @@ export default function LoginPage() {
         document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
       }
 
-      window.location.href = "/";
+      router.push("/");
       return;
     } catch (err) {
       setError(

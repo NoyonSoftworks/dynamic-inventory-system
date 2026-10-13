@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 
 export default function UpdatePasswordPage() {
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export default function UpdatePasswordPage() {
 
       // Give them a moment to read the success message before redirecting
       setTimeout(() => {
-        window.location.href = "/";
+        router.push("/");
       }, 1500);
     } catch (err) {
       setError(err.message || "An error occurred while updating the password.");

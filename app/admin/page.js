@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 
 const ADMIN_EMAIL = (
@@ -11,6 +12,8 @@ const ADMIN_EMAIL = (
   .trim();
 
 export default function SuperAdminDashboard() {
+  const router = useRouter();
+
   // ── Auth & Permission State ────────────────────────────────
   const [authChecking, setAuthChecking] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -185,7 +188,7 @@ export default function SuperAdminDashboard() {
     document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
     document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
     await supabase.auth.signOut();
-    window.location.href = "/login";
+    router.push("/login");
   }
 
   // ── 1. LOADING SCREEN ──────────────────────────────────────
@@ -324,14 +327,6 @@ export default function SuperAdminDashboard() {
               <span className={refreshing ? "animate-spin" : ""}>🔄</span>
               <span>{refreshing ? "Syncing…" : "Sync Live Data"}</span>
             </button>
-
-            <Link
-              href="/dashboard/products"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition"
-              title="Open the client product catalog view"
-            >
-              <span>🏪</span> View Client Store →
-            </Link>
 
             <button
               onClick={handleLogout}

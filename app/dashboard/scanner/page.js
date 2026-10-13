@@ -120,8 +120,12 @@ export default function SmartScannerPage() {
           const { data: itemData } = await itemQuery.maybeSingle();
 
           if (itemData && itemData.products) {
-            matchedItem = itemData;
-            product = itemData.products;
+            if (businessId && itemData.products.business_id && itemData.products.business_id !== businessId) {
+              product = null;
+            } else {
+              matchedItem = itemData;
+              product = itemData.products;
+            }
           }
         }
 

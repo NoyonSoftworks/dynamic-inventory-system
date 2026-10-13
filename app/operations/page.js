@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
 
-export default function OperationsPage() {
+function OperationsPageContent() {
   // ── data state ──────────────────────────────────────
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState("");
@@ -24,18 +25,45 @@ export default function OperationsPage() {
   const [recent, setRecent] = useState([]);
   const { businessId, loading: ctxLoading } = useBusinessContext();
 
-  // ── fetch products on mount ─────────────────────────
+  const searchParams = useSearchParams();
+  const urlSku = searchParams.get("sku");
+  const urlAction = searchParams.get("action");
+
+  // ── fetch products on mount & handle URL deep links ──
   useEffect(() => {
     async function load() {
+      if (ctxLoading) return;
+      if (!businessId) {
+        setProducts([]);
+        setPageLoading(false);
+        return;
+      }
+
       const { data } = await supabase
         .from("products")
-        .select("id, name, category")
+        .select("id, name, category, base_sku")
+        .eq("business_id", businessId)
         .order("name");
-      setProducts(data || []);
+      const list = data || [];
+      setProducts(list);
       setPageLoading(false);
+
+      if (urlSku && list.length > 0) {
+        const match = list.find(
+          (p) =>
+            p.base_sku?.toLowerCase() === urlSku.toLowerCase() ||
+            p.id === urlSku
+        );
+        if (match) {
+          setSelectedProductId(match.id);
+        }
+      }
+      if (urlAction && (urlAction === "IN" || urlAction === "OUT")) {
+        setAction(urlAction);
+      }
     }
     load();
-  }, []);
+  }, [urlSku, urlAction, businessId, ctxLoading]);
 
   // ── fetch variants when product changes ─────────────
   useEffect(() => {
@@ -59,25 +87,29 @@ export default function OperationsPage() {
 
   // ── fetch recent transactions ───────────────────────
   const fetchRecent = useCallback(async () => {
+    if (!businessId) return;
     const { data } = await supabase
       .from("stock_transactions")
       .select("*, products(name), variants(attributes)")
+      .eq("business_id", businessId)
       .order("created_at", { ascending: false })
       .limit(10);
     setRecent(data || []);
-  }, []);
+  }, [businessId]);
 
   useEffect(() => {
     async function loadInitialRecent() {
+      if (!businessId) return;
       const { data } = await supabase
         .from("stock_transactions")
         .select("*, products(name), variants(attributes)")
+        .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(10);
       setRecent(data || []);
     }
     loadInitialRecent();
-  }, []);
+  }, [businessId]);
 
   // ── auto-dismiss toast ──────────────────────────────
   useEffect(() => {
@@ -479,5 +511,19 @@ function Spinner({ size = 20 }) {
         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
       />
     </svg>
+  );
+}
+
+export default function OperationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <Spinner size={32} />
+        </main>
+      }
+    >
+      <OperationsPageContent />
+    </Suspense>
   );
 }

@@ -79,6 +79,10 @@ function ProductDispatchContent({ params }) {
           throw new Error(prodErr?.message || "Product not found.");
         }
 
+        if (prodData.business_id && businessId && prodData.business_id !== businessId) {
+          throw new Error("Unauthorized: Product belongs to another workspace.");
+        }
+
         // 2. Fetch Available inventory_items (where status = 'IN_STOCK')
         const { data: itemsData, error: itemsErr } = await supabase
           .from("inventory_items")
@@ -106,7 +110,7 @@ function ProductDispatchContent({ params }) {
     return () => {
       isMounted = false;
     };
-  }, [productId]);
+  }, [productId, businessId]);
 
   // ── Barcode Scanner Logic ────────────────────────────────
   function handleBarcodeScan(e) {
