@@ -211,7 +211,14 @@ export default function MarketingLandingPage() {
           </Link>
 
           {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-300">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-300">
+            <Link
+              href="/demo"
+              className="text-emerald-400 hover:text-emerald-300 font-bold transition flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Interactive Demo</span>
+            </Link>
             <a href="#features" className="hover:text-white transition">Features</a>
             <a href="#simulator" className="hover:text-white transition">Live Terminal</a>
             <a href="#couriers" className="hover:text-white transition">Couriers</a>
@@ -303,12 +310,12 @@ export default function MarketingLandingPage() {
               <span className="text-base">→</span>
             </Link>
 
-            <a
-              href="#simulator"
-              className="inline-flex items-center gap-2 rounded-2xl border border-slate-700/80 bg-slate-900/90 px-6 py-4 text-sm font-bold text-slate-200 hover:bg-slate-800 hover:text-white hover:border-slate-600 transition backdrop-blur-md"
+            <Link
+              href="/demo"
+              className="inline-flex items-center gap-2 rounded-2xl border border-indigo-500/50 bg-indigo-950/60 hover:bg-indigo-900/60 px-6 py-4 text-sm font-bold text-white transition backdrop-blur-md shadow-lg shadow-indigo-600/20"
             >
-              <span>⚡ Try Interactive Simulator</span>
-            </a>
+              <span>⚡ Try Interactive Demo Sandbox</span>
+            </Link>
           </div>
 
           {/* Trust Metrics Bar */}
@@ -586,9 +593,9 @@ export default function MarketingLandingPage() {
               <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition">
                 📷
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Smart Mobile Barcode Scanner</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Mobile Camera Scanner</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Transform any warehouse employee's phone into an enterprise laser scanner. Auto-plays success beeps and loads instant inventory telemetry.
+                Transform any warehouse employee's phone into an enterprise laser scanner. Auto-plays success beeps and loads instant inventory telemetry without laser hardware costs.
               </p>
               <div className="mt-4 text-[11px] font-mono text-indigo-400">Zero laser hardware overhead →</div>
             </div>
@@ -598,9 +605,9 @@ export default function MarketingLandingPage() {
               <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition">
                 💬
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">WhatsApp &amp; SMS Automation</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Automated WhatsApp Notifications</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Trigger parcel dispatch alerts directly to your customers with live tracking links using GreenAPI, Twilio, or BulkSMSBD.
+                Trigger parcel dispatch alerts directly to your customers with live tracking links using GreenAPI, Twilio, or BulkSMSBD the second you confirm dispatch.
               </p>
               <div className="mt-4 text-[11px] font-mono text-emerald-400">65% Fewer customer queries →</div>
             </div>
@@ -622,9 +629,9 @@ export default function MarketingLandingPage() {
               <div className="h-12 w-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition">
                 🛡️
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Cryptographic Tenant RLS</h3>
+              <h3 className="text-lg font-bold text-white mb-2">Bank-Grade Security (RLS)</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                PostgreSQL Row-Level Security policies guarantee total isolation. Tenants can only read and mutate their own workspace's products and orders.
+                PostgreSQL Row-Level Security policies guarantee total tenant isolation. Tenants can only read and mutate their own workspace's products and orders.
               </p>
               <div className="mt-4 text-[11px] font-mono text-purple-400">Zero data leaks by design →</div>
             </div>
@@ -632,25 +639,25 @@ export default function MarketingLandingPage() {
             {/* Feature 5 */}
             <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-7 shadow-xl hover:border-amber-500/50 transition group relative overflow-hidden">
               <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition">
+                👥
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Unlimited Multi-User Access</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Empower your warehouse packing team with granular roles: Admin, Operator, and Viewer accounts with individual activity footprint tracking.
+              </p>
+              <div className="mt-4 text-[11px] font-mono text-amber-400">Role-based access control →</div>
+            </div>
+
+            {/* Feature 6 */}
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-7 shadow-xl hover:border-rose-500/50 transition group relative overflow-hidden">
+              <div className="h-12 w-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition">
                 🐾
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Real-Time Activity Footprints</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Immutable audit trail tracking every staff action: stock intake, order dispatch, courier setting updates, and employee role assignments with IP stamps.
               </p>
-              <div className="mt-4 text-[11px] font-mono text-amber-400">Complete audit accountability →</div>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-7 shadow-xl hover:border-rose-500/50 transition group relative overflow-hidden">
-              <div className="h-12 w-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition">
-                ⚡
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Lightning CSV Bulk Import</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Upload catalogs with 10,000+ items in seconds. Auto-detects SKU columns, verifies price constraints, and provisions inventory item entries.
-              </p>
-              <div className="mt-4 text-[11px] font-mono text-rose-400">Onboard catalogs in seconds →</div>
+              <div className="mt-4 text-[11px] font-mono text-rose-400">Complete audit accountability →</div>
             </div>
           </div>
         </div>

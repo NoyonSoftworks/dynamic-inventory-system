@@ -49,7 +49,8 @@ async function verifyAdminCaller(request, supabaseUrl, supabaseAnonKey) {
 
     if (error || !user?.email) return false;
     return user.email.toLowerCase().trim() === ADMIN_EMAIL;
-  } catch {
+  } catch (err) {
+    if (err?.digest) throw err;
     return false;
   }
 }
@@ -191,6 +192,7 @@ export async function GET(request) {
       settings: mergedSettings,
     });
   } catch (err) {
+    if (err?.digest) throw err;
     console.error("GET /api/admin/settings error:", err);
     return NextResponse.json({
       success: true,

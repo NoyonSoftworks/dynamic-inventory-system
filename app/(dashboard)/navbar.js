@@ -6,25 +6,20 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
 
-const ADMIN_EMAIL = (
-  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-)
-  .toLowerCase()
-  .trim();
-
-// ── 5 Core Primary Navigation Tabs (Middle Section) ────────────
+// ── 6 Core Primary Navigation Tabs ─────────────────────────────
 const CORE_NAV_LINKS = [
-  { href: "/dashboard/products", label: "Inventory", icon: "📦", roles: ["viewer", "operator", "admin"] },
+  { href: "/dashboard", label: "Dashboard", icon: "📊", roles: ["viewer", "operator", "admin"] },
+  { href: "/dashboard/products", label: "Catalog", icon: "📦", roles: ["viewer", "operator", "admin"] },
   { href: "/dashboard/scanner", label: "Scanner", icon: "📱", roles: ["operator", "admin"] },
   { href: "/operations", label: "Operations", icon: "⚡", roles: ["operator", "admin"] },
   { href: "/bulk-orders", label: "Orders", icon: "🚚", roles: ["operator", "admin"] },
   { href: "/reports", label: "Reports", icon: "📈", roles: ["viewer", "operator", "admin"] },
 ];
 
-const ROLE_BADGES = {
-  admin: "bg-purple-50 text-purple-700 border-purple-200/80 ring-1 ring-purple-500/10",
-  operator: "bg-blue-50 text-blue-700 border-blue-200/80 ring-1 ring-blue-500/10",
-  viewer: "bg-slate-100 text-slate-700 border-slate-200/80",
+const ROLE_BADGE_STYLES = {
+  admin: "bg-purple-50 text-purple-700 border-purple-200",
+  operator: "bg-blue-50 text-blue-700 border-blue-200",
+  viewer: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 export default function Navbar() {
@@ -50,15 +45,20 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Logout handler
+  // Secure sign out handler
   async function handleLogout() {
-    document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
-    document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
-    await supabase.auth.signOut();
-    router.push("/login");
+    try {
+      document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+      document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn("Sign out note:", err);
+    } finally {
+      router.replace("/login");
+    }
   }
 
-  // Never render client navbar on /login or /admin routes
+  // Never render client navbar on /login or standalone /admin routes
   if (
     pathname === "/login" ||
     pathname === "/admin" ||
@@ -67,57 +67,63 @@ export default function Navbar() {
     return null;
   }
 
-  const isPlatformOwner =
-    (userEmail || "").toLowerCase().trim() === ADMIN_EMAIL;
+  // Workspace admin authorization check within tenant context
+  const isWorkspaceAdmin = role === "admin";
+
+  const appBrandName = process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory";
+  const workspaceDisplayName =
+    businessName && businessName.toLowerCase() !== "lavanza"
+      ? businessName
+      : "My Workspace";
 
   const visibleCoreLinks = CORE_NAV_LINKS.filter((item) =>
     item.roles.includes(role || "viewer")
   );
 
+  const isLinkActive = (href) => {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard";
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const currentRoleStyle = ROLE_BADGE_STYLES[role] || ROLE_BADGE_STYLES.viewer;
+
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 font-sans transition-all">
-      <div className="mx-auto max-w-[1440px] px-3 sm:px-6 lg:px-8">
-        <div className="flex h-14 sm:h-16 items-center justify-between gap-3">
-          {/* ── 1. LEFT: Brand & Workspace Monogram ───────────── */}
-          <div className="flex items-center gap-2.5 shrink-0">
+    <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 font-sans shadow-2xs">
+      <div className="mx-auto max-w-[1440px] px-3 sm:px-6">
+        <div className="flex h-14 items-center justify-between gap-2 sm:gap-4">
+          {/* ── 1. LEFT: Brand & Workspace Identity ───────────── */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link
               href="/dashboard/products"
-              className="flex items-center gap-2 group focus:outline-none"
+              className="flex items-center gap-2 sm:gap-2.5 group focus:outline-none"
             >
-              <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-slate-900 text-white text-base sm:text-lg shadow-sm group-hover:bg-indigo-600 transition-colors">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white text-base shadow-sm group-hover:bg-indigo-600 transition-colors">
                 📦
               </div>
-              <div className="flex flex-col leading-none">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
-                  {businessName || process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory"}
+              <div className="flex flex-col leading-tight">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors truncate max-w-[130px] sm:max-w-[200px]">
+                  {workspaceDisplayName}
                 </span>
                 <span className="text-[10px] text-slate-400 font-medium tracking-wide">
-                  Inventory SaaS
+                  {appBrandName}
                 </span>
               </div>
             </Link>
-
-            <span className="hidden sm:inline-block text-slate-300 font-light text-sm select-none">
-              /
-            </span>
           </div>
 
-          {/* ── 2. MIDDLE: Core Navigation (6 Primary Tabs, No Clipping) ── */}
-          <div className="flex-1 min-w-0 px-1 sm:px-4 flex items-center justify-start md:justify-center">
-            <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto lg:overflow-visible no-scrollbar py-1 w-full md:w-auto">
+          {/* ── 2. MIDDLE: Core Tenant Navigation (Clean Scrollable Tabs) ── */}
+          <div className="flex-1 min-w-0 flex items-center justify-center px-1 sm:px-4">
+            <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-1">
               {visibleCoreLinks.map((link) => {
-                const isActive =
-                  link.href === "/"
-                    ? pathname === "/"
-                    : pathname === link.href ||
-                      (link.href !== "/" && pathname.startsWith(link.href));
-
+                const active = isLinkActive(link.href);
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     className={`flex flex-row items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 transition-all duration-150 ${
-                      isActive
+                      active
                         ? "bg-slate-100 text-slate-900 font-semibold border border-slate-200/90 shadow-2xs"
                         : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent"
                     }`}
@@ -130,33 +136,17 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* ── 3. RIGHT: Actions, Utilities & Profile Dropdown ─── */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Quick Action: + Add Product (Admin Only) */}
-            {role === "admin" && (
+          {/* ── 3. RIGHT: Workspace Settings & User Profile ──────── */}
+          {/* Note: Super Admin controls are completely excluded from tenant UI */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Quick Settings Icon (Workspace Admins only) */}
+            {isWorkspaceAdmin && (
               <Link
-                href="/dashboard/products/add"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition shrink-0"
-                title="Add New Product Intake"
+                href="/dashboard/settings"
+                className="hidden sm:inline-flex p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition shrink-0"
+                title="Store & Integration Settings"
               >
-                <span>➕</span>
-                <span>Add Product</span>
-              </Link>
-            )}
-
-            {/* Direct Settings Shortcut on Wide Screens */}
-            {role === "admin" && (
-              <Link
-                href="/dashboard/settings?tab=couriers"
-                className={`hidden lg:inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition shrink-0 ${
-                  pathname.startsWith("/dashboard/settings") || pathname.startsWith("/settings")
-                    ? "bg-slate-100 text-slate-900 border-slate-200"
-                    : "border-slate-200/80 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                }`}
-                title="Courier & CMS Webhook Integrations"
-              >
-                <span>⚡</span>
-                <span>API &amp; Couriers</span>
+                <span className="text-base">⚙️</span>
               </Link>
             )}
 
@@ -169,19 +159,15 @@ export default function Navbar() {
                   className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 p-1 sm:px-2.5 sm:py-1.5 shadow-2xs transition focus:outline-none"
                   aria-expanded={profileOpen}
                 >
-                  {/* Role Badge */}
-                  <span
-                    className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] sm:text-xs font-semibold uppercase tracking-wider border shrink-0 ${
-                      ROLE_BADGES[role] || ROLE_BADGES.viewer
-                    }`}
-                  >
-                    {role || "user"}
-                  </span>
-
-                  {/* Initial Avatar Circle */}
-                  <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs shrink-0">
+                  <div className="h-6 w-6 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs shrink-0">
                     {(userEmail[0] || "U").toUpperCase()}
                   </div>
+
+                  <span
+                    className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider border shrink-0 ${currentRoleStyle}`}
+                  >
+                    {role || "Admin"}
+                  </span>
 
                   <span className="text-slate-400 text-xs hidden sm:inline-block">
                     ▾
@@ -199,21 +185,28 @@ export default function Navbar() {
                       <div className="text-xs font-bold text-slate-900 truncate" title={userEmail}>
                         {userEmail}
                       </div>
-                      <div className="flex items-center gap-1.5 pt-1">
-                        <span className="text-[10px] font-medium text-slate-500">
-                          🏢 {businessName || "Lavanza"}
-                        </span>
+                      <div className="text-[11px] text-slate-500 truncate pt-0.5">
+                        🏢 {workspaceDisplayName}
                       </div>
                     </div>
 
-                    {/* Menu Navigation Links */}
-                    <div className="py-1.5 space-y-0.5 text-xs">
-                      {role === "admin" && (
+                    {/* Pure Tenant Navigation Items */}
+                    <div className="py-1.5 space-y-0.5 text-xs font-medium">
+                      {isWorkspaceAdmin && (
                         <>
+                          <Link
+                            href="/dashboard/products/add"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-600 hover:bg-indigo-50 font-semibold transition"
+                          >
+                            <span>➕</span>
+                            <span>Add Product Intake</span>
+                          </Link>
+
                           <Link
                             href="/dashboard/settings?tab=couriers"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium transition"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
                           >
                             <span>⚡</span>
                             <span>Courier API &amp; Webhooks</span>
@@ -222,7 +215,7 @@ export default function Navbar() {
                           <Link
                             href="/dashboard/settings?tab=team"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium transition"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
                           >
                             <span>⚙️</span>
                             <span>Team &amp; Store Settings</span>
@@ -231,27 +224,16 @@ export default function Navbar() {
                           <Link
                             href="/dashboard/billing"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium transition"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
                           >
                             <span>💎</span>
                             <span>Billing &amp; Subscription</span>
                           </Link>
                         </>
                       )}
-
-                      {isPlatformOwner && (
-                        <Link
-                          href="/admin"
-                          onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 font-semibold transition"
-                        >
-                          <span>🛡️</span>
-                          <span>Super Admin Console</span>
-                        </Link>
-                      )}
                     </div>
 
-                    {/* Logout Option */}
+                    {/* Sign Out Option */}
                     <div className="pt-1.5 border-t border-slate-100">
                       <button
                         onClick={() => {
@@ -313,20 +295,23 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ── Mobile Drawer (Secondary utilities & profile on mobile) ──── */}
+      {/* ── Mobile Drawer ────────────────────────────────────────── */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-3 shadow-lg animate-in slide-in-from-top-2 duration-150">
           {userEmail && (
             <div className="pb-2 border-b border-slate-100 flex items-center justify-between">
-              <span className="text-xs font-mono text-slate-600 truncate max-w-[200px]">
-                {userEmail}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xs font-mono text-slate-700 truncate max-w-[200px]">
+                  {userEmail}
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium truncate max-w-[200px]">
+                  🏢 {workspaceDisplayName}
+                </span>
+              </div>
               <span
-                className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${
-                  ROLE_BADGES[role] || ROLE_BADGES.viewer
-                }`}
+                className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${currentRoleStyle}`}
               >
-                {role}
+                {role || "Admin"}
               </span>
             </div>
           )}
@@ -337,17 +322,14 @@ export default function Navbar() {
               Main Menu
             </span>
             {visibleCoreLinks.map((link) => {
-              const isActive =
-                link.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(link.href);
+              const active = isLinkActive(link.href);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition ${
-                    isActive
+                    active
                       ? "bg-slate-100 text-slate-900 font-semibold"
                       : "text-slate-600 hover:bg-slate-50"
                   }`}
@@ -359,26 +341,20 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Action: Add Product on Mobile */}
-          {role === "admin" && (
-            <div className="pt-2 border-t border-slate-100">
+          {/* Actions & Settings on Mobile (Workspace Admin) */}
+          {isWorkspaceAdmin && (
+            <div className="pt-2 border-t border-slate-100 space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-2">
+                Actions &amp; Settings
+              </span>
               <Link
                 href="/dashboard/products/add"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-indigo-700 transition"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-indigo-600 hover:bg-indigo-50 transition"
               >
                 <span>➕</span>
                 <span>Add Product Intake</span>
               </Link>
-            </div>
-          )}
-
-          {/* Secondary Utilities on Mobile */}
-          {role === "admin" && (
-            <div className="pt-2 border-t border-slate-100 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-2">
-                Settings &amp; Integrations
-              </span>
               <Link
                 href="/dashboard/settings?tab=couriers"
                 onClick={() => setMobileMenuOpen(false)}
@@ -403,20 +379,10 @@ export default function Navbar() {
                 <span>💎</span>
                 <span>Billing &amp; Subscription</span>
               </Link>
-              {isPlatformOwner && (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 transition"
-                >
-                  <span>🛡️</span>
-                  <span>Super Admin Console</span>
-                </Link>
-              )}
             </div>
           )}
 
-          {/* Logout on Mobile Drawer */}
+          {/* Sign Out on Mobile Drawer */}
           {userEmail && (
             <div className="pt-2 border-t border-slate-100">
               <button

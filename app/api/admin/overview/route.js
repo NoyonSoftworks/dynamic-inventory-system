@@ -107,7 +107,7 @@ export async function GET() {
         : [
             {
               id: "00000000-0000-0000-0000-000000000001",
-              name: "Lavanza Primary Workspace",
+              name: `${process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory"} Primary Workspace`,
               created_at: new Date().toISOString(),
             },
           ];

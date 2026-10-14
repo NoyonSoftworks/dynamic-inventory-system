@@ -106,6 +106,7 @@ export async function GET(request) {
       count: logs ? logs.length : 0,
     });
   } catch (err) {
+    if (err?.digest) throw err;
     console.error("Activity logs API error:", err);
     return NextResponse.json(
       { success: false, error: err.message || "Failed to load activity logs." },

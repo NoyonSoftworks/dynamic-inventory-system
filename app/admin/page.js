@@ -426,7 +426,7 @@ export default function SuperAdminDashboard() {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-              <span>🛡️</span> Lavanza Command Hub
+              <span>🛡️</span> {process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory"} Command Hub
             </h1>
             <p className="mt-1 text-xs text-slate-400">
               Logged in as <code className="text-indigo-400 font-mono">{currentUserEmail}</code>
@@ -1456,7 +1456,7 @@ export default function SuperAdminDashboard() {
                           sms_sender_id: e.target.value,
                         }))
                       }
-                      placeholder="e.g. 8809612345678 or LAVANZA"
+                      placeholder="e.g. 8809612345678 or SMARTINV"
                       className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
                     />
                   </div>

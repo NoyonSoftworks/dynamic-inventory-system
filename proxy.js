@@ -2,75 +2,88 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
+/**
+ * Super Admin master identity
+ */
 const ADMIN_EMAIL = (
   process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
 )
   .toLowerCase()
   .trim();
 
-const ROLE_ACCESS = {
-  viewer: [
-    "/",
-    "/dashboard/products",
-    "/reports",
-    "/login",
-    "/update-password",
-  ],
-  operator: [
-    "/",
-    "/dashboard",
-    "/reports",
-    "/operations",
-    "/bulk-orders",
-    "/login",
-    "/update-password",
-  ],
-  admin: [
-    "/",
-    "/dashboard",
-    "/reports",
-    "/operations",
-    "/bulk-orders",
-    "/add-product",
-    "/settings",
-    "/login",
-    "/update-password",
-  ],
-};
+/**
+ * Explicitly whitelisted public routes that completely bypass authentication.
+ */
+const PUBLIC_EXACT_ROUTES = new Set([
+  "/",
+  "/demo",
+  "/login",
+  "/register",
+  "/update-password",
+]);
 
-function hasAccess(role, pathname) {
-  const routes = ROLE_ACCESS[role] || ROLE_ACCESS.viewer;
-  return routes.some((route) =>
-    route === "/" ? pathname === "/" : pathname.startsWith(route)
-  );
-}
+const PUBLIC_ROUTE_PREFIXES = [
+  "/demo",
+  "/login",
+  "/register",
+  "/auth",
+  "/api/admin/settings",
+];
+
+/**
+ * Protected route prefixes that strictly require an active Supabase session.
+ */
+const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/admin",
+  "/operations",
+  "/bulk-orders",
+  "/reports",
+  "/settings",
+  "/add-product",
+];
 
 export async function proxy(request) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
 
-  // 1. Skip static assets, Next.js internal files, and API endpoints
+  // 1. Skip Next.js internal static assets and public media files
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname.includes(".")
+    pathname.includes(".") ||
+    pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
   }
 
-  // 2. Allow authentication routes without redirection
-  if (pathname === "/login" || pathname.startsWith("/auth/")) {
+  // 2. Explicit Whitelist Check: Completely bypass auth for public routes
+  if (
+    PUBLIC_EXACT_ROUTES.has(pathname) ||
+    PUBLIC_ROUTE_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    )
+  ) {
     return NextResponse.next();
   }
 
+  // 3. Protected Route Verification: Only enforce auth for declared protected surfaces
+  const isProtectedRoute = PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+
+  // If the route is NOT declared as protected (and not public API), allow pass-through
+  if (!isProtectedRoute) {
+    return NextResponse.next();
+  }
+
+  // 4. Validate Supabase environment configuration
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.next();
   }
 
-  // 3. Initialize Supabase SSR Middleware Client properly
+  // 5. Initialize Supabase SSR Middleware Client
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -96,88 +109,71 @@ export async function proxy(request) {
     },
   });
 
-  // 4. Retrieve current authenticated user
+  // 6. Verify authenticated session
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Also check manual token cookie fallback if SSR cookie is not present
+  // Fallback: Check manual token cookie if SSR cookie session isn't available
   let currentUser = user;
   if (!currentUser) {
     const rawToken = request.cookies.get("sb-access-token")?.value;
     if (rawToken) {
-      const fallbackClient = createClient(supabaseUrl, supabaseAnonKey);
-      const { data: rawData } = await fallbackClient.auth.getUser(rawToken);
-      if (rawData?.user) {
-        currentUser = rawData.user;
+      try {
+        const fallbackClient = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const { data: rawData } = await fallbackClient.auth.getUser(rawToken);
+        if (rawData?.user) {
+          currentUser = rawData.user;
+        }
+      } catch (tokenErr) {
+        console.warn("Fallback token verification note:", tokenErr);
       }
     }
   }
 
-  const userEmail = (currentUser?.email || "").toLowerCase().trim();
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+  const userEmail = (currentUser?.email || "").toLowerCase().trim();
 
-  // 5. REQUIREMENT: Handle /admin Route Security
-  if (isAdminRoute) {
-    // If not logged in OR email does NOT match admin email -> strictly redirect to /?denied=1
-    if (!currentUser || userEmail !== ADMIN_EMAIL) {
-      const deniedUrl = new URL("/", request.url);
-      deniedUrl.searchParams.set("denied", "1");
-      return NextResponse.redirect(deniedUrl);
-    }
-
-    // If they ARE the admin -> allow access to proceed
-    return response;
-  }
-
-  // 6. REQUIREMENT: Ensure other existing dashboard protection rules remain intact
-  // Unauthenticated users are redirected to /login
+  // 7. Enforce Redirect to Login for Unauthenticated Access to Protected Routes
   if (!currentUser) {
+    // If accessing /admin, allow pass-through to app/admin/page.js
+    // app/admin/page.js has its own strict client-side session guard and 403 access control
+    if (isAdminRoute) {
+      return NextResponse.next();
+    }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Look up user role and business workspace
-  const dbClient = serviceRoleKey
-    ? createClient(supabaseUrl, serviceRoleKey)
-    : supabase;
-
-  const { data: roleData } = await dbClient
-    .from("user_roles")
-    .select("role, business_id")
-    .eq("id", currentUser.id)
-    .maybeSingle();
-
-  let role = roleData?.role || "viewer";
-  const businessId = roleData?.business_id || "";
-
-  // Admin email always has admin role across all standard client views
-  if (userEmail === ADMIN_EMAIL) {
-    role = "admin";
+  // 8. Strict Super Admin Route Protection (/admin)
+  if (isAdminRoute) {
+    // Only the verified system super admin email can access /admin
+    if (userEmail !== ADMIN_EMAIL) {
+      const deniedUrl = new URL("/dashboard", request.url);
+      deniedUrl.searchParams.set("denied", "1");
+      return NextResponse.redirect(deniedUrl);
+    }
   }
 
-  // Role-based route check
-  if (!hasAccess(role, pathname)) {
-    const deniedUrl = new URL("/", request.url);
-    deniedUrl.searchParams.set("denied", "1");
-    return NextResponse.redirect(deniedUrl);
-  }
-
-  // Pass user headers downstream
-  response.headers.set("x-user-email", currentUser.email || "");
-  response.headers.set("x-user-role", role);
-  response.headers.set("x-user-business-id", businessId);
+  // 9. Propagate user context headers downstream
+  response.headers.set("x-user-id", currentUser.id);
+  response.headers.set("x-user-email", userEmail);
 
   return response;
 }
 
-// Support both `proxy` and `middleware` naming conventions
+// Aliases for Next.js convention compatibility
 export const middleware = proxy;
 export default proxy;
 
+/**
+ * Strictly scoped matcher: Ignores static files, images, favicon, and file extensions
+ */
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|txt|xml)$).*)",
   ],
 };

@@ -27,28 +27,65 @@ export default function LoginPage() {
   const [message, setMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ── Auth State Listener for Cookies ────────────────────
+  const ADMIN_EMAIL = (
+    process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
+  )
+    .toLowerCase()
+    .trim();
+
+  function getRedirectTarget(currentUserEmail) {
+    if (typeof window === "undefined") return "/dashboard/products";
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get("redirect") || params.get("next");
+    if (target && target.startsWith("/")) return target;
+
+    // Super admin default: /admin | Merchant default: /dashboard/products
+    const isSuperAdmin =
+      Boolean(currentUserEmail) &&
+      currentUserEmail.toLowerCase().trim() === ADMIN_EMAIL;
+    return isSuperAdmin ? "/admin" : "/dashboard/products";
+  }
+
+  function setAuthCookies(session) {
+    if (!session || typeof window === "undefined") return;
+    const isHttps = window.location.protocol === "https:";
+    const secureFlag = isHttps ? "; Secure" : "";
+    document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${session.expires_in}; SameSite=Lax${secureFlag}`;
+    document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${session.expires_in}; SameSite=Lax${secureFlag}`;
+  }
+
+  // ── Auth State Listener for Cookies & Auto-Redirect ───────
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      // Sync tokens to cookies so proxy.js can read them
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         if (session) {
-          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${session.expires_in}; SameSite=Lax; Secure`;
-          document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${session.expires_in}; SameSite=Lax; Secure`;
+          setAuthCookies(session);
         }
       }
 
-      // Clear cookies on sign out
       if (event === "SIGNED_OUT") {
-        document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
-        document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+        document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+        document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
       }
     });
 
+    // If already authenticated, redirect to requested page
+    async function checkExistingSession() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user) {
+        setAuthCookies(session);
+        const target = getRedirectTarget(session.user.email);
+        router.replace(target);
+      }
+    }
+    checkExistingSession();
+
     return () => subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   // ── 60-Second Cooldown Countdown Timer ─────────────────
   useEffect(() => {
@@ -122,12 +159,12 @@ export default function LoginPage() {
 
         // Set cookies immediately before redirect
         if (data?.session) {
-          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
-          document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
+          setAuthCookies(data.session);
         }
 
-        setMessage("Verification successful! Redirecting to dashboard...");
-        router.push("/");
+        setMessage("Verification successful! Redirecting...");
+        const target = getRedirectTarget(data?.user?.email || email);
+        router.push(target);
         return;
       }
 
@@ -250,11 +287,11 @@ export default function LoginPage() {
 
       // Set cookies immediately before redirect to prevent race conditions
       if (data?.session) {
-        document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
-        document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
+        setAuthCookies(data.session);
       }
 
-      router.push("/");
+      const target = getRedirectTarget(data?.user?.email || email);
+      router.push(target);
       return;
     } catch (err) {
       setError(

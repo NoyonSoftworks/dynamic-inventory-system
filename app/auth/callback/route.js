@@ -8,10 +8,7 @@ export async function GET(request) {
   const origin = request.nextUrl.origin;
 
   if (code) {
-    // Prepare the redirect response upfront so session cookies can be attached to it
-    let response = NextResponse.redirect(new URL(next, origin));
-
-    // Initialize Supabase client using @supabase/ssr with Next.js cookie handling
+    const cookieStore = [];
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -21,9 +18,7 @@ export async function GET(request) {
             return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              response.cookies.set(name, value, options);
-            });
+            cookieStore.push(...cookiesToSet);
           },
         },
       }
@@ -33,7 +28,27 @@ export async function GET(request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data?.session) {
-      // Explicitly set sb-access-token and sb-refresh-token so proxy.js reads them immediately
+      const userEmail = (data.session.user.email || "").toLowerCase().trim();
+      const adminEmail = (
+        process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
+      )
+        .toLowerCase()
+        .trim();
+      const isSuperAdmin = userEmail === adminEmail;
+
+      let destination = next;
+      if (!destination || destination === "/") {
+        destination = isSuperAdmin ? "/admin" : "/dashboard/products";
+      }
+
+      const redirectUrl = new URL(destination, origin);
+      const response = NextResponse.redirect(redirectUrl);
+
+      cookieStore.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options);
+      });
+
+      // Explicitly set sb-access-token and sb-refresh-token
       const isSecure = request.nextUrl.protocol === "https:";
       const maxAge = data.session.expires_in;
 

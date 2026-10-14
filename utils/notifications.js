@@ -126,7 +126,8 @@ export function formatDispatchMessage({
   businessName,
 }) {
   const customer = customerName?.trim() || "Customer";
-  const store = businessName?.trim() || "Lavanza Store";
+  const defaultStore = process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory";
+  const store = businessName?.trim() || defaultStore;
   const courier = courierName?.trim() || "Courier Service";
   const id = String(orderId || "").trim();
 

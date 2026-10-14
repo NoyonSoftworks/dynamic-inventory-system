@@ -70,7 +70,7 @@ export function useBusinessContext() {
         // 3. Self-healing auto-provisioning: If user has no workspace, provision one immediately!
         if (!data && !isMasterAdmin && session.user.id) {
           try {
-            const storeName = userEmail ? `${userEmail.split("@")[0]}'s Store` : "My Business";
+            const storeName = userEmail ? `${userEmail.split("@")[0]}'s Store` : "My Workspace";
             const { data: newBiz, error: newBizErr } = await supabase
               .from("businesses")
               .insert({ name: storeName })
@@ -97,9 +97,14 @@ export function useBusinessContext() {
         }
 
         if (!cancelled) {
-          const resolvedRole = isMasterAdmin ? "admin" : (data?.role || "admin");
-          const resolvedBusinessId = data?.business_id || (isMasterAdmin ? "00000000-0000-0000-0000-000000000001" : null);
-          const resolvedBusinessName = data?.businesses?.name || (isMasterAdmin ? "Lavanza Command Center" : "My Business");
+          const resolvedRole = data?.role || "admin";
+          const rawBizName = data?.businesses?.name;
+          const cleanBizName =
+            rawBizName && rawBizName.toLowerCase() !== "lavanza"
+              ? rawBizName
+              : "My Workspace";
+          const resolvedBusinessName = cleanBizName;
+          const resolvedBusinessId = data?.business_id || null;
 
           setCtx({
             businessId: resolvedBusinessId,
@@ -110,7 +115,8 @@ export function useBusinessContext() {
             loading: false,
           });
         }
-      } catch {
+      } catch (err) {
+        console.error("useBusinessContext error:", err);
         if (!cancelled) setCtx((prev) => ({ ...prev, loading: false }));
       }
     }
