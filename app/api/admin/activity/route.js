@@ -38,17 +38,40 @@ export async function GET(request) {
 
     const {
       data: { user },
-      error: authErr,
     } = await ssrClient.auth.getUser();
 
-    if (authErr || !user) {
+    let currentUser = user;
+    if (!currentUser) {
+      const authHeader = request.headers.get("authorization");
+      const bearerToken = authHeader?.startsWith("Bearer ")
+        ? authHeader.substring(7)
+        : null;
+      const cookieToken = request.cookies.get("sb-access-token")?.value;
+      const token = bearerToken || cookieToken;
+
+      if (token) {
+        const fallbackClient = createClient(
+          supabaseUrl,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          {
+            auth: { persistSession: false, autoRefreshToken: false },
+          }
+        );
+        const { data: fallbackData } = await fallbackClient.auth.getUser(token);
+        if (fallbackData?.user) {
+          currentUser = fallbackData.user;
+        }
+      }
+    }
+
+    if (!currentUser) {
       return NextResponse.json(
         { success: false, error: "Authentication required" },
         { status: 401 }
       );
     }
 
-    const isAdmin = user.email?.toLowerCase().trim() === ADMIN_EMAIL;
+    const isAdmin = currentUser.email?.toLowerCase().trim() === ADMIN_EMAIL;
     const { searchParams } = new URL(request.url);
     const limit = Math.min(Number(searchParams.get("limit")) || 40, 100);
     const actionFilter = searchParams.get("action");

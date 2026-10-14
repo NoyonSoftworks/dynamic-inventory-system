@@ -101,16 +101,10 @@ export async function GET() {
       allCouriers = couriersBasic || [];
     }
 
-    const bizList =
-      businesses && businesses.length > 0
-        ? businesses
-        : [
-            {
-              id: "00000000-0000-0000-0000-000000000001",
-              name: `${process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory"} Primary Workspace`,
-              created_at: new Date().toISOString(),
-            },
-          ];
+    // Only include genuine merchant tenant businesses (exclude legacy seed or unassigned records)
+    const bizList = (businesses || []).filter(
+      (b) => b.id !== "00000000-0000-0000-0000-000000000001"
+    );
 
     // Map business metrics and owner identities
     const tenants = bizList.map((biz) => {
@@ -129,9 +123,7 @@ export async function GET() {
       const primaryUser =
         bizUsers.find((u) => u.role === "admin") || bizUsers[0];
       const ownerEmail = primaryUser?.email || "Unassigned Account";
-      const isOwnerWorkspace =
-        ownerEmail.toLowerCase().trim() === ADMIN_EMAIL ||
-        biz.id === "00000000-0000-0000-0000-000000000001";
+      const isOwnerWorkspace = false; // Super Admin does not own a merchant workspace
 
       return {
         id: biz.id,

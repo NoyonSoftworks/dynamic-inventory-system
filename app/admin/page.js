@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
+import AdminTasksTab from "./components/AdminTasksTab";
 
 const ADMIN_EMAIL = (
   process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
@@ -146,12 +147,41 @@ export default function SuperAdminDashboard() {
 
     async function checkSecurityAndLoad() {
       try {
+        let currentUser = null;
+
         const {
           data: { user },
           error: authErr,
         } = await supabase.auth.getUser();
 
-        if (authErr || !user || !user.email) {
+        if (user && user.email) {
+          currentUser = user;
+        } else {
+          // Fallback 1: Check active session cache
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session?.user?.email) {
+            currentUser = sessionData.session.user;
+          } else if (typeof document !== "undefined") {
+            // Fallback 2: Check sb-access-token cookie
+            const tokenMatch = document.cookie.match(/sb-access-token=([^;]+)/);
+            const refreshMatch = document.cookie.match(/sb-refresh-token=([^;]+)/);
+            if (tokenMatch && refreshMatch) {
+              try {
+                const { data: recData } = await supabase.auth.setSession({
+                  access_token: tokenMatch[1],
+                  refresh_token: refreshMatch[1],
+                });
+                if (recData?.user?.email) {
+                  currentUser = recData.user;
+                }
+              } catch (recErr) {
+                console.warn("Session recovery note:", recErr);
+              }
+            }
+          }
+        }
+
+        if (!currentUser || !currentUser.email) {
           if (isMounted) {
             setIsAuthorized(false);
             setAuthChecking(false);
@@ -160,7 +190,7 @@ export default function SuperAdminDashboard() {
           return;
         }
 
-        const email = user.email.toLowerCase().trim();
+        const email = currentUser.email.toLowerCase().trim();
         if (isMounted) setCurrentUserEmail(email);
 
         if (email !== ADMIN_EMAIL) {
@@ -539,6 +569,22 @@ export default function SuperAdminDashboard() {
                 {activityLogs.length}
               </span>
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("tasks")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+              activeTab === "tasks"
+                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            }`}
+          >
+            <span>⚡</span>
+            <span>Tasks &amp; Operations</span>
+            <span className="rounded-full bg-fuchsia-500/20 border border-fuchsia-500/30 px-1.5 py-0.2 text-[9px] font-mono text-fuchsia-300 font-bold">
+              AI
+            </span>
           </button>
         </div>
 
@@ -1730,6 +1776,11 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* ── TASKS & LOGISTICS TEAM DISPATCH TAB ────────────────── */}
+        {activeTab === "tasks" && (
+          <AdminTasksTab triggerToast={triggerToast} />
         )}
       </div>
     </main>

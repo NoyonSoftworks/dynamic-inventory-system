@@ -47,8 +47,26 @@ async function verifyAdminCaller(request, supabaseUrl, supabaseAnonKey) {
       error,
     } = await ssrClient.auth.getUser();
 
-    if (error || !user?.email) return false;
-    return user.email.toLowerCase().trim() === ADMIN_EMAIL;
+    let currentUser = user;
+    if (!currentUser) {
+      const authHeader = request.headers.get("authorization");
+      const bearerToken = authHeader?.startsWith("Bearer ")
+        ? authHeader.substring(7)
+        : null;
+      const cookieToken = request.cookies.get("sb-access-token")?.value;
+      const token = bearerToken || cookieToken;
+
+      if (token) {
+        const fallbackClient = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const { data: fbData } = await fallbackClient.auth.getUser(token);
+        if (fbData?.user) currentUser = fbData.user;
+      }
+    }
+
+    if (!currentUser?.email) return false;
+    return currentUser.email.toLowerCase().trim() === ADMIN_EMAIL;
   } catch (err) {
     if (err?.digest) throw err;
     return false;

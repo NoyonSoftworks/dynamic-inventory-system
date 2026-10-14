@@ -148,13 +148,23 @@ export async function proxy(request) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 8. Strict Super Admin Route Protection (/admin)
+  // 8. Strict Super Admin Route Protection & Isolation
   if (isAdminRoute) {
     // Only the verified system super admin email can access /admin
     if (userEmail !== ADMIN_EMAIL) {
       const deniedUrl = new URL("/dashboard", request.url);
       deniedUrl.searchParams.set("denied", "1");
       return NextResponse.redirect(deniedUrl);
+    }
+  } else {
+    // If Super Admin attempts to access merchant workspace routes, route them to /admin
+    const isMerchantRoute = PROTECTED_PREFIXES.some(
+      (prefix) =>
+        prefix !== "/admin" &&
+        (pathname === prefix || pathname.startsWith(`${prefix}/`))
+    );
+    if (isMerchantRoute && userEmail === ADMIN_EMAIL) {
+      return NextResponse.redirect(new URL("/admin", request.url));
     }
   }
 

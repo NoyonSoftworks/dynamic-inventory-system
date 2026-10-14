@@ -44,14 +44,19 @@ export async function GET(request) {
       const redirectUrl = new URL(destination, origin);
       const response = NextResponse.redirect(redirectUrl);
 
-      cookieStore.forEach(({ name, value, options }) => {
-        response.cookies.set(name, value, options);
-      });
-
-      // Explicitly set sb-access-token and sb-refresh-token
       const isSecure = request.nextUrl.protocol === "https:";
       const maxAge = data.session.expires_in;
 
+      cookieStore.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, {
+          ...options,
+          path: options?.path || "/",
+          sameSite: "lax",
+          secure: isSecure,
+        });
+      });
+
+      // Explicitly set sb-access-token and sb-refresh-token
       response.cookies.set("sb-access-token", data.session.access_token, {
         path: "/",
         maxAge: maxAge,
