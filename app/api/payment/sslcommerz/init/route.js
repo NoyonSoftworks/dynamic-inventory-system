@@ -24,31 +24,25 @@ export async function POST(request) {
       );
     }
 
-    // Parse requested body (businessId, optional currency override)
-    const body = await request.json().catch(() => ({}));
-    let businessId = body.businessId;
-
     const adminClient = createAdminClient();
 
-    // If businessId not supplied, resolve from user_roles
-    if (!businessId) {
-      const { data: roleRow } = await adminClient
-        .from("user_roles")
-        .select("business_id")
-        .eq("id", user.id)
-        .maybeSingle();
+    // 2. Strict Workspace Isolation: Resolve caller's workspace from user_roles
+    const { data: roleRow, error: roleErr } = await adminClient
+      .from("user_roles")
+      .select("business_id, role")
+      .eq("id", user.id)
+      .maybeSingle();
 
-      businessId = roleRow?.business_id;
-    }
-
-    if (!businessId) {
+    if (roleErr || !roleRow?.business_id) {
       return NextResponse.json(
         { success: false, error: "No workspace found linked to your account." },
         { status: 400 }
       );
     }
 
-    // 2. Fetch SaaS settings dynamically from saas_settings table
+    const businessId = roleRow.business_id;
+
+    // 3. Fetch SaaS settings dynamically from saas_settings table
     const { data: settingsRow } = await adminClient
       .from("saas_settings")
       .select("*")
@@ -84,7 +78,7 @@ export async function POST(request) {
     const exchangeRate = Number(settingsRow?.bdt_exchange_rate) || 122.0;
     const totalAmount = (proPlanUsd * exchangeRate).toFixed(2); // In BDT
 
-    // 3. Generate unique transaction identifier
+    // 4. Generate unique transaction identifier
     const tranId = `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
     // Callback URLs
@@ -101,7 +95,7 @@ export async function POST(request) {
       "SaaS Merchant";
     const customerEmail = user.email || "merchant@smartinventory.io";
 
-    // 4. Build SSLCommerz session request payload
+    // 5. Build SSLCommerz session request payload
     const sslczParams = new URLSearchParams();
     sslczParams.append("store_id", storeId);
     sslczParams.append("store_passwd", storePasswd);
@@ -129,7 +123,7 @@ export async function POST(request) {
     sslczParams.append("value_c", customerEmail);
     sslczParams.append("value_d", "PRO_PLAN");
 
-    // 5. Select API endpoint based on environment mode
+    // 6. Select API endpoint based on environment mode
     const sslczSessionEndpoint = isLive
       ? "https://securepay.sslcommerz.com/gwprocess/v4/api.php"
       : "https://sandbox.sslcommerz.com/gwprocess/v4/api.php";
@@ -161,7 +155,7 @@ export async function POST(request) {
       );
     }
 
-    // 6. Record transaction attempt in payment_transactions (if table exists)
+    // 7. Record transaction attempt in payment_transactions (if table exists)
     try {
       await adminClient.from("payment_transactions").insert({
         tran_id: tranId,
@@ -177,11 +171,11 @@ export async function POST(request) {
           isLive,
         },
       });
-    } catch (dbErr) {
+    } catch {
       // Non-fatal if table not created yet
     }
 
-    // 7. Log Footprint via logActivity utility
+    // 8. Log Footprint via logActivity utility
     await logActivity({
       businessId,
       userId: user.id,
@@ -198,7 +192,7 @@ export async function POST(request) {
       req: request,
     });
 
-    // 8. Return gateway redirect URL
+    // 9. Return gateway redirect URL
     return NextResponse.json({
       success: true,
       gatewayUrl: sslczData.GatewayPageURL,
@@ -211,7 +205,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
-        error: err.message || "Failed to initialize payment gateway.",
+        error: "Failed to initialize payment gateway.",
       },
       { status: 500 }
     );

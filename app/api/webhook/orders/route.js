@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit, getClientIp } from "@/utils/rate-limit";
 
-// Webhook secret key configuration (env or fallback)
-const EXPECTED_API_KEY = process.env.CMS_WEBHOOK_API_KEY || "sk_live_123456789";
+// Webhook secret key configuration (from environment)
+const EXPECTED_API_KEY = process.env.CMS_WEBHOOK_API_KEY;
 
 // Security constants
 const MAX_PAYLOAD_BYTES = 256 * 1024; // 256 KB max payload size
@@ -103,6 +103,18 @@ export async function POST(request) {
   }
 
   // ── 3. AUTHENTICATION (x-api-key) ─────────────────────────
+  if (!EXPECTED_API_KEY) {
+    console.error("Critical: CMS_WEBHOOK_API_KEY is not defined in environment variables.");
+    return NextResponse.json(
+      {
+        success: false,
+        code: "SERVER_CONFIG_ERROR",
+        error: "Webhook service is currently unavailable.",
+      },
+      { status: 503, headers: rateLimitHeaders }
+    );
+  }
+
   const providedApiKey = request.headers.get("x-api-key");
   if (!providedApiKey || !timingSafeEqual(providedApiKey, EXPECTED_API_KEY)) {
     return NextResponse.json(
@@ -142,6 +154,7 @@ export async function POST(request) {
   const customerAddress = sanitizeText(rawCustomerAddress, 300);
   const externalOrderId = sanitizeText(body?.external_order_id, 50);
   const source = sanitizeText(body?.source, 30) || "webhook";
+  const requestedBusinessId = sanitizeText(request.headers.get("x-business-id") || body?.business_id, 50);
 
   if (!customerName || customerName.length < 2) {
     return NextResponse.json(
@@ -227,12 +240,17 @@ export async function POST(request) {
   });
 
   try {
-    // Look up product by base_sku to retrieve product ID & tenant business_id
-    const { data: product, error: prodErr } = await supabase
+    // Look up product by base_sku, with optional workspace filter for multi-tenant isolation
+    let prodQuery = supabase
       .from("products")
       .select("id, name, base_sku, price, business_id")
-      .eq("base_sku", targetSku)
-      .maybeSingle();
+      .eq("base_sku", targetSku);
+
+    if (requestedBusinessId) {
+      prodQuery = prodQuery.eq("business_id", requestedBusinessId);
+    }
+
+    const { data: product, error: prodErr } = await prodQuery.maybeSingle();
 
     if (prodErr) {
       console.error("Database query error looking up SKU:", prodErr);
@@ -240,7 +258,7 @@ export async function POST(request) {
         {
           success: false,
           code: "DATABASE_ERROR",
-          error: "Failed to look up inventory product.",
+          error: "Failed to locate product inventory.",
         },
         { status: 500, headers: rateLimitHeaders }
       );
@@ -258,12 +276,11 @@ export async function POST(request) {
     }
 
     // ── 7. INSERT ORDER WITH PENDING_DISPATCH STATUS ─────────
-    // Build resilient order row supporting both courier and courier_name columns
     const orderPayload = {
       customer_name: customerName,
       customer_phone: customerPhone,
       customer_address: customerAddress,
-      courier_name: null,
+      courier_name: "UNASSIGNED",
       status: "PENDING_DISPATCH",
       consignment_id: null,
       tracking_url: null,
@@ -288,29 +305,7 @@ export async function POST(request) {
       .select()
       .single();
 
-    // Fallback: If courier_name violates NOT NULL in older schema before migration
-    if (insertError && insertError.message?.includes("courier_name")) {
-      orderPayload.courier_name = "UNASSIGNED";
-      const retry = await supabase.from("orders").insert(orderPayload).select().single();
-      newOrder = retry.data;
-      insertError = retry.error;
-    }
-
-    // Fallback: If optional columns (business_id/product_id/quantity/total_amount) are not yet migrated
-    if (insertError && (insertError.message?.includes("business_id") || insertError.message?.includes("product_id") || insertError.message?.includes("total_amount") || insertError.message?.includes("quantity"))) {
-      const simplifiedPayload = {
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        customer_address: customerAddress,
-        courier_name: "UNASSIGNED",
-        status: "PENDING_DISPATCH",
-      };
-      const retry2 = await supabase.from("orders").insert(simplifiedPayload).select().single();
-      newOrder = retry2.data;
-      insertError = retry2.error;
-    }
-
-    if (insertError || !newOrder) {
+    if (insertError) {
       console.error("Failed to insert queued order:", insertError);
       return NextResponse.json(
         {
@@ -327,7 +322,7 @@ export async function POST(request) {
       {
         success: true,
         code: "ORDER_QUEUED",
-        message: "Order received and queued successfully for physical dispatch.",
+        message: "Order received and queued successfully for dispatch.",
         order_id: newOrder.id,
         external_order_id: externalOrderId || null,
         source,

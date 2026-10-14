@@ -13,7 +13,8 @@ const CORE_NAV_LINKS = [
   { href: "/dashboard/scanner", label: "Scanner", icon: "📱", roles: ["operator", "admin"] },
   { href: "/operations", label: "Operations", icon: "⚡", roles: ["operator", "admin"] },
   { href: "/bulk-orders", label: "Orders", icon: "🚚", roles: ["operator", "admin"] },
-  { href: "/reports", label: "Reports", icon: "📈", roles: ["viewer", "operator", "admin"] },
+  { href: "/reports", label: "Analytics", icon: "📈", roles: ["viewer", "operator", "admin"] },
+  { href: "/dashboard/footprints", label: "Audit Trail", icon: "🛡️", roles: ["admin"] },
 ];
 
 const ROLE_BADGE_STYLES = {
@@ -228,6 +229,15 @@ export default function Navbar() {
                           >
                             <span>💎</span>
                             <span>Billing &amp; Subscription</span>
+                          </Link>
+
+                          <Link
+                            href="/dashboard/footprints"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
+                          >
+                            <span>🛡️</span>
+                            <span>Audit Trail</span>
                           </Link>
                         </>
                       )}

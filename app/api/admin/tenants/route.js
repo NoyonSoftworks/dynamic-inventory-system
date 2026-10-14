@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { verifyAdminRequest } from "@/utils/admin-auth";
 
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -12,9 +13,17 @@ function getSupabaseAdmin() {
   });
 }
 
-// DELETE a client tenant store (Super Admin only, protects primary workspace)
+// DELETE a client tenant store (Strict Super Admin only)
 export async function DELETE(request) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.isAuthorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
     if (!supabaseAdmin) {
       return NextResponse.json(
@@ -33,7 +42,7 @@ export async function DELETE(request) {
       );
     }
 
-    // Safety guard: Never allow deleting the primary workspace
+    // Safety guard: Never allow deleting the platform owner primary workspace
     if (tenantId === "00000000-0000-0000-0000-000000000001") {
       return NextResponse.json(
         {
@@ -54,27 +63,37 @@ export async function DELETE(request) {
       .eq("id", tenantId);
 
     if (delErr) {
+      console.error("Tenant deletion error:", delErr);
       return NextResponse.json(
-        { success: false, error: delErr.message },
+        { success: false, error: "Failed to delete tenant workspace." },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: `Tenant workspace ${tenantId} successfully deleted.`,
+      message: `Tenant workspace successfully deleted.`,
     });
   } catch (err) {
+    console.error("Tenant DELETE exception:", err);
     return NextResponse.json(
-      { success: false, error: err.message },
+      { success: false, error: "Failed to process tenant deletion." },
       { status: 500 }
     );
   }
 }
 
-// PATCH to rename or update tenant status
+// PATCH to rename or update tenant status (Strict Super Admin only)
 export async function PATCH(request) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.isAuthorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
     if (!supabaseAdmin) {
       return NextResponse.json(
@@ -83,8 +102,8 @@ export async function PATCH(request) {
       );
     }
 
-    const body = await request.json();
-    const { tenantId, name } = body;
+    const body = await request.json().catch(() => null);
+    const { tenantId, name } = body || {};
 
     if (!tenantId) {
       return NextResponse.json(
@@ -94,7 +113,9 @@ export async function PATCH(request) {
     }
 
     const updates = {};
-    if (name) updates.name = name.trim();
+    if (name && typeof name === "string") {
+      updates.name = name.trim().slice(0, 100);
+    }
 
     const { data, error } = await supabaseAdmin
       .from("businesses")
@@ -104,8 +125,9 @@ export async function PATCH(request) {
       .single();
 
     if (error) {
+      console.error("Tenant update error:", error);
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: "Failed to update tenant workspace." },
         { status: 500 }
       );
     }
@@ -115,8 +137,9 @@ export async function PATCH(request) {
       tenant: data,
     });
   } catch (err) {
+    console.error("Tenant PATCH exception:", err);
     return NextResponse.json(
-      { success: false, error: err.message },
+      { success: false, error: "Failed to process tenant update." },
       { status: 500 }
     );
   }

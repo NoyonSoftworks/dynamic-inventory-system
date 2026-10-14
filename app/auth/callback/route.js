@@ -36,9 +36,18 @@ export async function GET(request) {
         .trim();
       const isSuperAdmin = userEmail === adminEmail;
 
-      let destination = next;
-      if (!destination || destination === "/") {
-        destination = isSuperAdmin ? "/admin" : "/dashboard/products";
+      // Sanitize destination to strictly prevent Open Redirect attacks
+      let destination = isSuperAdmin ? "/admin" : "/dashboard/products";
+      if (next && typeof next === "string") {
+        const cleanNext = next.trim();
+        if (
+          cleanNext.startsWith("/") &&
+          !cleanNext.startsWith("//") &&
+          !cleanNext.startsWith("/\\") &&
+          !cleanNext.includes("://")
+        ) {
+          destination = cleanNext === "/" ? destination : cleanNext;
+        }
       }
 
       const redirectUrl = new URL(destination, origin);

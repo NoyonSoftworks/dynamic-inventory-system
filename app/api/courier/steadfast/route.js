@@ -5,7 +5,7 @@ import { checkRateLimit, getClientIp } from "@/utils/rate-limit";
 import { sendDispatchNotification } from "@/utils/notifications";
 import { logActivity, AUDIT_ACTIONS } from "@/utils/audit-logger";
 
-// Rate limiting: 20 dispatch requests per minute per user
+// Rate limiting: 20 dispatch requests per minute per IP
 const RATE_LIMIT_REQUESTS = 20;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const STEADFAST_TIMEOUT_MS = 10000; // 10 second network timeout
@@ -105,7 +105,8 @@ export async function POST(request) {
 
   // Allow call if user is signed in OR if internal service role header is present
   const isInternalService =
-    request.headers.get("x-internal-secret") === process.env.INTERNAL_API_SECRET;
+    request.headers.get("x-internal-secret") === process.env.INTERNAL_API_SECRET &&
+    Boolean(process.env.INTERNAL_API_SECRET);
 
   if ((authError || !user) && !isInternalService) {
     return NextResponse.json(
@@ -189,33 +190,80 @@ export async function POST(request) {
 
   const codAmount = Math.max(0, Number(amount_to_collect) || 0);
 
-  // ── 5. LOOK UP TENANT-SCOPED COURIER SETTINGS ─────────────
   const adminClient = createClient(
     supabaseUrl,
     serviceRoleKey || supabaseAnonKey,
     { auth: { persistSession: false, autoRefreshToken: false } }
   );
 
-  // Determine user's tenant business_id and business name
+  // ── 5. MULTI-TENANT CONTEXT RESOLUTION & ORDER VALIDATION ──
   let callerBusinessId = null;
   let callerBusinessName = "Our Store";
+
   if (user) {
     const { data: roleRow } = await adminClient
       .from("user_roles")
       .select("business_id, businesses(name)")
       .eq("id", user.id)
       .maybeSingle();
+
     callerBusinessId = roleRow?.business_id || null;
     if (roleRow?.businesses?.name) {
       callerBusinessName = roleRow.businesses.name;
     }
   }
 
-  // Fetch Steadfast credentials scoped to this business, fallback to global
+  // Verify the order exists and strictly belongs to caller's workspace
+  const { data: existingOrder, error: orderLookupError } = await adminClient
+    .from("orders")
+    .select("id, business_id, status, consignment_id")
+    .eq("id", order_id)
+    .maybeSingle();
+
+  if (orderLookupError || !existingOrder) {
+    return NextResponse.json(
+      {
+        success: false,
+        code: "ORDER_NOT_FOUND",
+        error: "The specified order could not be found.",
+      },
+      { status: 404, headers: rateLimitHeaders }
+    );
+  }
+
+  // Strict tenant boundary check
+  if (callerBusinessId && existingOrder.business_id && existingOrder.business_id !== callerBusinessId) {
+    return NextResponse.json(
+      {
+        success: false,
+        code: "FORBIDDEN",
+        error: "Access denied. This order belongs to another workspace.",
+      },
+      { status: 403, headers: rateLimitHeaders }
+    );
+  }
+
+  // Prevent duplicate consignment dispatches
+  if (existingOrder.consignment_id) {
+    return NextResponse.json(
+      {
+        success: false,
+        code: "ALREADY_DISPATCHED",
+        error: `Order #${order_id} has already been dispatched (Consignment ID: ${existingOrder.consignment_id}).`,
+      },
+      { status: 400, headers: rateLimitHeaders }
+    );
+  }
+
+  // ── 6. TENANT-SCOPED COURIER SETTINGS LOOKUP ──────────────
   let settingsQuery = adminClient
     .from("courier_settings")
     .select("api_key, api_secret, business_id")
     .eq("courier_name", "Steadfast");
+
+  if (callerBusinessId) {
+    settingsQuery = settingsQuery.eq("business_id", callerBusinessId);
+  }
 
   const { data: settingsList, error: settingsError } = await settingsQuery;
 
@@ -231,10 +279,8 @@ export async function POST(request) {
     );
   }
 
-  // Prefer business-specific credentials, otherwise fallback to any active Steadfast credentials
-  const settings =
-    (settingsList || []).find((s) => callerBusinessId && s.business_id === callerBusinessId) ||
-    settingsList?.[0];
+  // Strictly enforce tenant credentials — NEVER fallback across tenants
+  const settings = settingsList?.[0];
 
   if (!settings || !settings.api_key || !settings.api_secret) {
     return NextResponse.json(
@@ -242,13 +288,13 @@ export async function POST(request) {
         success: false,
         code: "COURIER_NOT_CONFIGURED",
         error:
-          "Steadfast credentials (API Key and Secret Key) are not configured. Please save them in Settings.",
+          "Steadfast credentials (API Key and Secret Key) are not configured for your workspace. Please configure them in Settings.",
       },
       { status: 400, headers: rateLimitHeaders }
     );
   }
 
-  // ── 6. DISPATCH TO STEADFAST API WITH TIMEOUT ─────────────
+  // ── 7. DISPATCH TO STEADFAST API WITH TIMEOUT ─────────────
   const steadfastPayload = {
     invoice: String(order_id),
     recipient_name: customer_name.trim().slice(0, 100),
@@ -289,7 +335,7 @@ export async function POST(request) {
     );
   }
 
-  // ── 7. EVALUATE STEADFAST RESPONSE ────────────────────────
+  // ── 8. EVALUATE STEADFAST RESPONSE ────────────────────────
   const isSuccess =
     steadfastRes.ok &&
     (responseData?.status === 200 ||
@@ -318,7 +364,7 @@ export async function POST(request) {
     );
   }
 
-  // ── 8. EXTRACT TRACKING & UPDATE ORDERS TABLE ─────────────
+  // ── 9. EXTRACT TRACKING & UPDATE ORDERS TABLE ─────────────
   const consignment = responseData?.consignment || responseData?.data || {};
   const consignmentId = consignment?.consignment_id || consignment?.id || null;
   const trackingCode = consignment?.tracking_code || consignmentId;
@@ -326,20 +372,25 @@ export async function POST(request) {
     consignment?.tracking_url ||
     (trackingCode ? `https://steadfast.com.bd/tracking/${trackingCode}` : null);
 
-  const { error: updateOrderError } = await adminClient
-    .from("orders")
-    .update({
-      consignment_id: consignmentId ? String(consignmentId) : null,
-      tracking_url: trackingUrl,
-    })
-    .eq("id", order_id);
+  const updatePayload = {
+    consignment_id: consignmentId ? String(consignmentId) : null,
+    tracking_url: trackingUrl,
+    status: "DISPATCHED",
+    courier: "Steadfast",
+  };
+
+  let updateQuery = adminClient.from("orders").update(updatePayload).eq("id", order_id);
+  if (callerBusinessId) {
+    updateQuery = updateQuery.eq("business_id", callerBusinessId);
+  }
+
+  const { error: updateOrderError } = await updateQuery;
 
   if (updateOrderError) {
     console.warn("Steadfast consignment created but local DB update failed:", updateOrderError.message);
   }
 
-  // ── 9. ASYNCHRONOUS DISPATCH NOTIFICATION (NON-BLOCKING) ───
-  // Non-blocking invocation: does not await or delay the HTTP response
+  // ── 10. ASYNCHRONOUS NOTIFICATIONS & AUDIT TRAIL ───────────
   sendDispatchNotification({
     customerPhone: validPhone,
     customerName: customer_name,
@@ -351,7 +402,6 @@ export async function POST(request) {
     console.warn("Asynchronous dispatch notification notice:", notifErr?.message || notifErr);
   });
 
-  // ── 10. AUDIT TRAIL LOGGING (NON-BLOCKING) ──────────────────
   logActivity({
     businessId: callerBusinessId,
     userEmail: user?.email,

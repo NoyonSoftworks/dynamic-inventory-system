@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createServerClient } from "@supabase/ssr";
 import { logActivity, AUDIT_ACTIONS } from "@/utils/audit-logger";
-
-const ADMIN_EMAIL = (
-  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-)
-  .toLowerCase()
-  .trim();
+import { verifyAdminRequest, ADMIN_EMAIL } from "@/utils/admin-auth";
 
 const DEFAULT_SETTINGS = {
   id: 1,
@@ -27,51 +21,6 @@ const DEFAULT_SETTINGS = {
   stripe_public_key: "",
   stripe_secret_key: "",
 };
-
-/**
- * Checks if the caller is the verified super admin platform owner.
- */
-async function verifyAdminCaller(request, supabaseUrl, supabaseAnonKey) {
-  try {
-    const ssrClient = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll() {},
-      },
-    });
-
-    const {
-      data: { user },
-      error,
-    } = await ssrClient.auth.getUser();
-
-    let currentUser = user;
-    if (!currentUser) {
-      const authHeader = request.headers.get("authorization");
-      const bearerToken = authHeader?.startsWith("Bearer ")
-        ? authHeader.substring(7)
-        : null;
-      const cookieToken = request.cookies.get("sb-access-token")?.value;
-      const token = bearerToken || cookieToken;
-
-      if (token) {
-        const fallbackClient = createClient(supabaseUrl, supabaseAnonKey, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
-        const { data: fbData } = await fallbackClient.auth.getUser(token);
-        if (fbData?.user) currentUser = fbData.user;
-      }
-    }
-
-    if (!currentUser?.email) return false;
-    return currentUser.email.toLowerCase().trim() === ADMIN_EMAIL;
-  } catch (err) {
-    if (err?.digest) throw err;
-    return false;
-  }
-}
 
 /**
  * GET /api/admin/settings
@@ -182,13 +131,9 @@ export async function GET(request) {
     }
 
     // Otherwise check admin privileges
-    const isAdmin = await verifyAdminCaller(
-      request,
-      supabaseUrl,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
+    const auth = await verifyAdminRequest(request);
 
-    if (!isAdmin) {
+    if (!auth.isAuthorized) {
       // Non-admin callers only get public pricing & public keys
       return NextResponse.json({
         success: true,
@@ -238,24 +183,20 @@ export async function POST(request) {
     }
 
     // Verify Super Admin access
-    const isAdmin = await verifyAdminCaller(
-      request,
-      supabaseUrl,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
+    const auth = await verifyAdminRequest(request);
 
-    if (!isAdmin) {
+    if (!auth.isAuthorized) {
       return NextResponse.json(
         {
           success: false,
           code: "UNAUTHORIZED",
-          error: "Super Administrator clearance required to modify SaaS settings.",
+          error: auth.error,
         },
-        { status: 403 }
+        { status: auth.status }
       );
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const {
       pro_plan_price,
       free_order_limit,
@@ -340,9 +281,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            error.message ||
-            "Failed to save SaaS settings. Ensure the saas_settings table exists.",
+          error: "Failed to save SaaS settings to database.",
         },
         { status: 500 }
       );
@@ -373,7 +312,7 @@ export async function POST(request) {
   } catch (err) {
     console.error("POST /api/admin/settings exception:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Internal server error." },
+      { success: false, error: "Internal server error." },
       { status: 500 }
     );
   }

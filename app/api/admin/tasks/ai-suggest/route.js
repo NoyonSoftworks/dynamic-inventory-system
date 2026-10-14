@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { verifyAdminRequest } from "@/utils/admin-auth";
 
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,10 +16,18 @@ function getSupabaseAdmin() {
 /**
  * POST /api/admin/tasks/ai-suggest
  * AI Logistics & Security Operations Copilot
- * Generates recommended tasks for Super Admin's team
+ * Generates recommended operational tasks for Super Admin's team
  */
-export async function POST() {
+export async function POST(request) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.isAuthorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
     let tenantCount = 0;
     let orderCount = 0;
@@ -35,7 +44,7 @@ export async function POST() {
       orderCount = ordCount || 0;
     }
 
-    // Dynamic AI operational checklist generator
+    // Dynamic operational checklist
     const suggestedTasks = [
       {
         title: "Steadfast & Pathao Courier Webhook Pulse Check",
@@ -89,8 +98,9 @@ export async function POST() {
       },
     });
   } catch (err) {
+    console.error("AI suggest exception:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to generate AI tasks." },
+      { success: false, error: "Failed to generate AI task recommendations." },
       { status: 500 }
     );
   }

@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
-
-const ADMIN_EMAIL = (
-  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-)
-  .toLowerCase()
-  .trim();
+import { ADMIN_EMAIL } from "@/utils/admin-auth";
 
 export async function GET(request) {
   try {
@@ -22,7 +17,7 @@ export async function GET(request) {
       );
     }
 
-    // Check caller authentication
+    // 1. Check caller authentication
     const ssrClient = createServerClient(
       supabaseUrl,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -46,7 +41,9 @@ export async function GET(request) {
       const bearerToken = authHeader?.startsWith("Bearer ")
         ? authHeader.substring(7)
         : null;
-      const cookieToken = request.cookies.get("sb-access-token")?.value;
+      const cookieToken =
+        request.cookies.get("sb-access-token")?.value ||
+        request.cookies.get("supabase-auth-token")?.value;
       const token = bearerToken || cookieToken;
 
       if (token) {
@@ -66,7 +63,7 @@ export async function GET(request) {
 
     if (!currentUser) {
       return NextResponse.json(
-        { success: false, error: "Authentication required" },
+        { success: false, error: "Authentication required to view activity logs." },
         { status: 401 }
       );
     }
@@ -87,13 +84,12 @@ export async function GET(request) {
       .order("created_at", { ascending: false })
       .limit(limit);
 
-    // If non-admin, restrict strictly to their own business_id
+    // If non-admin, strictly restrict to their own verified business_id
     if (!isAdmin) {
-      // Find user's business_id
       const { data: userRole } = await supabaseAdmin
         .from("user_roles")
         .select("business_id")
-        .eq("email", user.email)
+        .eq("id", currentUser.id)
         .maybeSingle();
 
       if (!userRole?.business_id) {
@@ -101,20 +97,19 @@ export async function GET(request) {
       }
       query = query.eq("business_id", userRole.business_id);
     } else {
-      // Admin can filter by business_id if provided
+      // Super Admin can filter by business_id if provided
       if (bizFilter) {
         query = query.eq("business_id", bizFilter);
       }
     }
 
-    if (actionFilter) {
+    if (actionFilter && actionFilter !== "ALL") {
       query = query.eq("action_type", actionFilter);
     }
 
     const { data: logs, error: logsErr } = await query;
 
     if (logsErr) {
-      // Return empty array gracefully if table hasn't been migrated yet
       console.warn("Activity logs query note:", logsErr.message);
       return NextResponse.json({
         success: true,
@@ -132,7 +127,7 @@ export async function GET(request) {
     if (err?.digest) throw err;
     console.error("Activity logs API error:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to load activity logs." },
+      { success: false, error: "Failed to load activity logs." },
       { status: 500 }
     );
   }

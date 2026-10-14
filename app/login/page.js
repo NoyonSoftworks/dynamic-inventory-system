@@ -36,14 +36,25 @@ export default function LoginPage() {
   function getRedirectTarget(currentUserEmail) {
     if (typeof window === "undefined") return "/dashboard/products";
     const params = new URLSearchParams(window.location.search);
-    const target = params.get("redirect") || params.get("next");
-    if (target && target.startsWith("/")) return target;
+    const target = (params.get("redirect") || params.get("next") || "").trim();
 
     // Super admin default: /admin | Merchant default: /dashboard/products
     const isSuperAdmin =
       Boolean(currentUserEmail) &&
       currentUserEmail.toLowerCase().trim() === ADMIN_EMAIL;
-    return isSuperAdmin ? "/admin" : "/dashboard/products";
+    const defaultTarget = isSuperAdmin ? "/admin" : "/dashboard/products";
+
+    // Strict validation against Open Redirect attacks (reject //evil.com and ://)
+    if (
+      target.startsWith("/") &&
+      !target.startsWith("//") &&
+      !target.startsWith("/\\") &&
+      !target.includes("://")
+    ) {
+      return target === "/" ? defaultTarget : target;
+    }
+
+    return defaultTarget;
   }
 
   function setAuthCookies(session) {

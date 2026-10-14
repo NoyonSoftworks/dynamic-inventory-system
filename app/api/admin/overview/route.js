@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { verifyAdminRequest } from "@/utils/admin-auth";
 
-const ADMIN_EMAIL = (
-  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-)
-  .toLowerCase()
-  .trim();
-
-export async function GET() {
+export async function GET(request) {
   try {
+    // 1. Strict Super Administrator Authorization Guard
+    const auth = await verifyAdminRequest(request);
+    if (!auth.isAuthorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status }
+      );
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey =
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
@@ -47,7 +51,7 @@ export async function GET() {
       rolesByBiz[r.business_id].push(r);
     });
 
-    // 3. Fetch products safely (with or without business_id column)
+    // 3. Fetch products safely
     let allProducts = [];
     const { data: prodsWithBiz, error: prodBizErr } = await supabaseAdmin
       .from("products")
@@ -59,7 +63,6 @@ export async function GET() {
       const { data: prodsBasic } = await supabaseAdmin
         .from("products")
         .select("id, name, base_sku");
-      // Map unassigned products to primary owner store
       allProducts = (prodsBasic || []).map((p) => ({
         ...p,
         business_id: "00000000-0000-0000-0000-000000000001",
@@ -200,11 +203,12 @@ export async function GET() {
       recentOrders: enrichedRecentOrders,
     });
   } catch (err) {
+    if (err?.digest) throw err;
     console.error("Super Admin overview API error:", err);
     return NextResponse.json(
       {
         success: false,
-        error: err.message || "Failed to load super admin telemetry.",
+        error: "Failed to load platform telemetry overview.",
       },
       { status: 500 }
     );

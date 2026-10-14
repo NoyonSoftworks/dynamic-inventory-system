@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { logActivity, AUDIT_ACTIONS, extractClientDetails } from "@/utils/audit-logger";
-
-const ADMIN_EMAIL = (
-  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-)
-  .toLowerCase()
-  .trim();
+import { verifyAdminRequest, ADMIN_EMAIL } from "@/utils/admin-auth";
 
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -70,10 +65,18 @@ let inMemoryTasks = [
 
 /**
  * GET /api/admin/tasks
- * Fetch all assigned tasks
+ * Fetch all assigned tasks (Super Admin only)
  */
 export async function GET(request) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.isAuthorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
     if (!supabaseAdmin) {
       return NextResponse.json({ success: true, tasks: inMemoryTasks });
@@ -90,7 +93,6 @@ export async function GET(request) {
       .order("created_at", { ascending: false });
 
     if (error || !data) {
-      // If table does not exist in DB yet, return in-memory tasks
       let filtered = inMemoryTasks;
       if (statusFilter && statusFilter !== "ALL") {
         filtered = filtered.filter((t) => t.status === statusFilter);
@@ -111,8 +113,9 @@ export async function GET(request) {
 
     return NextResponse.json({ success: true, tasks: result, source: "database" });
   } catch (err) {
+    console.error("GET /api/admin/tasks error:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to load tasks." },
+      { success: false, error: "Failed to load operational tasks." },
       { status: 500 }
     );
   }
@@ -124,8 +127,16 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.isAuthorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
     const {
       title,
       description = "",
@@ -136,7 +147,7 @@ export async function POST(request) {
       priority = "MEDIUM",
       due_date = null,
       business_id = null,
-    } = body;
+    } = body || {};
 
     if (!title || !assigned_to_email) {
       return NextResponse.json(
@@ -147,13 +158,13 @@ export async function POST(request) {
 
     const newTask = {
       id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      title: title.trim(),
-      description: description.trim(),
-      assigned_to_email: assigned_to_email.toLowerCase().trim(),
-      assigned_to_name: assigned_to_name.trim() || assigned_to_email.split("@")[0],
-      role,
-      category,
-      priority,
+      title: String(title).trim().slice(0, 200),
+      description: String(description).trim().slice(0, 1000),
+      assigned_to_email: String(assigned_to_email).toLowerCase().trim(),
+      assigned_to_name: String(assigned_to_name).trim() || String(assigned_to_email).split("@")[0],
+      role: String(role).slice(0, 50),
+      category: String(category).slice(0, 50),
+      priority: String(priority).slice(0, 20),
       status: "PENDING",
       business_id: business_id || null,
       created_by: ADMIN_EMAIL,
@@ -170,7 +181,6 @@ export async function POST(request) {
         .single();
 
       if (!error && data) {
-        // Log Footprint
         const { ipAddress, userAgent } = extractClientDetails(request);
         await logActivity({
           userEmail: ADMIN_EMAIL,
@@ -200,8 +210,9 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true, task: newTask });
   } catch (err) {
+    console.error("POST /api/admin/tasks error:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to create task." },
+      { success: false, error: "Failed to create task." },
       { status: 500 }
     );
   }
@@ -213,9 +224,17 @@ export async function POST(request) {
  */
 export async function PATCH(request) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.isAuthorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
-    const body = await request.json();
-    const { id, status, notes } = body;
+    const body = await request.json().catch(() => null);
+    const { id, status, notes } = body || {};
 
     if (!id || !status) {
       return NextResponse.json(
@@ -228,7 +247,7 @@ export async function PATCH(request) {
       status,
       updated_at: new Date().toISOString(),
       ...(status === "COMPLETED" ? { completed_at: new Date().toISOString() } : {}),
-      ...(notes ? { notes } : {}),
+      ...(notes ? { notes: String(notes).trim().slice(0, 1000) } : {}),
     };
 
     if (supabaseAdmin) {
@@ -263,8 +282,9 @@ export async function PATCH(request) {
 
     return NextResponse.json({ success: false, error: "Task not found." }, { status: 404 });
   } catch (err) {
+    console.error("PATCH /api/admin/tasks error:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to update task." },
+      { success: false, error: "Failed to update task." },
       { status: 500 }
     );
   }
@@ -276,6 +296,14 @@ export async function PATCH(request) {
  */
 export async function DELETE(request) {
   try {
+    const auth = await verifyAdminRequest(request);
+    if (!auth.isAuthorized) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -305,8 +333,9 @@ export async function DELETE(request) {
 
     return NextResponse.json({ success: true, message: "Task removed." });
   } catch (err) {
+    console.error("DELETE /api/admin/tasks error:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to delete task." },
+      { success: false, error: "Failed to delete task." },
       { status: 500 }
     );
   }
