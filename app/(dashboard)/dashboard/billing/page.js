@@ -17,6 +17,7 @@ export default function ClientBillingPage() {
   const [pricingConfig, setPricingConfig] = useState({
     pro_plan_price: 49.0,
     free_order_limit: 100,
+    bdt_exchange_rate: 122.0,
   });
 
   // Upgrade Modal State
@@ -53,6 +54,8 @@ export default function ClientBillingPage() {
               pro_plan_price: Number(json.settings.pro_plan_price) || 49.0,
               free_order_limit:
                 parseInt(json.settings.free_order_limit, 10) || 100,
+              bdt_exchange_rate:
+                Number(json.settings.bdt_exchange_rate) || 122.0,
             });
           }
         }
@@ -332,11 +335,14 @@ export default function ClientBillingPage() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white">Full Automation Pro</h3>
-                <div className="mt-2 flex items-baseline gap-1">
+                <div className="mt-2 flex flex-wrap items-baseline gap-2">
                   <span className="text-4xl font-black text-white font-mono">
                     ${pricingConfig.pro_plan_price.toFixed(2)}
                   </span>
                   <span className="text-xs text-slate-400 font-medium">/ month</span>
+                  <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                    ৳{Math.round(pricingConfig.pro_plan_price * pricingConfig.bdt_exchange_rate).toLocaleString()} BDT
+                  </span>
                 </div>
                 <p className="text-xs text-indigo-200/70 mt-2">
                   Uncapped order processing, instant customer tracking alerts, and multi-user roles.
@@ -373,7 +379,7 @@ export default function ClientBillingPage() {
               className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 py-3.5 text-xs font-bold text-white shadow-xl shadow-indigo-500/30 hover:from-indigo-600 hover:to-purple-700 transition"
             >
               <span>🚀</span>
-              <span>Upgrade to Pro Plan (${pricingConfig.pro_plan_price.toFixed(2)}/mo)</span>
+              <span>Upgrade to Pro Plan (${pricingConfig.pro_plan_price.toFixed(2)} USD · ৳{Math.round(pricingConfig.pro_plan_price * pricingConfig.bdt_exchange_rate).toLocaleString()} BDT)</span>
             </button>
           </div>
         </div>

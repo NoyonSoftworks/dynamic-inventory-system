@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit, getClientIp } from "@/utils/rate-limit";
 import { sendDispatchNotification } from "@/utils/notifications";
+import { logActivity, AUDIT_ACTIONS } from "@/utils/audit-logger";
 
 // Rate limiting: 20 dispatch requests per minute per user
 const RATE_LIMIT_REQUESTS = 20;
@@ -349,6 +350,23 @@ export async function POST(request) {
   }).catch((notifErr) => {
     console.warn("Asynchronous dispatch notification notice:", notifErr?.message || notifErr);
   });
+
+  // ── 10. AUDIT TRAIL LOGGING (NON-BLOCKING) ──────────────────
+  logActivity({
+    businessId: callerBusinessId,
+    userEmail: user?.email,
+    userId: user?.id,
+    actionType: AUDIT_ACTIONS.ORDER_DISPATCHED,
+    details: `Order #${order_id} dispatched via Steadfast Courier to ${customer_name}`,
+    metadata: {
+      order_id,
+      consignment_id: consignmentId,
+      tracking_code: trackingCode,
+      courier: "Steadfast Courier",
+      cod_amount: codAmount,
+    },
+    request,
+  }).catch(() => {});
 
   return NextResponse.json(
     {

@@ -12,11 +12,10 @@ const ADMIN_EMAIL = (
   .toLowerCase()
   .trim();
 
-// ── 6 Core Primary Navigation Tabs (Middle Section) ────────────
+// ── 5 Core Primary Navigation Tabs (Middle Section) ────────────
 const CORE_NAV_LINKS = [
-  { href: "/", label: "Dashboard", icon: "📊", roles: ["viewer", "operator", "admin"] },
+  { href: "/dashboard/products", label: "Inventory", icon: "📦", roles: ["viewer", "operator", "admin"] },
   { href: "/dashboard/scanner", label: "Scanner", icon: "📱", roles: ["operator", "admin"] },
-  { href: "/dashboard/products", label: "Products", icon: "📦", roles: ["viewer", "operator", "admin"] },
   { href: "/operations", label: "Operations", icon: "⚡", roles: ["operator", "admin"] },
   { href: "/bulk-orders", label: "Orders", icon: "🚚", roles: ["operator", "admin"] },
   { href: "/reports", label: "Reports", icon: "📈", roles: ["viewer", "operator", "admin"] },
@@ -82,7 +81,7 @@ export default function Navbar() {
           {/* ── 1. LEFT: Brand & Workspace Monogram ───────────── */}
           <div className="flex items-center gap-2.5 shrink-0">
             <Link
-              href="/"
+              href="/dashboard/products"
               className="flex items-center gap-2 group focus:outline-none"
             >
               <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-slate-900 text-white text-base sm:text-lg shadow-sm group-hover:bg-indigo-600 transition-colors">
@@ -90,7 +89,7 @@ export default function Navbar() {
               </div>
               <div className="flex flex-col leading-none">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
-                  {businessName || "Lavanza"}
+                  {businessName || process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory"}
                 </span>
                 <span className="text-[10px] text-slate-400 font-medium tracking-wide">
                   Inventory SaaS

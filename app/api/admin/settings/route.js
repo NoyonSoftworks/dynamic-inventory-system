@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
+import { logActivity, AUDIT_ACTIONS } from "@/utils/audit-logger";
 
 const ADMIN_EMAIL = (
   process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
@@ -12,12 +13,19 @@ const DEFAULT_SETTINGS = {
   id: 1,
   pro_plan_price: 49.0,
   free_order_limit: 100,
+  currency_mode: "AUTO",
+  bdt_exchange_rate: 122.0,
   whatsapp_api_url: "https://api.green-api.com",
   whatsapp_instance_id: "",
   whatsapp_token: "",
   sms_api_key: "",
   sms_sender_id: "",
   sms_api_url: "http://bulksmsbd.net/api/smsapi",
+  sslcommerz_store_id: "",
+  sslcommerz_store_passwd: "",
+  sslcommerz_is_live: false,
+  stripe_public_key: "",
+  stripe_secret_key: "",
 };
 
 /**
@@ -48,8 +56,8 @@ async function verifyAdminCaller(request, supabaseUrl, supabaseAnonKey) {
 
 /**
  * GET /api/admin/settings
- * - If ?public=true or non-admin: Returns only pricing configs (safe for client billing page)
- * - If admin caller: Returns full settings including WhatsApp & SMS credentials
+ * - If ?public=true or non-admin: Returns only pricing & public currency configs
+ * - If admin caller: Returns full settings including WhatsApp, SMS, SSLCommerz & Stripe secrets
  */
 export async function GET(request) {
   try {
@@ -87,6 +95,8 @@ export async function GET(request) {
     const mergedSettings = {
       ...DEFAULT_SETTINGS,
       ...(data || {}),
+      currency_mode: data?.currency_mode || DEFAULT_SETTINGS.currency_mode,
+      bdt_exchange_rate: Number(data?.bdt_exchange_rate) || DEFAULT_SETTINGS.bdt_exchange_rate,
       whatsapp_api_url:
         data?.whatsapp_api_url ||
         process.env.WHATSAPP_API_URL ||
@@ -114,6 +124,26 @@ export async function GET(request) {
         process.env.BULKSMSBD_API_URL ||
         process.env.SMS_API_URL ||
         DEFAULT_SETTINGS.sms_api_url,
+      sslcommerz_store_id:
+        data?.sslcommerz_store_id ||
+        process.env.SSLCOMMERZ_STORE_ID ||
+        DEFAULT_SETTINGS.sslcommerz_store_id,
+      sslcommerz_store_passwd:
+        data?.sslcommerz_store_passwd ||
+        process.env.SSLCOMMERZ_STORE_PASSWORD ||
+        DEFAULT_SETTINGS.sslcommerz_store_passwd,
+      sslcommerz_is_live:
+        data?.sslcommerz_is_live !== undefined
+          ? Boolean(data.sslcommerz_is_live)
+          : process.env.SSLCOMMERZ_IS_LIVE === "true",
+      stripe_public_key:
+        data?.stripe_public_key ||
+        process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY ||
+        DEFAULT_SETTINGS.stripe_public_key,
+      stripe_secret_key:
+        data?.stripe_secret_key ||
+        process.env.STRIPE_SECRET_KEY ||
+        DEFAULT_SETTINGS.stripe_secret_key,
     };
 
     // If public request, strip sensitive gateway credentials
@@ -123,6 +153,11 @@ export async function GET(request) {
         settings: {
           pro_plan_price: Number(mergedSettings.pro_plan_price) || 49.0,
           free_order_limit: Number(mergedSettings.free_order_limit) || 100,
+          currency_mode: mergedSettings.currency_mode,
+          bdt_exchange_rate: Number(mergedSettings.bdt_exchange_rate) || 122.0,
+          stripe_public_key: mergedSettings.stripe_public_key || "",
+          sslcommerz_configured: Boolean(mergedSettings.sslcommerz_store_id),
+          sslcommerz_is_live: Boolean(mergedSettings.sslcommerz_is_live),
         },
       });
     }
@@ -135,17 +170,22 @@ export async function GET(request) {
     );
 
     if (!isAdmin) {
-      // Non-admin callers only get public pricing
+      // Non-admin callers only get public pricing & public keys
       return NextResponse.json({
         success: true,
         settings: {
           pro_plan_price: Number(mergedSettings.pro_plan_price) || 49.0,
           free_order_limit: Number(mergedSettings.free_order_limit) || 100,
+          currency_mode: mergedSettings.currency_mode,
+          bdt_exchange_rate: Number(mergedSettings.bdt_exchange_rate) || 122.0,
+          stripe_public_key: mergedSettings.stripe_public_key || "",
+          sslcommerz_configured: Boolean(mergedSettings.sslcommerz_store_id),
+          sslcommerz_is_live: Boolean(mergedSettings.sslcommerz_is_live),
         },
       });
     }
 
-    // Admin gets full settings payload
+    // Admin gets full settings payload including secrets
     return NextResponse.json({
       success: true,
       settings: mergedSettings,
@@ -161,7 +201,7 @@ export async function GET(request) {
 
 /**
  * POST /api/admin/settings
- * Allows Super Admin to dynamically update pricing & API credentials in Supabase
+ * Allows Super Admin to dynamically update pricing, payments, & API credentials in Supabase
  */
 export async function POST(request) {
   try {
@@ -199,12 +239,19 @@ export async function POST(request) {
     const {
       pro_plan_price,
       free_order_limit,
+      currency_mode,
+      bdt_exchange_rate,
       whatsapp_api_url,
       whatsapp_instance_id,
       whatsapp_token,
       sms_api_key,
       sms_sender_id,
       sms_api_url,
+      sslcommerz_store_id,
+      sslcommerz_store_passwd,
+      sslcommerz_is_live,
+      stripe_public_key,
+      stripe_secret_key,
     } = body || {};
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
@@ -221,6 +268,12 @@ export async function POST(request) {
     }
     if (free_order_limit !== undefined) {
       payload.free_order_limit = Math.max(1, parseInt(free_order_limit, 10) || 100);
+    }
+    if (currency_mode !== undefined) {
+      payload.currency_mode = String(currency_mode).toUpperCase().trim();
+    }
+    if (bdt_exchange_rate !== undefined) {
+      payload.bdt_exchange_rate = Math.max(1, Number(bdt_exchange_rate) || 122.0);
     }
     if (whatsapp_api_url !== undefined) {
       payload.whatsapp_api_url = String(whatsapp_api_url).trim();
@@ -239,6 +292,21 @@ export async function POST(request) {
     }
     if (sms_api_url !== undefined) {
       payload.sms_api_url = String(sms_api_url).trim();
+    }
+    if (sslcommerz_store_id !== undefined) {
+      payload.sslcommerz_store_id = String(sslcommerz_store_id).trim();
+    }
+    if (sslcommerz_store_passwd !== undefined) {
+      payload.sslcommerz_store_passwd = String(sslcommerz_store_passwd).trim();
+    }
+    if (sslcommerz_is_live !== undefined) {
+      payload.sslcommerz_is_live = Boolean(sslcommerz_is_live);
+    }
+    if (stripe_public_key !== undefined) {
+      payload.stripe_public_key = String(stripe_public_key).trim();
+    }
+    if (stripe_secret_key !== undefined) {
+      payload.stripe_secret_key = String(stripe_secret_key).trim();
     }
 
     const { data, error } = await supabaseAdmin
@@ -260,9 +328,26 @@ export async function POST(request) {
       );
     }
 
+    // Log platform settings modification to audit trail
+    logActivity({
+      businessId: "00000000-0000-0000-0000-000000000001",
+      userEmail: ADMIN_EMAIL,
+      actionType: AUDIT_ACTIONS.SETTINGS_UPDATED,
+      details: "Super Administrator updated dynamic SaaS pricing & payment gateways",
+      metadata: {
+        currency_mode: payload.currency_mode,
+        bdt_exchange_rate: payload.bdt_exchange_rate,
+        pro_plan_price: payload.pro_plan_price,
+        free_order_limit: payload.free_order_limit,
+        sslcommerz_configured: Boolean(payload.sslcommerz_store_id),
+        stripe_configured: Boolean(payload.stripe_public_key),
+      },
+      request,
+    }).catch(() => {});
+
     return NextResponse.json({
       success: true,
-      message: "SaaS settings updated dynamically.",
+      message: "SaaS settings & payment gateway updated successfully.",
       settings: data,
     });
   } catch (err) {

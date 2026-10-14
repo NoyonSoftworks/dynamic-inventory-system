@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { UnifiedSettingsContent } from "@/app/dashboard/settings/page";
+import { UnifiedSettingsContent } from "@/app/(dashboard)/dashboard/settings/page";
 
 function Spinner({ size = 20 }) {
   return (

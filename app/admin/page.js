@@ -59,17 +59,33 @@ export default function SuperAdminDashboard() {
   const [saasSettings, setSaasSettings] = useState({
     pro_plan_price: 49.0,
     free_order_limit: 100,
+    currency_mode: "AUTO",
+    bdt_exchange_rate: 122.0,
     whatsapp_api_url: "https://api.green-api.com",
     whatsapp_instance_id: "",
     whatsapp_token: "",
     sms_api_key: "",
     sms_sender_id: "",
     sms_api_url: "http://bulksmsbd.net/api/smsapi",
+    sslcommerz_store_id: "",
+    sslcommerz_store_passwd: "",
+    sslcommerz_is_live: false,
+    stripe_public_key: "",
+    stripe_secret_key: "",
   });
 
   // Password visibility toggles
   const [showWhatsappToken, setShowWhatsappToken] = useState(false);
   const [showSmsApiKey, setShowSmsApiKey] = useState(false);
+  const [showSslPasswd, setShowSslPasswd] = useState(false);
+  const [showStripeSecret, setShowStripeSecret] = useState(false);
+
+  // ── Activity Footprints / Audit Trail State ─────────────────
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logFilterAction, setLogFilterAction] = useState("ALL");
+  const [logSearchQuery, setLogSearchQuery] = useState("");
+  const [expandedLogId, setExpandedLogId] = useState(null);
 
   // Toast trigger
   const triggerToast = (type, text) => {
@@ -104,6 +120,23 @@ export default function SuperAdminDashboard() {
       console.warn("Failed to fetch saas settings:", err);
     } finally {
       setSettingsLoading(false);
+    }
+  }
+
+  async function fetchActivityLogs() {
+    try {
+      setLogsLoading(true);
+      const res = await fetch("/api/admin/activity?limit=60");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.logs) {
+          setActivityLogs(json.logs);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch activity footprints:", err);
+    } finally {
+      setLogsLoading(false);
     }
   }
 
@@ -143,10 +176,11 @@ export default function SuperAdminDashboard() {
           setIsAuthorized(true);
         }
 
-        // Fetch telemetry and dynamic settings
+        // Fetch telemetry, dynamic settings, and activity footprints
         const [telemetry] = await Promise.all([
           fetchTelemetryData(),
           fetchSaasSettings(),
+          fetchActivityLogs(),
         ]);
 
         if (isMounted && telemetry) {
@@ -185,6 +219,7 @@ export default function SuperAdminDashboard() {
       const [telemetry] = await Promise.all([
         fetchTelemetryData(),
         fetchSaasSettings(),
+        fetchActivityLogs(),
       ]);
       if (telemetry?.summary) setSummary(telemetry.summary);
       if (telemetry?.tenants) setTenants(telemetry.tenants);
@@ -432,11 +467,11 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* ── TIER-1 TAB NAVIGATION ──────────────────────────────── */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 w-fit backdrop-blur-xl">
+        <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 w-fit backdrop-blur-xl">
           <button
             type="button"
             onClick={() => setActiveTab("overview")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
               activeTab === "overview"
                 ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
@@ -449,27 +484,61 @@ export default function SuperAdminDashboard() {
           <button
             type="button"
             onClick={() => setActiveTab("pricing")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
               activeTab === "pricing"
                 ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
             }`}
           >
             <span>💎</span>
-            <span>Pricing Controller</span>
+            <span>Pricing &amp; Currency</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("payments")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+              activeTab === "payments"
+                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            }`}
+          >
+            <span>💳</span>
+            <span>Payment Gateways</span>
+            {(saasSettings.sslcommerz_store_id || saasSettings.stripe_public_key) && (
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            )}
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("integrations")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
               activeTab === "integrations"
                 ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
             }`}
           >
             <span>🔌</span>
-            <span>API Gateway Hub</span>
+            <span>WhatsApp &amp; SMS</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("footprints")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+              activeTab === "footprints"
+                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            }`}
+          >
+            <span>🐾</span>
+            <span>Activity Footprints</span>
+            {activityLogs.length > 0 && (
+              <span className="rounded-full bg-indigo-500/30 px-1.5 py-0.2 text-[10px] font-mono text-indigo-300">
+                {activityLogs.length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -837,6 +906,68 @@ export default function SuperAdminDashboard() {
                       Number of dispatched orders allowed per calendar month before upgrade warning.
                     </p>
                   </div>
+
+                  {/* Multi-Currency Mode Controller */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      Platform Currency Mode
+                    </label>
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {[
+                        { id: "AUTO", label: "Auto (Geo / Switcher)", desc: "Visitors can toggle BDT / USD" },
+                        { id: "BDT", label: "BDT (৳ Only)", desc: "Enforce Bangladeshi Taka" },
+                        { id: "USD", label: "USD ($ Only)", desc: "Enforce US Dollars" },
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() =>
+                            setSaasSettings((prev) => ({
+                              ...prev,
+                              currency_mode: item.id,
+                            }))
+                          }
+                          className={`rounded-2xl border p-3 text-left transition ${
+                            saasSettings.currency_mode === item.id
+                              ? "border-indigo-500 bg-indigo-950/40 text-white shadow-md shadow-indigo-500/20"
+                              : "border-slate-800 bg-slate-950/80 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                          }`}
+                        >
+                          <div className="text-xs font-bold">{item.label}</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">{item.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* BDT Exchange Rate */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      USD to BDT Exchange Rate (৳ per $1 USD)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">
+                        ৳
+                      </span>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="1"
+                        value={saasSettings.bdt_exchange_rate}
+                        onChange={(e) =>
+                          setSaasSettings((prev) => ({
+                            ...prev,
+                            bdt_exchange_rate: parseFloat(e.target.value) || 122.0,
+                          }))
+                        }
+                        className="block w-full rounded-2xl border border-slate-800 bg-slate-950 pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                        placeholder="122.00"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Used for real-time conversion across the landing page and SSLCommerz BDT checkouts.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
@@ -845,11 +976,11 @@ export default function SuperAdminDashboard() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => handleSaveSettings("Pricing plan")}
+                    onClick={() => handleSaveSettings("Pricing & Currency")}
                     disabled={savingSettings || settingsLoading}
                     className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition disabled:opacity-50"
                   >
-                    {savingSettings ? "Saving…" : "Save Pricing Configuration"}
+                    {savingSettings ? "Saving…" : "Save Pricing & Currency"}
                   </button>
                 </div>
               </div>
@@ -863,17 +994,23 @@ export default function SuperAdminDashboard() {
                     Live Client View Preview
                   </span>
                   <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
-                    Active
+                    Mode: {saasSettings.currency_mode || "AUTO"}
                   </span>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <h3 className="text-xl font-black text-white">Pro Enterprise Plan</h3>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-4xl font-black text-white font-mono">
-                      ${Number(saasSettings.pro_plan_price).toFixed(2)}
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">/ month</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-4xl font-black text-white font-mono">
+                        ${Number(saasSettings.pro_plan_price).toFixed(2)}
+                      </span>
+                      <span className="text-xs text-slate-400 font-medium">/ month (USD)</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5 text-emerald-400 font-mono font-bold text-lg">
+                      <span>৳{Math.round(Number(saasSettings.pro_plan_price || 0) * Number(saasSettings.bdt_exchange_rate || 122)).toLocaleString()}</span>
+                      <span className="text-xs text-slate-400 font-normal">/ month (BDT)</span>
+                    </div>
                   </div>
                   <p className="text-xs text-slate-400">
                     Full warehouse automation, unlimited orders, and automated multi-carrier dispatch.
@@ -908,6 +1045,240 @@ export default function SuperAdminDashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-emerald-400">✓</span> Multi-user warehouse role permissions
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB: PAYMENT GATEWAYS (SSLCOMMERZ & STRIPE)               */}
+        {/* ========================================================= */}
+        {activeTab === "payments" && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                    💳 Multi-Gateway Payment Rails
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-white tracking-tight">
+                    Payment Gateway Configurations
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Manage SSLCommerz (bKash, Nagad, Rocket, Bangladeshi Cards) and Stripe (Global &amp; International Cards).
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSaveSettings("Payment Gateways")}
+                  disabled={savingSettings || settingsLoading}
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 transition disabled:opacity-50 self-start sm:self-auto"
+                >
+                  {savingSettings ? "Saving…" : "Save Gateway Credentials"}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-2">
+                {/* SSLCommerz Card */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-lg">
+                        🇧🇩
+                      </span>
+                      <div>
+                        <h3 className="text-base font-bold text-white">SSLCommerz Gateway</h3>
+                        <p className="text-[11px] text-slate-400">Local MFS &amp; Bangladesh Cards</p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                        saasSettings.sslcommerz_store_id
+                          ? saasSettings.sslcommerz_is_live
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                            : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                          : "bg-slate-800 text-slate-400 border-slate-700"
+                      }`}
+                    >
+                      {saasSettings.sslcommerz_store_id
+                        ? saasSettings.sslcommerz_is_live
+                          ? "● Live Production"
+                          : "● Sandbox Mode"
+                        : "Not Configured"}
+                    </span>
+                  </div>
+
+                  {/* Mode Toggle */}
+                  <div className="flex items-center justify-between rounded-xl bg-slate-900 border border-slate-800 p-3">
+                    <div>
+                      <div className="text-xs font-bold text-white">Environment Mode</div>
+                      <div className="text-[10px] text-slate-400">
+                        {saasSettings.sslcommerz_is_live
+                          ? "Using securepay.sslcommerz.com"
+                          : "Using sandbox.sslcommerz.com"}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          sslcommerz_is_live: !prev.sslcommerz_is_live,
+                        }))
+                      }
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                        saasSettings.sslcommerz_is_live
+                          ? "bg-emerald-600 text-white"
+                          : "bg-amber-600 text-white"
+                      }`}
+                    >
+                      {saasSettings.sslcommerz_is_live ? "Live Mode" : "Sandbox Test"}
+                    </button>
+                  </div>
+
+                  {/* Store ID */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      SSLCommerz Store ID
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.sslcommerz_store_id || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          sslcommerz_store_id: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g. lavan64a938c..."
+                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+
+                  {/* Store Password */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Store Password / Secret Key
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowSslPasswd(!showSslPasswd)}
+                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono"
+                      >
+                        {showSslPasswd ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    <input
+                      type={showSslPasswd ? "text" : "password"}
+                      value={saasSettings.sslcommerz_store_passwd || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          sslcommerz_store_passwd: e.target.value,
+                        }))
+                      }
+                      placeholder="Store password from SSLCommerz"
+                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+
+                  {/* IPN URL Guide */}
+                  <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-3 text-[11px] space-y-1 text-slate-400">
+                    <div className="font-bold text-slate-300">Instant Payment Notification (IPN) URL:</div>
+                    <code className="text-emerald-400 font-mono text-[10px] block break-all">
+                      https://your-domain.com/api/payment/sslcommerz/ipn
+                    </code>
+                    <p className="text-[10px] text-slate-500 pt-0.5">
+                      Configure this IPN in your SSLCommerz merchant panel for server-to-server transaction validation.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Stripe Card */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-lg">
+                        🌐
+                      </span>
+                      <div>
+                        <h3 className="text-base font-bold text-white">Stripe Payments</h3>
+                        <p className="text-[11px] text-slate-400">Global Credit &amp; Debit Cards</p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                        saasSettings.stripe_public_key
+                          ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/30"
+                          : "bg-slate-800 text-slate-400 border-slate-700"
+                      }`}
+                    >
+                      {saasSettings.stripe_public_key ? "● Ready" : "Not Configured"}
+                    </span>
+                  </div>
+
+                  {/* Stripe Public Key */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      Stripe Publishable Key
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.stripe_public_key || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          stripe_public_key: e.target.value,
+                        }))
+                      }
+                      placeholder="pk_live_... or pk_test_..."
+                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+
+                  {/* Stripe Secret Key */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        Stripe Secret Key
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowStripeSecret(!showStripeSecret)}
+                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono"
+                      >
+                        {showStripeSecret ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    <input
+                      type={showStripeSecret ? "text" : "password"}
+                      value={saasSettings.stripe_secret_key || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          stripe_secret_key: e.target.value,
+                        }))
+                      }
+                      placeholder="sk_live_... or sk_test_..."
+                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+
+                  {/* Webhook Guide */}
+                  <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-3 text-[11px] space-y-1 text-slate-400">
+                    <div className="font-bold text-slate-300">Stripe Webhook Endpoint:</div>
+                    <code className="text-indigo-400 font-mono text-[10px] block break-all">
+                      https://your-domain.com/api/payment/stripe/webhook
+                    </code>
+                    <p className="text-[10px] text-slate-500 pt-0.5">
+                      Listens for <span className="font-mono text-slate-400">checkout.session.completed</span> with cryptographic signature verification.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1120,6 +1491,241 @@ export default function SuperAdminDashboard() {
                     <span>💾</span>
                     <span>Save SMS Gateway Config</span>
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 5: ACTIVITY FOOTPRINTS (LOGISTICS AUDIT TRAIL)        */}
+        {/* ========================================================= */}
+        {activeTab === "footprints" && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-300">
+                    🐾 Immutable Ledger
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-white tracking-tight">
+                    Activity Footprints &amp; Audit Trail
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Tamper-evident logs of order dispatches, stock intake, configuration mutations, and staff interactions.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={fetchActivityLogs}
+                    disabled={logsLoading}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition disabled:opacity-50"
+                  >
+                    <span className={logsLoading ? "animate-spin" : ""}>🔄</span>
+                    <span>{logsLoading ? "Syncing Logs…" : "Refresh Footprints"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter Toolbar */}
+              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                {/* Action Pills */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: "ALL", label: "All Activities" },
+                    { id: "ORDER_DISPATCHED", label: "🚚 Dispatched" },
+                    { id: "SETTINGS_UPDATED", label: "⚙️ Settings" },
+                    { id: "PRODUCT_CREATED", label: "📦 Catalog" },
+                    { id: "BULK_IMPORT", label: "⚡ Bulk CSV" },
+                    { id: "COURIER_CONFIGURED", label: "🔌 Couriers" },
+                  ].map((pill) => (
+                    <button
+                      key={pill.id}
+                      type="button"
+                      onClick={() => setLogFilterAction(pill.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                        logFilterAction === pill.id
+                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                          : "bg-slate-950/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800"
+                      }`}
+                    >
+                      {pill.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Search Box */}
+                <div className="relative w-full md:w-72">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 text-xs">
+                    🔍
+                  </span>
+                  <input
+                    type="text"
+                    value={logSearchQuery}
+                    onChange={(e) => setLogSearchQuery(e.target.value)}
+                    placeholder="Search logs, email, IP..."
+                    className="block w-full rounded-xl border border-slate-800 bg-slate-950 pl-8 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none transition"
+                  />
+                  {logSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setLogSearchQuery("")}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Logs Table */}
+              <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-300">
+                    <thead className="bg-slate-900/90 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800 font-mono">
+                      <tr>
+                        <th className="px-4 py-3">Timestamp</th>
+                        <th className="px-4 py-3">Action Type</th>
+                        <th className="px-4 py-3">Event Details</th>
+                        <th className="px-4 py-3">Actor / IP</th>
+                        <th className="px-4 py-3">Workspace Scope</th>
+                        <th className="px-4 py-3 text-right">Context</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 font-sans">
+                      {activityLogs
+                        .filter((log) => {
+                          const matchesAction =
+                            logFilterAction === "ALL" ||
+                            log.action_type === logFilterAction;
+                          const q = logSearchQuery.toLowerCase().trim();
+                          const matchesQuery =
+                            !q ||
+                            log.details?.toLowerCase().includes(q) ||
+                            log.user_email?.toLowerCase().includes(q) ||
+                            log.action_type?.toLowerCase().includes(q) ||
+                            log.ip_address?.toLowerCase().includes(q) ||
+                            log.business_id?.toLowerCase().includes(q);
+                          return matchesAction && matchesQuery;
+                        })
+                        .map((log) => {
+                          const isExpanded = expandedLogId === log.id;
+                          const hasMetadata =
+                            log.metadata &&
+                            typeof log.metadata === "object" &&
+                            Object.keys(log.metadata).length > 0;
+
+                          let badgeClass =
+                            "bg-slate-800 text-slate-300 border-slate-700";
+                          if (log.action_type === "ORDER_DISPATCHED") {
+                            badgeClass =
+                              "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+                          } else if (log.action_type === "SETTINGS_UPDATED") {
+                            badgeClass =
+                              "bg-indigo-500/10 text-indigo-400 border-indigo-500/30";
+                          } else if (log.action_type === "PRODUCT_CREATED") {
+                            badgeClass =
+                              "bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
+                          } else if (log.action_type === "BULK_IMPORT") {
+                            badgeClass =
+                              "bg-purple-500/10 text-purple-400 border-purple-500/30";
+                          } else if (log.action_type === "COURIER_CONFIGURED") {
+                            badgeClass =
+                              "bg-sky-500/10 text-sky-400 border-sky-500/30";
+                          }
+
+                          return (
+                            <tr
+                              key={log.id}
+                              className="hover:bg-slate-900/50 transition group"
+                            >
+                              <td className="px-4 py-3 whitespace-nowrap font-mono text-[11px] text-slate-400">
+                                {new Date(log.created_at).toLocaleDateString([], {
+                                  month: "short",
+                                  day: "numeric",
+                                })}{" "}
+                                {new Date(log.created_at).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </td>
+
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border font-mono ${badgeClass}`}
+                                >
+                                  {log.action_type}
+                                </span>
+                              </td>
+
+                              <td className="px-4 py-3 font-medium text-slate-200 max-w-xs md:max-w-md truncate">
+                                <div>{log.details}</div>
+                                {isExpanded && hasMetadata && (
+                                  <pre className="mt-2 rounded-xl bg-slate-900 p-2.5 font-mono text-[10px] text-emerald-400 overflow-x-auto border border-slate-800">
+                                    {JSON.stringify(log.metadata, null, 2)}
+                                  </pre>
+                                )}
+                              </td>
+
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="text-slate-200 font-medium">
+                                  {log.user_email || "System Service"}
+                                </div>
+                                <div className="text-[10px] text-slate-500 font-mono">
+                                  IP: {log.ip_address || "Internal"}
+                                </div>
+                              </td>
+
+                              <td className="px-4 py-3 whitespace-nowrap font-mono text-[10px] text-slate-400">
+                                {log.business_id ===
+                                "00000000-0000-0000-0000-000000000001"
+                                  ? "Platform Master"
+                                  : log.business_id
+                                  ? log.business_id.slice(0, 8) + "…"
+                                  : "Global"}
+                              </td>
+
+                              <td className="px-4 py-3 whitespace-nowrap text-right">
+                                {hasMetadata ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setExpandedLogId(
+                                        isExpanded ? null : log.id
+                                      )
+                                    }
+                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2 py-1 text-[10px] font-mono text-indigo-400 hover:text-indigo-300 hover:border-slate-700 transition"
+                                  >
+                                    <span>{isExpanded ? "▲ Hide" : "▼ Payload"}</span>
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] text-slate-600 font-mono">
+                                    –
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                      {activityLogs.length === 0 && !logsLoading && (
+                        <tr>
+                          <td
+                            colSpan="6"
+                            className="px-6 py-12 text-center text-xs text-slate-500"
+                          >
+                            <span className="text-2xl block mb-2">🐾</span>
+                            No activity footprints found.
+                            <div className="mt-1 text-[11px] text-slate-600">
+                              As actions (orders, dispatches, settings changes) take place, they will stream here live.
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
