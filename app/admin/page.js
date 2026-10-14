@@ -19,7 +19,10 @@ export default function SuperAdminDashboard() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
 
-  // ── Telemetry State ────────────────────────────────────────
+  // ── Active Navigation Tab: 'overview' | 'pricing' | 'integrations'
+  const [activeTab, setActiveTab] = useState("overview");
+
+  // ── Telemetry & Overview State ─────────────────────────────
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -48,8 +51,34 @@ export default function SuperAdminDashboard() {
   const [filterQuery, setFilterQuery] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState(null);
 
-  // ── Data Fetcher ───────────────────────────────────────────
-  async function fetchSuperAdminData() {
+  // ── Dynamic SaaS Settings State ────────────────────────────
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const [saasSettings, setSaasSettings] = useState({
+    pro_plan_price: 49.0,
+    free_order_limit: 100,
+    whatsapp_api_url: "https://api.green-api.com",
+    whatsapp_instance_id: "",
+    whatsapp_token: "",
+    sms_api_key: "",
+    sms_sender_id: "",
+    sms_api_url: "http://bulksmsbd.net/api/smsapi",
+  });
+
+  // Password visibility toggles
+  const [showWhatsappToken, setShowWhatsappToken] = useState(false);
+  const [showSmsApiKey, setShowSmsApiKey] = useState(false);
+
+  // Toast trigger
+  const triggerToast = (type, text) => {
+    setToastMessage({ type, text });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  // ── Data Fetchers ──────────────────────────────────────────
+  async function fetchTelemetryData() {
     const res = await fetch("/api/admin/overview");
     if (!res.ok) {
       const errJson = await res.json().catch(() => null);
@@ -58,13 +87,32 @@ export default function SuperAdminDashboard() {
     return await res.json();
   }
 
+  async function fetchSaasSettings() {
+    try {
+      setSettingsLoading(true);
+      const res = await fetch("/api/admin/settings");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.settings) {
+          setSaasSettings((prev) => ({
+            ...prev,
+            ...json.settings,
+          }));
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch saas settings:", err);
+    } finally {
+      setSettingsLoading(false);
+    }
+  }
+
   // ── Security Check & Initial Mount ─────────────────────────
   useEffect(() => {
     let isMounted = true;
 
     async function checkSecurityAndLoad() {
       try {
-        // 1. Verify user session via Supabase
         const {
           data: { user },
           error: authErr,
@@ -82,7 +130,6 @@ export default function SuperAdminDashboard() {
         const email = user.email.toLowerCase().trim();
         if (isMounted) setCurrentUserEmail(email);
 
-        // 2. Validate against ADMIN_EMAIL
         if (email !== ADMIN_EMAIL) {
           if (isMounted) {
             setIsAuthorized(false);
@@ -92,18 +139,22 @@ export default function SuperAdminDashboard() {
           return;
         }
 
-        // 3. User is valid super admin
         if (isMounted) {
           setIsAuthorized(true);
         }
 
-        // 4. Fetch telemetry only for authorized admin
-        const data = await fetchSuperAdminData();
-        if (isMounted) {
-          if (data.summary) setSummary(data.summary);
-          if (data.tenants) setTenants(data.tenants);
-          if (data.courierBreakdown) setCourierBreakdown(data.courierBreakdown);
-          if (data.recentOrders) setRecentOrders(data.recentOrders);
+        // Fetch telemetry and dynamic settings
+        const [telemetry] = await Promise.all([
+          fetchTelemetryData(),
+          fetchSaasSettings(),
+        ]);
+
+        if (isMounted && telemetry) {
+          if (telemetry.summary) setSummary(telemetry.summary);
+          if (telemetry.tenants) setTenants(telemetry.tenants);
+          if (telemetry.courierBreakdown)
+            setCourierBreakdown(telemetry.courierBreakdown);
+          if (telemetry.recentOrders) setRecentOrders(telemetry.recentOrders);
           setLastRefreshed(new Date().toLocaleTimeString());
         }
       } catch (err) {
@@ -125,18 +176,23 @@ export default function SuperAdminDashboard() {
     };
   }, []);
 
-  // ── Manual Refresh Handler ─────────────────────────────────
+  // ── Manual Refresh ─────────────────────────────────────────
   async function handleManualRefresh() {
     if (!isAuthorized) return;
     setRefreshing(true);
     setError(null);
     try {
-      const data = await fetchSuperAdminData();
-      if (data.summary) setSummary(data.summary);
-      if (data.tenants) setTenants(data.tenants);
-      if (data.courierBreakdown) setCourierBreakdown(data.courierBreakdown);
-      if (data.recentOrders) setRecentOrders(data.recentOrders);
+      const [telemetry] = await Promise.all([
+        fetchTelemetryData(),
+        fetchSaasSettings(),
+      ]);
+      if (telemetry?.summary) setSummary(telemetry.summary);
+      if (telemetry?.tenants) setTenants(telemetry.tenants);
+      if (telemetry?.courierBreakdown)
+        setCourierBreakdown(telemetry.courierBreakdown);
+      if (telemetry?.recentOrders) setRecentOrders(telemetry.recentOrders);
       setLastRefreshed(new Date().toLocaleTimeString());
+      triggerToast("success", "Live telemetry synced.");
     } catch (err) {
       setError(err.message || "Failed to refresh telemetry.");
     } finally {
@@ -144,7 +200,33 @@ export default function SuperAdminDashboard() {
     }
   }
 
-  // ── Tenant Status Toggle (Active / Suspended) ───────────────
+  // ── Save Dynamic SaaS Settings ─────────────────────────────
+  async function handleSaveSettings(sectionName) {
+    setSavingSettings(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(saasSettings),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to update SaaS settings.");
+      }
+
+      triggerToast(
+        "success",
+        `${sectionName || "Settings"} updated dynamically!`
+      );
+    } catch (err) {
+      triggerToast("error", err.message || "Failed to save settings.");
+    } finally {
+      setSavingSettings(false);
+    }
+  }
+
+  // ── Tenant Status Toggle ───────────────────────────────────
   function toggleTenantStatus(tenantId) {
     setTenants((prev) =>
       prev.map((t) =>
@@ -155,7 +237,7 @@ export default function SuperAdminDashboard() {
     );
   }
 
-  // ── Delete / Purge Tenant Workspace ────────────────────────
+  // ── Delete / Purge Tenant ──────────────────────────────────
   async function handleDeleteTenant(tenantId, tenantName) {
     if (
       !confirm(
@@ -170,7 +252,7 @@ export default function SuperAdminDashboard() {
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        alert(json.error || "Failed to delete tenant workspace.");
+        triggerToast("error", json.error || "Failed to delete tenant.");
         return;
       }
       setTenants((prev) => prev.filter((t) => t.id !== tenantId));
@@ -178,12 +260,13 @@ export default function SuperAdminDashboard() {
         ...prev,
         totalTenants: Math.max(0, prev.totalTenants - 1),
       }));
+      triggerToast("success", `Store "${tenantName}" removed.`);
     } catch (err) {
-      alert(err.message || "Error deleting tenant workspace.");
+      triggerToast("error", err.message || "Error deleting tenant.");
     }
   }
 
-  // ── Super Admin Logout ─────────────────────────────────────
+  // ── Logout ─────────────────────────────────────────────────
   async function handleLogout() {
     document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
     document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
@@ -194,15 +277,15 @@ export default function SuperAdminDashboard() {
   // ── 1. LOADING SCREEN ──────────────────────────────────────
   if (authChecking) {
     return (
-      <main className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-300">
+      <main className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-300 font-sans">
         <div className="flex flex-col items-center gap-4">
-          <Spinner size={32} />
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
           <div className="text-center space-y-1">
             <p className="text-sm font-bold text-white tracking-wide">
-              Verifying Security Credentials…
+              Authenticating Super Admin Clearance…
             </p>
             <p className="text-xs text-slate-500 font-mono">
-              Role-Based Access Control Evaluation
+              Verifying Platform Owner Session
             </p>
           </div>
         </div>
@@ -214,15 +297,11 @@ export default function SuperAdminDashboard() {
   if (!isAuthorized) {
     return (
       <main className="min-h-screen bg-slate-950 flex items-center justify-center p-4 sm:p-6 font-sans">
-        <div className="max-w-md w-full rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl shadow-rose-950/30 text-center space-y-6 relative overflow-hidden">
-          {/* Top glowing ambient accent */}
+        <div className="max-w-md w-full rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-red-500 to-rose-600" />
-
-          {/* Shield / Lock Icon */}
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-4xl shadow-inner">
             🔒
           </div>
-
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-rose-400">
               <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-ping" />
@@ -232,47 +311,38 @@ export default function SuperAdminDashboard() {
               Platform Owner Restricted
             </h1>
             <p className="text-xs text-slate-400 leading-relaxed">
-              This command console is reserved exclusively for the platform owner.
-              Your signed-in account does not possess super administrator clearance.
+              This master control plane is reserved strictly for the SaaS platform owner.
+              Your current account does not have super admin authorization.
             </p>
           </div>
-
-          {/* Account Details Box */}
           <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 text-left text-xs font-mono space-y-1">
             <div className="text-[10px] text-slate-500 uppercase tracking-wider">
-              Signed in identity:
+              Signed in account:
             </div>
             <div className="text-slate-300 font-bold truncate">
-              {currentUserEmail || "Unauthenticated Session"}
+              {currentUserEmail || "Anonymous"}
             </div>
           </div>
-
-          {/* Navigation Action Buttons */}
           <div className="pt-2 flex flex-col gap-2.5">
             <Link
               href="/dashboard/products"
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition"
             >
-              <span>← Return to Client Dashboard</span>
+              <span>← Return to Merchant Dashboard</span>
             </Link>
-
             <Link
               href="/login"
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
             >
-              <span>Sign In as Super Admin</span>
+              <span>Sign In as Platform Owner</span>
             </Link>
           </div>
-
-          <p className="text-[10px] text-slate-600 font-mono">
-            Security Rule: RBAC Strict Matching Enforced
-          </p>
         </div>
       </main>
     );
   }
 
-  // ── 3. SUPER ADMIN DASHBOARD (AUTHORIZED) ──────────────────
+  // ── Filtered Orders ────────────────────────────────────────
   const filteredOrders = recentOrders.filter((ord) => {
     if (!filterQuery.trim()) return true;
     const q = filterQuery.toLowerCase();
@@ -291,9 +361,25 @@ export default function SuperAdminDashboard() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8 selection:bg-indigo-500 selection:text-white font-sans">
+      {/* ── Toast Notification ─────────────────────────────────── */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/95 px-5 py-3.5 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
+          <span
+            className={`h-2.5 w-2.5 rounded-full ${
+              toastMessage.type === "success"
+                ? "bg-emerald-400 shadow-sm shadow-emerald-400"
+                : "bg-rose-500 shadow-sm shadow-rose-500"
+            }`}
+          />
+          <p className="text-sm font-medium text-slate-100">
+            {toastMessage.text}
+          </p>
+        </div>
+      )}
+
       <div className="mx-auto max-w-7xl space-y-8">
-        {/* ── Top Header Bar ──────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-6">
+        {/* ── TOP EXECUTIVE HEADER ───────────────────────────────── */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800/80 pb-6">
           <div>
             <div className="flex items-center gap-2.5 mb-1.5">
               <span className="flex h-2.5 w-2.5 relative">
@@ -301,14 +387,14 @@ export default function SuperAdminDashboard() {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
               </span>
               <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold">
-                Master Control Plane · Owner Restricted
+                Master Control Plane · Super Administrator
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-              <span>🛡️</span> SaaS Owner Command Console
+              <span>🛡️</span> Lavanza Command Hub
             </h1>
             <p className="mt-1 text-xs text-slate-400">
-              Logged in as <code className="text-indigo-400 font-mono">{currentUserEmail}</code> (Platform Owner).
+              Logged in as <code className="text-indigo-400 font-mono">{currentUserEmail}</code>
             </p>
           </div>
 
@@ -328,6 +414,13 @@ export default function SuperAdminDashboard() {
               <span>{refreshing ? "Syncing…" : "Sync Live Data"}</span>
             </button>
 
+            <Link
+              href="/dashboard/billing"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/20 px-3.5 py-2 text-xs font-semibold transition"
+            >
+              <span>💳</span> View Client Billing
+            </Link>
+
             <button
               onClick={handleLogout}
               className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/60 hover:text-rose-400 hover:border-rose-800/60 border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-300 transition"
@@ -338,7 +431,49 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        {/* ── Error Banner ─────────────────────────────────── */}
+        {/* ── TIER-1 TAB NAVIGATION ──────────────────────────────── */}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 w-fit backdrop-blur-xl">
+          <button
+            type="button"
+            onClick={() => setActiveTab("overview")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+              activeTab === "overview"
+                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            }`}
+          >
+            <span>📊</span>
+            <span>Overview &amp; Telemetry</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("pricing")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+              activeTab === "pricing"
+                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            }`}
+          >
+            <span>💎</span>
+            <span>Pricing Controller</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("integrations")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+              activeTab === "integrations"
+                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            }`}
+          >
+            <span>🔌</span>
+            <span>API Gateway Hub</span>
+          </button>
+        </div>
+
+        {/* ── ERROR BANNER ───────────────────────────────────────── */}
         {error && (
           <div className="rounded-xl border border-rose-900/60 bg-rose-950/40 p-4 text-xs text-rose-300 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -354,499 +489,643 @@ export default function SuperAdminDashboard() {
           </div>
         )}
 
-        {/* ── TOP EXECUTIVE METRICS GRID ──────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* 1. Total Tenants / Workspaces */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Active Tenants
-              </span>
-              <span className="rounded-lg bg-indigo-500/10 border border-indigo-500/20 p-2 text-indigo-400 text-sm">
-                🏢
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <div className="text-3xl font-black text-white font-mono">
-                {loading ? "…" : summary.totalTenants}
+        {/* ========================================================= */}
+        {/* TAB 1: OVERVIEW & TELEMETRY                               */}
+        {/* ========================================================= */}
+        {activeTab === "overview" && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            {/* Top Metric Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Active Tenants
+                  </span>
+                  <span className="rounded-lg bg-indigo-500/10 border border-indigo-500/20 p-2 text-indigo-400 text-sm">
+                    🏢
+                  </span>
+                </div>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <div className="text-3xl font-black text-white font-mono">
+                    {loading ? "…" : summary.totalTenants}
+                  </div>
+                  <span className="text-[11px] text-slate-400">client stores</span>
+                </div>
+                <p className="mt-2 text-[11px] text-slate-400">
+                  Isolated multi-tenant SaaS accounts
+                </p>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-indigo-700 opacity-60" />
               </div>
-              <span className="text-[11px] text-slate-400">client stores</span>
-            </div>
-            <p className="mt-2 text-[11px] text-slate-400">
-              Isolated multi-tenant SaaS accounts
-            </p>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-indigo-700 opacity-60" />
-          </div>
 
-          {/* 2. Global Catalog SKUs */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Global Catalog SKUs
-              </span>
-              <span className="rounded-lg bg-purple-500/10 border border-purple-500/20 p-2 text-purple-400 text-sm">
-                📦
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <div className="text-3xl font-black text-white font-mono">
-                {loading ? "…" : summary.totalSkus.toLocaleString()}
+              <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Global Catalog SKUs
+                  </span>
+                  <span className="rounded-lg bg-purple-500/10 border border-purple-500/20 p-2 text-purple-400 text-sm">
+                    📦
+                  </span>
+                </div>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <div className="text-3xl font-black text-white font-mono">
+                    {loading ? "…" : summary.totalSkus.toLocaleString()}
+                  </div>
+                  <span className="text-[11px] text-slate-400">products</span>
+                </div>
+                <p className="mt-2 text-[11px] text-slate-400">
+                  Serialized unique barcodes across stores
+                </p>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-purple-700 opacity-60" />
               </div>
-              <span className="text-[11px] text-slate-400">products</span>
-            </div>
-            <p className="mt-2 text-[11px] text-slate-400">
-              Unique barcodes serialized across stores
-            </p>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-purple-700 opacity-60" />
-          </div>
 
-          {/* 3. Global Orders & Revenue */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Processed Orders
-              </span>
-              <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2 text-emerald-400 text-sm">
-                🚚
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <div className="text-3xl font-black text-emerald-400 font-mono">
-                {loading ? "…" : summary.totalOrders.toLocaleString()}
+              <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Processed Orders
+                  </span>
+                  <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2 text-emerald-400 text-sm">
+                    🚚
+                  </span>
+                </div>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <div className="text-3xl font-black text-emerald-400 font-mono">
+                    {loading ? "…" : summary.totalOrders.toLocaleString()}
+                  </div>
+                  <span className="text-[11px] text-slate-400">
+                    ({summary.totalDispatched} Dispatched)
+                  </span>
+                </div>
+                <p className="mt-2 text-[11px] text-slate-400">
+                  Total GMV: ৳{summary.totalRevenue.toLocaleString()}
+                </p>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-60" />
               </div>
-              <span className="text-[11px] text-slate-400">({summary.totalDispatched} Shipped)</span>
-            </div>
-            <p className="mt-2 text-[11px] text-slate-400">
-              Total GMV: ৳{summary.totalRevenue.toLocaleString()}
-            </p>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-60" />
-          </div>
 
-          {/* 4. Inbound Webhook Volume & System Health */}
-          <div className="rounded-2xl bg-slate-900/90 border border-emerald-500/30 p-5 shadow-xl relative overflow-hidden group hover:border-emerald-500/50 transition">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                Webhook Hits &amp; Health
-              </span>
-              <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2 text-emerald-400 text-sm">
-                ⚡
-              </span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-2">
-              <div className="text-3xl font-black text-white font-mono">
-                {loading ? "…" : summary.totalWebhookHits}
+              <div className="rounded-2xl bg-slate-900/90 border border-emerald-500/30 p-5 shadow-xl relative overflow-hidden group hover:border-emerald-500/50 transition">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                    Inbound Webhook Streams
+                  </span>
+                  <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2 text-emerald-400 text-sm">
+                    ⚡
+                  </span>
+                </div>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <div className="text-3xl font-black text-white font-mono">
+                    {loading ? "…" : summary.totalWebhookHits}
+                  </div>
+                  <span className="text-[11px] text-emerald-400 font-mono font-bold">
+                    Calls Routed
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-300">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Operational Uptime (99.98% SLA)</span>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
               </div>
-              <span className="text-[11px] text-emerald-400 font-mono font-bold">Inbound Streams</span>
             </div>
-            <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-300">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>All Systems Operational (99.98% SLA)</span>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
-          </div>
-        </div>
 
-        {/* ── SECTION 1: TENANT / BUSINESS MANAGEMENT TABLE ── */}
-        <div className="rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl overflow-hidden">
-          <div className="p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <span>🏢</span> Tenant &amp; Business Management Console
+            {/* Courier Distribution Breakdown */}
+            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 shadow-xl space-y-4">
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                🚚 Multi-Courier Delivery Distribution
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Overview of all registered merchant businesses, connected courier gateways, and status.
-              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {Object.entries(courierBreakdown).map(([courier, count]) => {
+                  const pct = Math.round((count / totalCourierOrders) * 100);
+                  return (
+                    <div
+                      key={courier}
+                      className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-1"
+                    >
+                      <div className="text-xs font-bold text-slate-300">
+                        {courier}
+                      </div>
+                      <div className="text-xl font-black text-white font-mono">
+                        {count}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        {pct}% share
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <span className="text-xs font-mono text-slate-400 bg-slate-800/80 px-3 py-1 rounded-lg border border-slate-700">
-              {tenants.length} Managed Workspace(s)
-            </span>
-          </div>
 
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="py-12 flex flex-col items-center justify-center text-slate-400 text-xs gap-2">
-                <Spinner size={24} />
-                <span>Loading merchant tenants…</span>
+            {/* Active Tenants Management Table */}
+            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl overflow-hidden">
+              <div className="p-6 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>🏢</span> Client Workspaces ({tenants.length})
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Isolated databases, merchant credentials, and active subscription status.
+                  </p>
+                </div>
               </div>
-            ) : tenants.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 text-xs">
-                No businesses found in directory.
-              </div>
-            ) : (
-              <table className="min-w-full divide-y divide-slate-800 text-left text-xs">
-                <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-400">
-                  <tr>
-                    <th className="px-5 py-3.5 font-bold">Business / Store</th>
-                    <th className="px-5 py-3.5 font-bold">Merchant Account</th>
-                    <th className="px-5 py-3.5 font-bold">Workspace Role</th>
-                    <th className="px-5 py-3.5 font-bold">Connected Couriers</th>
-                    <th className="px-5 py-3.5 font-bold">Catalog SKUs</th>
-                    <th className="px-5 py-3.5 font-bold">Dispatched / Total</th>
-                    <th className="px-5 py-3.5 font-bold">Status</th>
-                    <th className="px-5 py-3.5 font-bold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/70">
-                  {tenants.map((t) => {
-                    const isActive = t.status === "Active";
-                    return (
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-800 text-left text-xs font-mono">
+                  <thead className="bg-slate-950 text-slate-400 uppercase">
+                    <tr>
+                      <th className="px-6 py-3.5 font-bold">Store Name</th>
+                      <th className="px-6 py-3.5 font-bold">Owner Email</th>
+                      <th className="px-6 py-3.5 font-bold">Products</th>
+                      <th className="px-6 py-3.5 font-bold">Orders</th>
+                      <th className="px-6 py-3.5 font-bold">Status</th>
+                      <th className="px-6 py-3.5 font-bold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
+                    {tenants.map((t) => (
                       <tr key={t.id} className="hover:bg-slate-800/40 transition">
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="font-bold text-white flex items-center gap-2">
-                            <span>{t.isOwnerWorkspace ? "👑" : "🏪"}</span>
-                            <span>{t.name}</span>
-                          </div>
-                          <div className="text-[10px] font-mono text-slate-500 mt-0.5">
-                            ID: {t.id}
-                          </div>
+                        <td className="px-6 py-4 font-bold text-white font-sans">
+                          {t.name}
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="text-slate-300 font-mono text-xs">
-                            {t.ownerEmail}
-                          </div>
-                          <div className="text-[10px] text-slate-500">
-                            Registered Merchant
-                          </div>
+                        <td className="px-6 py-4 text-slate-300">{t.ownerEmail}</td>
+                        <td className="px-6 py-4 text-indigo-400 font-bold">
+                          {t.skuCount}
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          {t.isOwnerWorkspace ? (
-                            <span className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                              <span>👑</span> Platform Owner Workspace
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                              <span>🏢</span> Client Merchant Store
-                            </span>
-                          )}
+                        <td className="px-6 py-4 text-emerald-400 font-bold">
+                          {t.orderCount}
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="flex flex-wrap gap-1">
-                            {t.connectedCouriers?.map((c, idx) => (
-                              <span
-                                key={idx}
-                                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold border ${
-                                  c === "Steadfast"
-                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                    : c === "Pathao"
-                                    ? "bg-red-500/10 text-red-400 border-red-500/20"
-                                    : "bg-slate-800 text-slate-300 border-slate-700"
-                                }`}
-                              >
-                                {c !== "None" && <span>🚚</span>}
-                                <span>{c}</span>
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap font-mono font-bold text-slate-200">
-                          {t.totalSkus} items
-                        </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <span className="font-mono font-bold text-emerald-400">
-                            {t.dispatchedOrders}
-                          </span>
-                          <span className="text-slate-500 text-[11px] ml-1">/ {t.totalOrders} total</span>
-                          {t.pendingOrders > 0 && (
-                            <span className="ml-2 rounded px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                              {t.pendingOrders} queue
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => toggleTenantStatus(t.id)}
-                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold transition border ${
-                              isActive
-                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/30"
-                                : "bg-rose-500/10 text-rose-400 border-rose-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30"
+                        <td className="px-6 py-4 font-sans">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                              t.status === "Active"
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                : "bg-rose-500/10 text-rose-400 border border-rose-500/30"
                             }`}
-                            title="Click to toggle tenant account access"
                           >
                             <span
                               className={`h-1.5 w-1.5 rounded-full ${
-                                isActive ? "bg-emerald-400" : "bg-rose-400"
+                                t.status === "Active"
+                                  ? "bg-emerald-400"
+                                  : "bg-rose-400"
                               }`}
                             />
-                            <span>{isActive ? "Active (Live)" : "Suspended"}</span>
-                          </button>
+                            {t.status}
+                          </span>
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap text-right">
-                          {!t.isOwnerWorkspace ? (
+                        <td className="px-6 py-4 text-right font-sans">
+                          <div className="inline-flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleTenantStatus(t.id)}
+                              className="rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition"
+                            >
+                              {t.status === "Active" ? "Suspend" : "Activate"}
+                            </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteTenant(t.id, t.name)}
-                              className="inline-flex items-center gap-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-2.5 py-1 text-[11px] font-semibold transition"
-                              title="Delete this client tenant and all associated data"
+                              className="rounded-lg border border-rose-900/60 bg-rose-950/40 px-2.5 py-1 text-[11px] font-semibold text-rose-300 hover:bg-rose-900/80 transition"
                             >
-                              <span>🗑️</span>
-                              <span>Purge Store</span>
+                              Purge
                             </button>
-                          ) : (
-                            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-                              Protected
-                            </span>
-                          )}
+                          </div>
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        {/* ── SECTION 2: GLOBAL LOGISTICS & COURIER MONITOR ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7 rounded-2xl bg-slate-900/90 border border-slate-800 p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                  <span>🚚</span> Global Courier Logistics Volume
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Fulfillment breakdown across shipping partners
-                </p>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <span className="text-[11px] font-mono text-emerald-400">
-                100% Automated
-              </span>
             </div>
 
-            <div className="space-y-4 pt-2">
-              {[
-                { name: "Steadfast Courier", key: "Steadfast", color: "bg-emerald-500", text: "text-emerald-400" },
-                { name: "Pathao Courier", key: "Pathao", color: "bg-red-500", text: "text-red-400" },
-                { name: "RedX Logistics", key: "RedX", color: "bg-rose-500", text: "text-rose-400" },
-                { name: "Paperfly Go", key: "Paperfly", color: "bg-blue-500", text: "text-blue-400" },
-                { name: "Carrybee", key: "Carrybee", color: "bg-amber-500", text: "text-amber-400" },
-                { name: "Unassigned / Webhook Inbound", key: "Unassigned", color: "bg-slate-600", text: "text-slate-400" },
-              ].map((c) => {
-                const count = courierBreakdown[c.key] || 0;
-                const percentage = Math.round((count / totalCourierOrders) * 100);
-
-                return (
-                  <div key={c.key} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-300">{c.name}</span>
-                      <div className="flex items-center gap-2">
-                        <span className={`font-mono font-bold ${c.text}`}>{count} orders</span>
-                        <span className="text-slate-500 font-mono text-[10px]">({percentage}%)</span>
-                      </div>
-                    </div>
-                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${c.color} transition-all duration-500`}
-                        style={{ width: `${Math.max(percentage, count > 0 ? 3 : 0)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="lg:col-span-5 rounded-2xl bg-slate-900/90 border border-slate-800 p-6 shadow-xl space-y-4">
-            <div className="border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <span>⚡</span> CMS Ingestion Gateway Telemetry
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Universal Webhook Endpoint Health
-              </p>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="rounded-xl bg-slate-950 p-3.5 border border-slate-800 font-mono space-y-1">
-                <div className="text-[11px] text-slate-500">Universal Webhook Route:</div>
-                <div className="text-emerald-400 font-bold select-all">/api/webhook/orders</div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-                <div className="rounded-xl bg-slate-800/80 p-3 border border-slate-700/60">
-                  <span className="text-slate-400 block text-[10px]">WooCommerce</span>
-                  <span className="text-emerald-400 font-bold">✓ Active (REST)</span>
+            {/* Live Order Telemetry Feed */}
+            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>📡</span> Live Order Stream
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Real-time cross-tenant order activity and courier dispatch status.
+                  </p>
                 </div>
-                <div className="rounded-xl bg-slate-800/80 p-3 border border-slate-700/60">
-                  <span className="text-slate-400 block text-[10px]">Shopify</span>
-                  <span className="text-emerald-400 font-bold">✓ Active (JSON)</span>
-                </div>
-                <div className="rounded-xl bg-slate-800/80 p-3 border border-slate-700/60">
-                  <span className="text-slate-400 block text-[10px]">Custom Laravel</span>
-                  <span className="text-emerald-400 font-bold">✓ Ready (API)</span>
-                </div>
-                <div className="rounded-xl bg-slate-800/80 p-3 border border-slate-700/60">
-                  <span className="text-slate-400 block text-[10px]">Auth Scheme</span>
-                  <span className="text-indigo-400 font-bold">x-api-key</span>
-                </div>
+                <input
+                  type="text"
+                  value={filterQuery}
+                  onChange={(e) => setFilterQuery(e.target.value)}
+                  placeholder="Filter customer, phone, courier…"
+                  className="rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none w-full sm:w-64"
+                />
               </div>
 
-              <div className="rounded-xl bg-indigo-950/30 border border-indigo-800/40 p-3 text-[11px] text-indigo-300">
-                Incoming orders are automatically verified against the store catalog and held in <strong>PENDING_DISPATCH</strong> status until warehouse operators scan the serial barcode.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── SECTION 3: LIVE ORDERS STREAM TABLE ─────────── */}
-        <div className="rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl overflow-hidden">
-          <div className="p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <span>⚡</span> Global Live Orders Stream
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Real-time transactions across all client storefronts (WooCommerce, Shopify, Manual Dispatch).
-              </p>
-            </div>
-
-            <div className="w-full sm:w-72">
-              <input
-                type="text"
-                value={filterQuery}
-                onChange={(e) => setFilterQuery(e.target.value)}
-                placeholder="Filter store, customer, courier…"
-                className="w-full rounded-xl bg-slate-800/80 border border-slate-700 px-3.5 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition"
-              />
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="py-16 flex flex-col items-center justify-center text-slate-400 text-xs gap-3">
-                <Spinner size={24} />
-                <span>Streaming live global transactions…</span>
-              </div>
-            ) : filteredOrders.length === 0 ? (
-              <div className="py-16 text-center text-slate-500 text-xs space-y-2">
-                <div className="text-2xl">📋</div>
-                <div className="font-semibold text-slate-300">No transactions recorded</div>
-                <p>Orders from client dispatches or incoming webhooks will populate here live.</p>
-              </div>
-            ) : (
-              <table className="min-w-full divide-y divide-slate-800 text-left text-xs">
-                <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-400">
-                  <tr>
-                    <th className="px-5 py-3.5 font-bold">Store / Source</th>
-                    <th className="px-5 py-3.5 font-bold">Customer Details</th>
-                    <th className="px-5 py-3.5 font-bold">Customer Phone</th>
-                    <th className="px-5 py-3.5 font-bold">Courier Partner</th>
-                    <th className="px-5 py-3.5 font-bold">Amount</th>
-                    <th className="px-5 py-3.5 font-bold">Fulfillment Status</th>
-                    <th className="px-5 py-3.5 font-bold">Tracking / Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/70">
-                  {filteredOrders.map((ord) => {
-                    const isDispatched = ord.status === "DISPATCHED";
-                    const isPending = ord.status === "PENDING_DISPATCH";
-
-                    return (
-                      <tr key={ord.id} className="hover:bg-slate-800/40 transition">
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 text-[11px] font-bold text-indigo-300">
-                            <span>🏪</span>
-                            <span>{ord.storeName || "Direct Store"}</span>
-                          </span>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-800 text-left text-xs font-mono">
+                  <thead className="bg-slate-950 text-slate-400 uppercase">
+                    <tr>
+                      <th className="px-4 py-3">Order</th>
+                      <th className="px-4 py-3">Store</th>
+                      <th className="px-4 py-3">Customer</th>
+                      <th className="px-4 py-3">Courier</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-sans">
+                    {filteredOrders.slice(0, 10).map((ord) => (
+                      <tr key={ord.id} className="hover:bg-slate-800/30">
+                        <td className="px-4 py-3 font-mono text-indigo-400 font-bold">
+                          #{ord.id}
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="font-bold text-white">
-                            {ord.customer_name || "Guest Customer"}
-                          </div>
-                          <div className="text-[11px] text-slate-400 max-w-xs truncate">
-                            {ord.customer_address || "No address specified"}
+                        <td className="px-4 py-3 text-slate-300 font-medium">
+                          {ord.storeName}
+                        </td>
+                        <td className="px-4 py-3 text-white">
+                          <div>{ord.customer_name}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">
+                            {ord.customer_phone}
                           </div>
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap font-mono font-bold text-slate-300">
-                          {ord.customer_phone || "—"}
+                        <td className="px-4 py-3 text-slate-300">
+                          {ord.courier || "—"}
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          {ord.courier ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 px-2.5 py-1 text-[11px] font-bold text-slate-200">
-                              <span>🚚</span>
-                              <span>{ord.courier}</span>
-                            </span>
-                          ) : (
-                            <span className="text-amber-400/80 text-[11px] font-mono italic">
-                              Pending Scan
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="px-5 py-4 font-mono font-bold text-white whitespace-nowrap">
+                        <td className="px-4 py-3 font-mono text-emerald-400 font-bold">
                           ৳{Number(ord.total_amount || 0).toLocaleString()}
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide border ${
-                              isDispatched
-                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                                : isPending
-                                ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                                : "bg-indigo-500/10 text-indigo-400 border-indigo-500/30"
-                            }`}
-                          >
-                            <span
-                              className={`h-1.5 w-1.5 rounded-full ${
-                                isDispatched
-                                  ? "bg-emerald-400"
-                                  : isPending
-                                  ? "bg-amber-400"
-                                  : "bg-indigo-400"
-                              }`}
-                            />
-                            {ord.status || "UNKNOWN"}
+                        <td className="px-4 py-3">
+                          <span className="inline-flex rounded-full bg-slate-800 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
+                            {ord.status || "PENDING"}
                           </span>
                         </td>
-
-                        <td className="px-5 py-4 whitespace-nowrap text-slate-400 font-mono text-[11px]">
-                          {ord.consignment_id ? (
-                            <div className="text-emerald-400 font-bold">
-                              #{ord.consignment_id}
-                            </div>
-                          ) : ord.created_at ? (
-                            <div>{new Date(ord.created_at).toLocaleDateString()}</div>
-                          ) : (
-                            <span className="text-slate-500">—</span>
-                          )}
-                        </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 2: PRICING CONTROLLER                                 */}
+        {/* ========================================================= */}
+        {activeTab === "pricing" && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Form Card */}
+              <div className="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
+                    💎 Dynamic Pricing Engine
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-white tracking-tight">
+                    SaaS Subscription &amp; Tier Controls
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                    Update subscription pricing and free monthly order allowances in real-time.
+                    Changes take effect across the dynamic client billing page instantly without server redeployment.
+                  </p>
+                </div>
+
+                <div className="space-y-5 pt-2">
+                  {/* Pro Plan Monthly Price */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      Pro Plan Monthly Price (USD $)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={saasSettings.pro_plan_price}
+                        onChange={(e) =>
+                          setSaasSettings((prev) => ({
+                            ...prev,
+                            pro_plan_price: parseFloat(e.target.value) || 0,
+                          }))
+                        }
+                        className="block w-full rounded-2xl border border-slate-800 bg-slate-950 pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                        placeholder="49.00"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      The monthly recurring fee billed to upgraded merchant stores.
+                    </p>
+                  </div>
+
+                  {/* Free Monthly Order Quota */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      Free Tier Monthly Order Allowance
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1"
+                        value={saasSettings.free_order_limit}
+                        onChange={(e) =>
+                          setSaasSettings((prev) => ({
+                            ...prev,
+                            free_order_limit: parseInt(e.target.value, 10) || 1,
+                          }))
+                        }
+                        className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white font-mono font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                        placeholder="100"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Number of dispatched orders allowed per calendar month before upgrade warning.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400">
+                    Saved dynamically in <code className="text-slate-300">saas_settings</code>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSettings("Pricing plan")}
+                    disabled={savingSettings || settingsLoading}
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition disabled:opacity-50"
+                  >
+                    {savingSettings ? "Saving…" : "Save Pricing Configuration"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Live Preview Card */}
+              <div className="lg:col-span-5 rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-indigo-950/40 via-slate-900/90 to-slate-950 p-6 sm:p-7 shadow-2xl space-y-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 -mr-8 -mt-8 h-36 w-36 rounded-full bg-indigo-500/20 blur-2xl pointer-events-none" />
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                    Live Client View Preview
+                  </span>
+                  <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                    Active
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-white">Pro Enterprise Plan</h3>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-4xl font-black text-white font-mono">
+                      ${Number(saasSettings.pro_plan_price).toFixed(2)}
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">/ month</span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Full warehouse automation, unlimited orders, and automated multi-carrier dispatch.
+                  </p>
+                </div>
+
+                {/* Quota Indicator Preview */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Free Monthly Quota:</span>
+                    <span className="font-mono font-bold text-white">
+                      {saasSettings.free_order_limit} Orders / mo
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400"
+                      style={{ width: "45%" }}
+                    />
+                  </div>
+                  <div className="text-[10px] text-slate-400 text-right">
+                    Clients will see this usage gauge on /dashboard/billing
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-xs text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-400">✓</span> Unlimited order volume past {saasSettings.free_order_limit}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-400">✓</span> Automated WhatsApp &amp; SMS tracking alerts
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-400">✓</span> Multi-user warehouse role permissions
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 3: API GATEWAY INTEGRATIONS HUB                       */}
+        {/* ========================================================= */}
+        {activeTab === "integrations" && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* WhatsApp Gateway Settings */}
+              <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xl">
+                      💬
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">
+                        WhatsApp Gateway Configuration
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        Supports GreenAPI, UltraMsg, Twilio, or generic webhook.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-1">
+                  {/* WhatsApp API URL */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      WhatsApp Gateway Base URL
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.whatsapp_api_url}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          whatsapp_api_url: e.target.value,
+                        }))
+                      }
+                      placeholder="https://api.green-api.com"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      e.g., <code className="text-slate-300">https://api.green-api.com</code> or{" "}
+                      <code className="text-slate-300">https://api.ultramsg.com</code>
+                    </p>
+                  </div>
+
+                  {/* Instance ID */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      Instance ID / Account ID
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.whatsapp_instance_id}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          whatsapp_instance_id: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g. 7103859201"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+
+                  {/* WhatsApp Token */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        API Token / Secret Key
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowWhatsappToken(!showWhatsappToken)}
+                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono"
+                      >
+                        {showWhatsappToken ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    <input
+                      type={showWhatsappToken ? "text" : "password"}
+                      value={saasSettings.whatsapp_token}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          whatsapp_token: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g. 9b8c2d1e4f..."
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-800 flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSettings("WhatsApp credentials")}
+                    disabled={savingSettings}
+                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 transition disabled:opacity-50"
+                  >
+                    <span>💾</span>
+                    <span>Save WhatsApp Config</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Local SMS Gateway (BulkSMSBD) */}
+              <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xl">
+                      📱
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">
+                        Local SMS Gateway (BulkSMSBD)
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        Fast delivery across Grameenphone, Banglalink, Robi, Teletalk.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-1">
+                  {/* SMS API Key */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                        BulkSMSBD API Key
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowSmsApiKey(!showSmsApiKey)}
+                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono"
+                      >
+                        {showSmsApiKey ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    <input
+                      type={showSmsApiKey ? "text" : "password"}
+                      value={saasSettings.sms_api_key}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          sms_api_key: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g. 5x81n49..."
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+
+                  {/* Sender ID */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      Approved Sender ID (Mask)
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.sms_sender_id}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          sms_sender_id: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g. 8809612345678 or LAVANZA"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+
+                  {/* SMS Endpoint URL */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      SMS Gateway URL
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.sms_api_url}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          sms_api_url: e.target.value,
+                        }))
+                      }
+                      placeholder="http://bulksmsbd.net/api/smsapi"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-800 flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSettings("SMS credentials")}
+                    disabled={savingSettings}
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition disabled:opacity-50"
+                  >
+                    <span>💾</span>
+                    <span>Save SMS Gateway Config</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
-  );
-}
-
-function Spinner({ size = 20 }) {
-  return (
-    <svg
-      className="animate-spin text-indigo-400"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-    </svg>
   );
 }
