@@ -169,6 +169,12 @@ export default function ProductsListPage() {
 
           <div className="flex items-center gap-3">
             <Link
+              href="/dashboard/products/import"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition"
+            >
+              <span>📄</span> Bulk Import (CSV)
+            </Link>
+            <Link
               href="/dashboard/products/add"
               className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-700 hover:shadow-indigo-600/30 transition"
             >
@@ -308,12 +314,20 @@ export default function ProductsListPage() {
                   Reset Filters
                 </button>
               ) : (
-                <Link
-                  href="/dashboard/products/add"
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-indigo-700 transition"
-                >
-                  <span>+</span> Add Your First Product
-                </Link>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link
+                    href="/dashboard/products/import"
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition"
+                  >
+                    <span>📄</span> Bulk Import (CSV)
+                  </Link>
+                  <Link
+                    href="/dashboard/products/add"
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-700 transition"
+                  >
+                    <span>+</span> Add Your First Product
+                  </Link>
+                </div>
               )}
             </div>
           ) : (

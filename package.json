@@ -11,8 +11,10 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
+    "@types/papaparse": "^5.5.2",
     "html5-qrcode": "^2.3.8",
     "next": "16.4.0",
+    "papaparse": "^5.7.0",
     "react": "19.3.0",
     "react-barcode": "^1.6.1",
     "react-dom": "19.3.0",
