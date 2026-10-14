@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit, getClientIp } from "@/utils/rate-limit";
+import { sendDispatchNotification } from "@/utils/notifications";
 
 // Rate limiting: 20 dispatch requests per minute per user
 const RATE_LIMIT_REQUESTS = 20;
@@ -194,15 +195,19 @@ export async function POST(request) {
     { auth: { persistSession: false, autoRefreshToken: false } }
   );
 
-  // Determine user's tenant business_id
+  // Determine user's tenant business_id and business name
   let callerBusinessId = null;
+  let callerBusinessName = "Our Store";
   if (user) {
     const { data: roleRow } = await adminClient
       .from("user_roles")
-      .select("business_id")
+      .select("business_id, businesses(name)")
       .eq("id", user.id)
       .maybeSingle();
     callerBusinessId = roleRow?.business_id || null;
+    if (roleRow?.businesses?.name) {
+      callerBusinessName = roleRow.businesses.name;
+    }
   }
 
   // Fetch Steadfast credentials scoped to this business, fallback to global
@@ -331,6 +336,19 @@ export async function POST(request) {
   if (updateOrderError) {
     console.warn("Steadfast consignment created but local DB update failed:", updateOrderError.message);
   }
+
+  // ── 9. ASYNCHRONOUS DISPATCH NOTIFICATION (NON-BLOCKING) ───
+  // Non-blocking invocation: does not await or delay the HTTP response
+  sendDispatchNotification({
+    customerPhone: validPhone,
+    customerName: customer_name,
+    orderId: order_id,
+    trackingUrl: trackingUrl,
+    courierName: "Steadfast Courier",
+    businessName: callerBusinessName,
+  }).catch((notifErr) => {
+    console.warn("Asynchronous dispatch notification notice:", notifErr?.message || notifErr);
+  });
 
   return NextResponse.json(
     {
