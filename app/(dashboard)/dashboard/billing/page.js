@@ -28,10 +28,9 @@ export default function ClientBillingPage() {
   const [isProPlan, setIsProPlan] = useState(false);
   const [paymentNotice, setPaymentNotice] = useState(null);
 
-  // ── Days Left in Current Calendar Month (Computed on client in useEffect)
+  // Days Left in Current Calendar Month
   const [daysLeftInMonth, setDaysLeftInMonth] = useState(15);
 
-  // ── Fetch Dynamic SaaS Settings & Client Monthly Orders ─────
   useEffect(() => {
     let isMounted = true;
 
@@ -41,7 +40,6 @@ export default function ClientBillingPage() {
       try {
         setLoading(true);
 
-        // 0. Compute days left in current month
         const now = new Date();
         const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         if (isMounted) {
@@ -65,7 +63,6 @@ export default function ClientBillingPage() {
 
         // 2. Query Tenant's Orders for the current calendar month
         if (businessId) {
-          const now = new Date();
           const startOfMonth = new Date(
             now.getFullYear(),
             now.getMonth(),
@@ -105,7 +102,7 @@ export default function ClientBillingPage() {
               setIsProPlan(true);
             }
           } catch {
-            // ignore if column not present yet
+            // column might not exist in dev
           }
 
           // 4. Check URL query parameters for payment return state
@@ -120,13 +117,13 @@ export default function ClientBillingPage() {
               setPaymentNotice({
                 type: "error",
                 message:
-                  "Payment transaction failed or was declined by the gateway. Please try again.",
+                  "Payment transaction could not be completed. Your account was not charged. Please try again.",
               });
             } else if (paymentStatus === "cancelled") {
               setPaymentNotice({
                 type: "warning",
                 message:
-                  "Payment checkout was cancelled. Your workspace remains on the Free tier.",
+                  "Checkout session was cancelled. Your workspace remains on the Free starter tier.",
               });
             }
           }
@@ -145,21 +142,12 @@ export default function ClientBillingPage() {
     };
   }, [businessId, ctxLoading]);
 
-  // ── Usage Metrics ──────────────────────────────────────────
+  // Usage Metrics
   const limit = pricingConfig.free_order_limit;
   const usagePercentage = isProPlan
     ? 0
     : Math.min(100, Math.round((currentMonthOrders / limit) * 100));
 
-  // Status color based on percentage
-  const usageColor =
-    usagePercentage >= 90
-      ? "rose"
-      : usagePercentage >= 75
-      ? "amber"
-      : "emerald";
-
-  // ── Real SSLCommerz Checkout Upgrade Action ─────────────────
   const handleConfirmUpgrade = async () => {
     try {
       setProcessingUpgrade(true);
@@ -167,9 +155,7 @@ export default function ClientBillingPage() {
 
       const res = await fetch("/api/payment/sslcommerz/init", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessId }),
       });
 
@@ -177,11 +163,10 @@ export default function ClientBillingPage() {
 
       if (!res.ok || !data.success || !data.gatewayUrl) {
         throw new Error(
-          data.error || "Failed to initialize SSLCommerz payment gateway."
+          data.error || "Failed to initialize payment gateway session."
         );
       }
 
-      // Redirect client directly to SSLCommerz Hosted Checkout (bKash/Nagad/Cards)
       window.location.href = data.gatewayUrl;
     } catch (err) {
       console.error("Upgrade initialization error:", err);
@@ -194,183 +179,238 @@ export default function ClientBillingPage() {
 
   if (ctxLoading || loading) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center font-sans">
+      <main className="min-h-screen bg-zinc-50/60 flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading billing telemetry…</p>
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
+          <p className="text-xs font-mono text-zinc-500">Loading billing telemetry…</p>
         </div>
       </main>
     );
   }
 
+  const bdtPrice = Math.round(
+    pricingConfig.pro_plan_price * pricingConfig.bdt_exchange_rate
+  );
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white pb-16">
+    <main className="min-h-screen bg-zinc-50/60 text-zinc-900 font-sans pb-16">
       {/* ── Top Bar Header ─────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3.5 sm:px-6">
-        <div className="mx-auto max-w-6xl flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-zinc-200 px-4 py-3 sm:px-6">
+        <div className="mx-auto max-w-5xl flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/products"
-              className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-100 hover:border-slate-700 transition"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 transition"
               title="Return to Catalog"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </Link>
             <div>
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-indigo-400">
-                <span>🏢</span> {businessName || "My Store"}
-                <span className="text-slate-600">•</span>
-                <span className="text-slate-400 font-normal">Subscription &amp; Usage</span>
+              <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
+                <span>{businessName || "Workspace"}</span>
+                <span>/</span>
+                <span className="text-zinc-900 font-medium">Billing &amp; Subscription</span>
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                Billing &amp; Subscription Quota
+              <h1 className="text-lg font-semibold tracking-tight text-zinc-900">
+                Subscription Quota &amp; Plans
               </h1>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setUpgradeModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-500/20 hover:from-indigo-600 hover:to-purple-700 transition"
-          >
-            <span>⚡</span>
-            <span>Upgrade to Pro</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {isProPlan ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Pro Enterprise Active
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setUpgradeModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-zinc-800 transition"
+              >
+                Upgrade to Pro
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-8 space-y-8">
-        {/* ── CURRENT PLAN & MONTHLY USAGE PROGRESS BAR ──────────── */}
-        <div className="relative overflow-hidden rounded-3xl border border-slate-800/90 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-slate-800/80">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Current Plan: Free Tier
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 pt-8 space-y-6">
+        {/* ── Payment Status Notice ──────────────────────────────── */}
+        {paymentNotice && (
+          <div
+            className={`rounded-xl border p-4 text-xs flex items-start justify-between gap-3 ${
+              paymentNotice.type === "error"
+                ? "bg-rose-50 border-rose-200 text-rose-900"
+                : "bg-amber-50 border-amber-200 text-amber-900"
+            }`}
+          >
+            <div className="flex items-start gap-2.5">
+              <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <p className="font-semibold">
+                  {paymentNotice.type === "error" ? "Payment Failed" : "Checkout Cancelled"}
+                </p>
+                <p className="mt-0.5 text-zinc-600">{paymentNotice.message}</p>
               </div>
-              <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                Monthly Order Consumption
+            </div>
+            <button
+              onClick={() => setPaymentNotice(null)}
+              className="text-zinc-400 hover:text-zinc-700"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* ── Usage Telemetry Card ───────────────────────────────── */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-zinc-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono uppercase tracking-wider text-zinc-500">Current Plan</span>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                    isProPlan
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                      : "bg-zinc-100 text-zinc-700 border border-zinc-200"
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      isProPlan ? "bg-emerald-500" : "bg-zinc-500"
+                    }`}
+                  />
+                  {isProPlan ? "Pro Plan" : "Free Starter"}
+                </span>
+              </div>
+              <h2 className="mt-1.5 text-xl font-bold tracking-tight text-zinc-900">
+                Monthly Order Capacity
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Your workspace includes{" "}
-                <span className="text-indigo-400 font-bold">{limit} free orders</span> each
-                month. All-time orders processed:{" "}
-                <span className="text-slate-300 font-mono font-bold">
+              <p className="text-xs text-zinc-500 mt-1">
+                {isProPlan
+                  ? "Your workspace is operating with uncapped monthly orders."
+                  : `Your free quota covers up to ${limit} orders per calendar month.`}
+                {" "}All-time orders processed:{" "}
+                <span className="font-mono font-medium text-zinc-900">
                   {totalAllTimeOrders.toLocaleString()}
                 </span>
                 .
               </p>
             </div>
 
-            <div className="text-right">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Billing Cycle Resets In
+            <div className="sm:text-right">
+              <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
+                Cycle Reset
               </div>
-              <div className="text-3xl font-black text-white font-mono mt-1">
-                {daysLeftInMonth} {daysLeftInMonth === 1 ? "Day" : "Days"}
+              <div className="text-2xl font-bold font-mono text-zinc-900 mt-0.5">
+                {daysLeftInMonth} {daysLeftInMonth === 1 ? "day" : "days"}
               </div>
-              <div className="text-[10px] text-slate-400 mt-0.5">
-                Next cycle: 1st of next month
+              <div className="text-[11px] text-zinc-400">
+                Next cycle begins on 1st of next month
               </div>
             </div>
           </div>
 
-          {/* Progress Bar & Quota Gauge */}
-          <div className="relative z-10 pt-6 space-y-3">
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-slate-300 flex items-center gap-2">
-                <span>📦 Monthly Dispatched Orders:</span>
-                <span className="font-mono text-white text-sm">
-                  {currentMonthOrders} / {limit}
-                </span>
+          {/* Progress Bar */}
+          <div className="pt-6 space-y-2.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-zinc-600 font-medium">
+                Orders used this month:{" "}
+                <span className="font-mono font-bold text-zinc-900">
+                  {currentMonthOrders}
+                </span>{" "}
+                <span className="text-zinc-400">/ {isProPlan ? "∞" : limit}</span>
               </span>
-              <span
-                className={`font-mono text-xs ${
-                  usageColor === "rose"
-                    ? "text-rose-400"
-                    : usageColor === "amber"
-                    ? "text-amber-400"
-                    : "text-emerald-400"
-                }`}
-              >
-                {usagePercentage}% Quota Used
+              <span className="font-mono text-zinc-600 text-xs">
+                {isProPlan ? "0% (Uncapped)" : `${usagePercentage}% utilized`}
               </span>
             </div>
 
-            {/* Glowing animated progress track */}
-            <div className="h-3 w-full rounded-full bg-slate-950 border border-slate-800 overflow-hidden p-0.5">
+            <div className="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-700 ease-out shadow-sm ${
-                  usageColor === "rose"
-                    ? "bg-gradient-to-r from-amber-500 to-rose-500 shadow-rose-500/50"
-                    : usageColor === "amber"
-                    ? "bg-gradient-to-r from-emerald-500 to-amber-500 shadow-amber-500/50"
-                    : "bg-gradient-to-r from-indigo-500 to-emerald-400 shadow-emerald-400/50"
+                className={`h-full rounded-full transition-all duration-500 ${
+                  isProPlan
+                    ? "bg-emerald-500"
+                    : usagePercentage >= 90
+                    ? "bg-rose-500"
+                    : usagePercentage >= 75
+                    ? "bg-amber-500"
+                    : "bg-zinc-900"
                 }`}
-                style={{ width: `${usagePercentage}%` }}
+                style={{ width: `${isProPlan ? 100 : usagePercentage}%` }}
               />
             </div>
 
-            {usagePercentage >= 85 && (
-              <div className="mt-2 text-xs text-amber-300 flex items-center gap-2">
-                <span>⚠️</span>
+            {!isProPlan && usagePercentage >= 85 && (
+              <p className="text-xs text-amber-700 mt-2 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
                 <span>
-                  You have consumed {usagePercentage}% of your monthly allowance. Upgrade to Pro
-                  to prevent dispatch disruptions.
+                  You have utilized {usagePercentage}% of your monthly allowance. Upgrade to Pro to prevent courier dispatch locks.
                 </span>
-              </div>
+              </p>
             )}
           </div>
         </div>
 
-        {/* ── PLAN COMPARISON TIERS ──────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-          {/* Tier 1: Free Tier */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 flex flex-col justify-between space-y-6">
+        {/* ── Plan Comparison Cards ──────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+          {/* Plan 1: Free Starter */}
+          <div className="rounded-2xl border border-zinc-200 bg-white p-6 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
-              <div className="inline-flex rounded-full bg-slate-800 px-3 py-1 text-xs font-bold text-slate-300">
-                Starter Tier
+              <div className="inline-flex rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-mono font-medium text-zinc-700">
+                Community Tier
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">Community Edition</h3>
+                <h3 className="text-lg font-bold text-zinc-900">Starter</h3>
                 <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white font-mono">$0</span>
-                  <span className="text-xs text-slate-400 font-medium">/ month</span>
+                  <span className="text-3xl font-bold font-mono text-zinc-900">$0</span>
+                  <span className="text-xs text-zinc-500">/ month</span>
                 </div>
-                <p className="text-xs text-slate-400 mt-2">
-                  Ideal for testing new eCommerce storefronts and early-stage merchants.
+                <p className="text-xs text-zinc-500 mt-1">
+                  Essential tools for launching a new eCommerce store and testing physical dispatch.
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-800/80 space-y-2.5 text-xs text-slate-300">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400">✓</span> Up to {limit} orders per calendar month
+              <div className="pt-4 border-t border-zinc-100 space-y-2.5 text-xs text-zinc-700">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Up to {limit} orders per calendar month</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400">✓</span> Serialized Barcode Printing (2x1)
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Thermal Barcode Printing (Standard 2x1)</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400">✓</span> Mobile Camera Barcode Scanner
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>In-Browser WebAssembly Camera Scanner</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400">✓</span> Steadfast Courier Consignment Integration
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Steadfast Courier Consignment Integration</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-slate-500">
-                  <span>✕</span> Priority Automated WhatsApp/SMS Notifications
+                <div className="flex items-center gap-2 text-zinc-400">
+                  <svg className="w-4 h-4 text-zinc-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Automated WhatsApp &amp; SMS Customer Alerts</span>
                 </div>
               </div>
             </div>
@@ -378,96 +418,128 @@ export default function ClientBillingPage() {
             <button
               type="button"
               disabled
-              className="w-full rounded-2xl border border-slate-700 bg-slate-800/50 py-3 text-xs font-bold text-slate-400 cursor-not-allowed"
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 text-xs font-semibold text-zinc-400 cursor-default"
             >
-              Current Active Plan
+              {!isProPlan ? "Current Workspace Plan" : "Included"}
             </button>
           </div>
 
-          {/* Tier 2: Pro Plan (Dynamic Pricing) */}
-          <div className="relative rounded-3xl border-2 border-indigo-500/50 bg-gradient-to-b from-indigo-950/40 via-slate-900/90 to-slate-950 p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-2xl shadow-indigo-500/10">
-            {/* Glowing top badge */}
-            <div className="absolute -top-3.5 right-8">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 px-3.5 py-1 text-[11px] font-black uppercase tracking-wider text-white shadow-md">
-                ★ Highly Recommended
-              </span>
-            </div>
-
+          {/* Plan 2: Pro Growth */}
+          <div className="rounded-2xl border-2 border-indigo-600 bg-white p-6 flex flex-col justify-between space-y-6 shadow-md ring-4 ring-indigo-50/80 relative">
             <div className="space-y-4">
-              <div className="inline-flex rounded-full bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 text-xs font-bold text-indigo-300">
-                Pro Growth Tier
+              <div className="flex items-center justify-between">
+                <span className="inline-flex rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-mono font-bold text-white shadow-xs">
+                  Pro Growth Tier
+                </span>
+                <span className="text-[11px] font-mono text-indigo-600 font-semibold">
+                  Cancel anytime
+                </span>
               </div>
+
               <div>
-                <h3 className="text-xl font-bold text-white">Full Automation Pro</h3>
+                <h3 className="text-xl font-extrabold text-slate-900">Full Automation Pro</h3>
                 <div className="mt-2 flex flex-wrap items-baseline gap-2">
-                  <span className="text-4xl font-black text-white font-mono">
+                  <span className="text-3xl font-bold font-mono text-slate-900">
                     ${pricingConfig.pro_plan_price.toFixed(2)}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">/ month</span>
-                  <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                    ৳{Math.round(pricingConfig.pro_plan_price * pricingConfig.bdt_exchange_rate).toLocaleString()} BDT
+                  <span className="text-xs text-slate-500">/ month</span>
+                  <span className="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                    ৳{bdtPrice.toLocaleString()} BDT
                   </span>
                 </div>
-                <p className="text-xs text-indigo-200/70 mt-2">
-                  Uncapped order processing, instant customer tracking alerts, and multi-user roles.
+                <p className="text-xs text-slate-500 mt-1">
+                  Full capacity for growing merchants processing high daily order volumes with automated courier routing.
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-800/80 space-y-2.5 text-xs text-slate-200">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span className="font-bold text-white">Unlimited Orders</span> (Zero monthly caps)
+              <div className="pt-4 border-t border-slate-100 space-y-2.5 text-xs text-slate-800">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="font-bold text-slate-900">Unlimited Monthly Orders</span>
+                  <span className="text-slate-500">(No overage fees)</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span>Instant WhatsApp &amp; SMS Dispatch Notifications</span>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Automated WhatsApp &amp; SMS Dispatch Notifications</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span>Advanced Multi-Carrier Routing (Steadfast, Pathao, RedX)</span>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Multi-Carrier Routing (Steadfast, Pathao, RedX)</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400 font-bold">✓</span>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
                   <span>Unlimited Operator &amp; Viewer Team Accounts</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span>99.98% SLA Uptime &amp; Priority 24/7 Support</span>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Demand Forecasting &amp; Runway Analytics</span>
                 </div>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setUpgradeModalOpen(true)}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 py-3.5 text-xs font-bold text-white shadow-xl shadow-indigo-500/30 hover:from-indigo-600 hover:to-purple-700 transition"
-            >
-              <span>🚀</span>
-              <span>Upgrade to Pro Plan (${pricingConfig.pro_plan_price.toFixed(2)} USD · ৳{Math.round(pricingConfig.pro_plan_price * pricingConfig.bdt_exchange_rate).toLocaleString()} BDT)</span>
-            </button>
+            {isProPlan ? (
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 py-2.5 text-center text-xs font-semibold text-emerald-800">
+                Current Active Plan
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setUpgradeModalOpen(true)}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-xs font-bold text-white shadow-sm shadow-indigo-600/30 hover:bg-indigo-700 transition"
+              >
+                <span>Upgrade to Pro Plan</span>
+                <span className="font-mono text-indigo-100">· ৳{bdtPrice.toLocaleString()} BDT</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* ── FAQ & SECURITY CALLOUT ─────────────────────────────── */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Frequently Asked Questions
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
-            <div>
-              <div className="font-semibold text-slate-200">
-                What happens when I reach {limit} orders?
+        {/* ── Trust & Security Footer Callout ─────────────────────── */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-900">
+                <svg className="w-4 h-4 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>256-Bit SSL Encryption</span>
               </div>
-              <p className="mt-1">
-                Your catalog and scanner remain accessible, but new courier dispatches will request an upgrade to Pro.
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                All transactions are tokenized and processed through SSLCommerz's bank-grade, PCI-DSS Level 1 certified gateway infrastructure.
               </p>
             </div>
-            <div>
-              <div className="font-semibold text-slate-200">
-                Can I cancel anytime?
+
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-900">
+                <svg className="w-4 h-4 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>Local &amp; Global Methods</span>
               </div>
-              <p className="mt-1">
-                Yes, you can downgrade or pause your subscription at any time without long-term contracts.
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Full support for bKash, Nagad, Rocket, Visa, Mastercard, American Express, and direct internet banking channels.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-900">
+                <svg className="w-4 h-4 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Zero Long-Term Lock-in</span>
+              </div>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Subscriptions renew on a monthly cycle. You can change your plan or pause dispatch quotas at any time from this console.
               </p>
             </div>
           </div>
@@ -476,75 +548,81 @@ export default function ClientBillingPage() {
 
       {/* ── UPGRADE CHECKOUT MODAL ─────────────────────────────── */}
       {upgradeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600" />
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl space-y-5">
             {!upgradeSuccess ? (
               <>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xl">
-                      💎
-                    </span>
-                    <div>
-                      <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
-                      <p className="text-xs text-slate-400">
-                        {businessName || "Your Workspace"}
-                      </p>
-                    </div>
+                <div className="flex items-start justify-between pb-3 border-b border-zinc-100">
+                  <div>
+                    <h3 className="text-base font-bold text-zinc-900">
+                      Upgrade to Pro Enterprise
+                    </h3>
+                    <p className="text-xs font-mono text-zinc-500 mt-0.5">
+                      Workspace: {businessName || "Primary Store"}
+                    </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setUpgradeModalOpen(false)}
-                    className="text-slate-400 hover:text-white"
+                    onClick={() => {
+                      setUpgradeModalOpen(false);
+                      setUpgradeError(null);
+                    }}
+                    className="text-zinc-400 hover:text-zinc-700 transition"
                   >
-                    ✕
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
 
                 {upgradeError && (
-                  <div className="rounded-xl border border-rose-900/60 bg-rose-950/60 p-3 text-xs text-rose-300 flex items-center gap-2">
-                    <span>⚠️</span>
-                    <span>{upgradeError}</span>
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+                    <p className="font-semibold">Unable to initiate checkout</p>
+                    <p className="mt-0.5">{upgradeError}</p>
                   </div>
                 )}
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Plan:</span>
-                    <span className="text-white font-bold">Pro Enterprise Monthly</span>
+                {/* Line Item Invoice Breakdown */}
+                <div className="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs text-zinc-600">
+                    <span>Plan:</span>
+                    <span className="font-semibold text-zinc-900">Pro Enterprise (Monthly)</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Order Allowance:</span>
-                    <span className="text-emerald-400 font-bold">Unlimited</span>
+                  <div className="flex items-center justify-between text-xs text-zinc-600">
+                    <span>Order Cap:</span>
+                    <span className="font-semibold text-emerald-700">Unlimited Orders</span>
                   </div>
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-sm">
-                    <span className="text-white font-bold">Total Due Today:</span>
+                  <div className="flex items-center justify-between text-xs text-zinc-600">
+                    <span>Billing Cycle:</span>
+                    <span className="font-mono text-zinc-900">30 Calendar Days</span>
+                  </div>
+                  <div className="pt-2.5 border-t border-zinc-200 flex items-baseline justify-between">
+                    <span className="text-xs font-bold text-zinc-900">Total Due Today:</span>
                     <div className="text-right">
-                      <div className="text-lg font-black text-emerald-400 font-mono">
-                        ৳{Math.round(pricingConfig.pro_plan_price * pricingConfig.bdt_exchange_rate).toLocaleString()} BDT
+                      <div className="text-lg font-bold font-mono text-zinc-900">
+                        ৳{bdtPrice.toLocaleString()} BDT
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-[11px] font-mono text-zinc-500">
                         (${pricingConfig.pro_plan_price.toFixed(2)} USD)
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Accepted Local &amp; Global Methods:
-                  </div>
+                {/* Payment Methods */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-500">
+                    Supported Payment Methods
+                  </span>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="rounded-xl border-2 border-indigo-500 bg-indigo-950/20 p-2.5 text-center text-xs font-bold text-white">
-                      💳 Visa/Master
+                    <div className="rounded-lg border border-zinc-200 bg-white p-2.5 text-center text-xs font-medium text-zinc-800">
+                      Card (Visa/MC)
                     </div>
-                    <div className="rounded-xl border border-pink-500/30 bg-pink-950/20 p-2.5 text-center text-xs font-bold text-pink-300">
-                      📱 bKash
+                    <div className="rounded-lg border border-zinc-200 bg-white p-2.5 text-center text-xs font-medium text-zinc-800">
+                      bKash
                     </div>
-                    <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-2.5 text-center text-xs font-bold text-amber-300">
-                      ⚡ Nagad/Rocket
+                    <div className="rounded-lg border border-zinc-200 bg-white p-2.5 text-center text-xs font-medium text-zinc-800">
+                      Nagad / Rocket
                     </div>
                   </div>
                 </div>
@@ -557,7 +635,7 @@ export default function ClientBillingPage() {
                       setUpgradeError(null);
                     }}
                     disabled={processingUpgrade}
-                    className="w-1/3 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-50"
+                    className="w-1/3 rounded-xl border border-zinc-300 bg-white py-2.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -565,39 +643,49 @@ export default function ClientBillingPage() {
                     type="button"
                     onClick={handleConfirmUpgrade}
                     disabled={processingUpgrade}
-                    className="w-2/3 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:from-emerald-500 hover:to-indigo-500 transition disabled:opacity-50 active:scale-95"
+                    className="w-2/3 inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-zinc-800 transition disabled:opacity-50"
                   >
                     {processingUpgrade ? (
                       <>
                         <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        <span>Connecting SSLCommerz…</span>
+                        <span>Connecting to Gateway…</span>
                       </>
                     ) : (
-                      <span>Pay via SSLCommerz ➔</span>
+                      <span>Proceed to SSLCommerz</span>
                     )}
                   </button>
+                </div>
+
+                <div className="text-center">
+                  <span className="text-[11px] text-zinc-400">
+                    Redirects to SSLCommerz 3D Secure Hosted Checkout
+                  </span>
                 </div>
               </>
             ) : (
               <div className="text-center space-y-4 py-4">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-3xl">
-                  🎉
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-                <h3 className="text-xl font-black text-white">
-                  Welcome to Pro Enterprise!
-                </h3>
-                <p className="text-xs text-slate-400">
-                  Your store now has unlimited monthly order capacity and automated WhatsApp/SMS notifications enabled.
-                </p>
+                <div>
+                  <h3 className="text-base font-bold text-zinc-900">
+                    Welcome to Pro Enterprise
+                  </h3>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Your workspace now has unlimited order capacity and automated notifications enabled.
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
                     setUpgradeModalOpen(false);
                     setUpgradeSuccess(false);
                   }}
-                  className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:bg-emerald-500 transition"
+                  className="rounded-xl bg-zinc-900 px-5 py-2 text-xs font-semibold text-white hover:bg-zinc-800 transition"
                 >
-                  Got It
+                  Continue to Catalog
                 </button>
               </div>
             )}

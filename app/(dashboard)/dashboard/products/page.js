@@ -12,20 +12,18 @@ export default function ProductsListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ── filter & search states ───────────────────────────────
+  // ── Filter & Search States ───────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [stockFilter, setStockFilter] = useState("ALL"); // ALL | IN_STOCK | OUT_OF_STOCK
 
-  // ── fetch products & live inventory count ────────────────
+  // ── Fetch Products & Live Inventory Count ────────────────
   useEffect(() => {
     let isMounted = true;
 
     async function loadData() {
-      // 1. Wait until tenant context is resolved
       if (ctxLoading) return;
 
-      // 2. If no businessId resolved, set empty array (never query global records)
       if (!businessId) {
         if (isMounted) {
           setProducts([]);
@@ -38,7 +36,6 @@ export default function ProductsListPage() {
         setLoading(true);
         setError(null);
 
-        // 3. Strictly fetch products for THIS tenant workspace
         const { data: prods, error: pErr } = await supabase
           .from("products")
           .select("*")
@@ -51,7 +48,6 @@ export default function ProductsListPage() {
         const inStockCountMap = {};
         const totalItemsMap = {};
 
-        // 4. Fetch inventory items ONLY for this tenant's products
         const prodIds = prodList.map((p) => p.id);
 
         if (prodIds.length > 0) {
@@ -72,7 +68,6 @@ export default function ProductsListPage() {
           }
         }
 
-        // 5. Merge products with live inventory quantities
         const enriched = prodList.map((p) => ({
           ...p,
           inStockCount: inStockCountMap[p.id] ?? 0,
@@ -100,7 +95,7 @@ export default function ProductsListPage() {
     };
   }, [businessId, ctxLoading]);
 
-  // ── unique categories for dropdown filter ────────────────
+  // ── Unique Categories ────────────────────────────────────
   const categories = useMemo(() => {
     const cats = new Set();
     products.forEach((p) => {
@@ -109,20 +104,17 @@ export default function ProductsListPage() {
     return Array.from(cats);
   }, [products]);
 
-  // ── filtered products ────────────────────────────────────
+  // ── Filtered Products ────────────────────────────────────
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      // 1. Search term match (Name or SKU)
       const matchesSearch =
         searchTerm === "" ||
         p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.base_sku?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // 2. Category filter
       const matchesCategory =
         selectedCategory === "ALL" || p.category === selectedCategory;
 
-      // 3. Stock status filter
       const matchesStock =
         stockFilter === "ALL" ||
         (stockFilter === "IN_STOCK" && p.inStockCount > 0) ||
@@ -132,7 +124,7 @@ export default function ProductsListPage() {
     });
   }, [products, searchTerm, selectedCategory, stockFilter]);
 
-  // ── stats calculations ───────────────────────────────────
+  // ── Stats Calculations ───────────────────────────────────
   const stats = useMemo(() => {
     const totalProducts = products.length;
     const totalInStockUnits = products.reduce((sum, p) => sum + p.inStockCount, 0);
@@ -151,34 +143,42 @@ export default function ProductsListPage() {
   }, [products]);
 
   return (
-    <main className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-zinc-50/60 py-8 px-4 sm:px-6 lg:px-8 font-sans text-zinc-900">
       <div className="mx-auto max-w-7xl space-y-6">
         {/* ── Page Header ────────────────────────────────── */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-indigo-600">
-              <span>🏢</span> {businessName || "Pro-Level Inventory"}
+            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
+              <span>{businessName || "Workspace"}</span>
+              <span>/</span>
+              <span className="text-zinc-900 font-medium">Catalog</span>
             </div>
-            <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">
               Inventory Catalog
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Manage physical products, live serialized stock levels, and thermal barcode labels.
+            <p className="mt-1 text-xs text-zinc-500">
+              Manage physical SKU records, serialized stock levels, and thermal barcode labels.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Link
               href="/dashboard/products/import"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 transition"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-indigo-600 hover:border-slate-300 transition"
             >
-              <span>📄</span> Bulk Import (CSV)
+              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Bulk Import (CSV)
             </Link>
             <Link
               href="/dashboard/products/add"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-700 hover:shadow-indigo-600/30 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs shadow-indigo-600/30 hover:bg-indigo-700 transition"
             >
-              <span>+</span> Add Product Intake
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Product Intake
             </Link>
           </div>
         </div>
@@ -188,14 +188,22 @@ export default function ProductsListPage() {
           <StatCard
             title="Total Products"
             value={stats.totalProducts}
-            icon="📦"
-            color="indigo"
+            accentColor="indigo"
+            icon={
+              <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            }
           />
           <StatCard
             title="Available Units"
             value={stats.totalInStockUnits.toLocaleString()}
-            icon="🏷️"
-            color="emerald"
+            accentColor="emerald"
+            icon={
+              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            }
           />
           <StatCard
             title="Stock Value"
@@ -203,22 +211,31 @@ export default function ProductsListPage() {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}`}
-            icon="💵"
-            color="violet"
+            accentColor="violet"
+            icon={
+              <svg className="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
           />
           <StatCard
             title="Out of Stock"
             value={stats.outOfStockCount}
-            icon="⚠️"
-            color={stats.outOfStockCount > 0 ? "rose" : "slate"}
+            isAlert={stats.outOfStockCount > 0}
+            accentColor={stats.outOfStockCount > 0 ? "rose" : "slate"}
+            icon={
+              <svg className={`w-4 h-4 ${stats.outOfStockCount > 0 ? "text-rose-600" : "text-slate-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            }
           />
         </div>
 
         {/* ── Search & Filter Controls ───────────────────── */}
-        <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-3.5 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search Bar */}
           <div className="relative flex-1">
-            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-400">
               <SearchIcon />
             </span>
             <input
@@ -226,13 +243,13 @@ export default function ProductsListPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by Product Name or Base SKU…"
-              className="block w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition"
+              className="block w-full rounded-xl border border-zinc-200 pl-10 pr-4 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none transition"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm("")}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-slate-400 hover:text-slate-600"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-zinc-400 hover:text-zinc-600"
               >
                 Clear
               </button>
@@ -240,12 +257,12 @@ export default function ProductsListPage() {
           </div>
 
           {/* Filters Row */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {/* Category Select */}
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-700 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition"
+              className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-700 focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none transition"
             >
               <option value="ALL">All Categories</option>
               {categories.map((c) => (
@@ -259,7 +276,7 @@ export default function ProductsListPage() {
             <select
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-700 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition"
+              className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-700 focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none transition"
             >
               <option value="ALL">All Stock Status</option>
               <option value="IN_STOCK">In Stock Only</option>
@@ -270,34 +287,36 @@ export default function ProductsListPage() {
 
         {/* ── Error Banner ───────────────────────────────── */}
         {error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800">
             <strong>Error:</strong> {error}
           </div>
         )}
 
         {/* ── Data Table Card ────────────────────────────── */}
-        <div className="overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/80">
+        <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs">
           {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-              <Spinner size={32} />
-              <p className="text-sm font-medium">Loading inventory records…</p>
+            <div className="py-20 flex flex-col items-center justify-center gap-3 text-zinc-500">
+              <Spinner size={24} />
+              <p className="text-xs font-mono text-zinc-400">Loading catalog records…</p>
             </div>
           ) : filteredProducts.length === 0 ? (
             /* ── Empty State ──────────────────────────────── */
             <div className="py-16 px-4 text-center space-y-4">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-3xl">
-                📦
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-500 border border-zinc-200">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">
+                <h3 className="text-sm font-semibold text-zinc-900">
                   {searchTerm || selectedCategory !== "ALL" || stockFilter !== "ALL"
                     ? "No matching products found"
                     : "No products in inventory catalog yet"}
                 </h3>
-                <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
+                <p className="mt-1 text-xs text-zinc-500 max-w-sm mx-auto">
                   {searchTerm || selectedCategory !== "ALL" || stockFilter !== "ALL"
-                    ? "Try adjusting your search criteria or clear the filters to view all records."
-                    : "Get started by adding your first product and generating unique thermal barcodes for physical stock."}
+                    ? "Try adjusting your search criteria or clear filters to view all records."
+                    : "Add your first product to generate unique thermal barcodes for physical stock management."}
                 </p>
               </div>
 
@@ -309,23 +328,23 @@ export default function ProductsListPage() {
                     setSelectedCategory("ALL");
                     setStockFilter("ALL");
                   }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 transition"
                 >
                   Reset Filters
                 </button>
               ) : (
-                <div className="flex flex-wrap items-center justify-center gap-3">
+                <div className="flex flex-wrap items-center justify-center gap-2.5">
                   <Link
                     href="/dashboard/products/import"
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-700 shadow-xs hover:bg-zinc-50 transition"
                   >
-                    <span>📄</span> Bulk Import (CSV)
+                    Bulk Import (CSV)
                   </Link>
                   <Link
                     href="/dashboard/products/add"
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-700 transition"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-zinc-800 transition"
                   >
-                    <span>+</span> Add Your First Product
+                    Add Product Intake
                   </Link>
                 </div>
               )}
@@ -333,77 +352,77 @@ export default function ProductsListPage() {
           ) : (
             /* ── Table Content ────────────────────────────── */
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead className="bg-slate-50">
+              <table className="min-w-full divide-y divide-zinc-200 text-left text-xs">
+                <thead className="bg-zinc-50/60">
                   <tr>
-                    <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider text-slate-600">
+                    <th className="px-5 py-3 font-mono font-medium uppercase tracking-wider text-zinc-500">
                       Product Name
                     </th>
-                    <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider text-slate-600">
+                    <th className="px-5 py-3 font-mono font-medium uppercase tracking-wider text-zinc-500">
                       Category
                     </th>
-                    <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider text-slate-600">
+                    <th className="px-5 py-3 font-mono font-medium uppercase tracking-wider text-zinc-500">
                       Base SKU
                     </th>
-                    <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider text-slate-600">
+                    <th className="px-5 py-3 font-mono font-medium uppercase tracking-wider text-zinc-500">
                       Price
                     </th>
-                    <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider text-slate-600">
+                    <th className="px-5 py-3 font-mono font-medium uppercase tracking-wider text-zinc-500">
                       In Stock
                     </th>
-                    <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider text-slate-600 text-right">
+                    <th className="px-5 py-3 font-mono font-medium uppercase tracking-wider text-zinc-500 text-right">
                       Actions
                     </th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {filteredProducts.map((p, idx) => {
+                <tbody className="divide-y divide-zinc-100 bg-white">
+                  {filteredProducts.map((p) => {
                     const isAvailable = p.inStockCount > 0;
 
                     return (
                       <tr
                         key={p.id}
-                        className={`hover:bg-indigo-50/30 transition-colors ${
-                          idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"
-                        }`}
+                        className="hover:bg-indigo-50/40 transition-colors"
                       >
                         {/* 1. Product Name */}
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-slate-900">{p.name}</div>
+                        <td className="px-5 py-3.5">
+                          <div className="font-semibold text-slate-900 hover:text-indigo-600 transition-colors">{p.name}</div>
                           {p.created_at && (
-                            <div className="text-[11px] text-slate-400 mt-0.5">
+                            <div className="text-[11px] font-mono text-slate-400 mt-0.5">
                               Added {new Date(p.created_at).toLocaleDateString()}
                             </div>
                           )}
                         </td>
 
                         {/* 2. Category */}
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 border border-slate-200/60">
+                        <td className="px-5 py-3.5">
+                          <span className="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700 border border-slate-200/80">
                             {p.category || "Uncategorized"}
                           </span>
                         </td>
 
                         {/* 3. Base SKU */}
-                        <td className="px-6 py-4 font-mono font-bold text-xs text-indigo-950">
-                          {p.base_sku || "—"}
+                        <td className="px-5 py-3.5">
+                          <span className="inline-flex font-mono font-bold text-xs text-indigo-950 bg-indigo-50/60 px-2 py-0.5 rounded border border-indigo-200/50">
+                            {p.base_sku || "—"}
+                          </span>
                         </td>
 
                         {/* 4. Price */}
-                        <td className="px-6 py-4 font-semibold text-slate-800">
+                        <td className="px-5 py-3.5 font-mono text-slate-900 font-bold">
                           {p.price !== undefined && p.price !== null
                             ? `$${Number(p.price).toFixed(2)}`
                             : "—"}
                         </td>
 
-                        {/* 5. In Stock (Highlighted Badge) */}
-                        <td className="px-6 py-4">
+                        {/* 5. In Stock (High-contrast Status Badge) */}
+                        <td className="px-5 py-3.5">
                           <span
-                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${
                               isAvailable
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-rose-50 text-rose-700 border-rose-200"
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                : "bg-rose-50 text-rose-800 border-rose-200"
                             }`}
                           >
                             <span
@@ -411,27 +430,33 @@ export default function ProductsListPage() {
                                 isAvailable ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
                               }`}
                             />
-                            {p.inStockCount.toLocaleString()} Units
+                            {p.inStockCount.toLocaleString()} units
                           </span>
                         </td>
 
                         {/* 6. Actions */}
-                        <td className="px-6 py-4 text-right">
-                          <div className="inline-flex items-center justify-end gap-2">
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="inline-flex items-center justify-end gap-1.5">
                             {/* Print Labels Button */}
                             <Link
                               href={`/dashboard/products/${p.id}/print`}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-100 hover:border-indigo-300 shadow-sm transition"
+                              className="inline-flex items-center gap-1 rounded-lg border border-indigo-200/80 bg-indigo-50/60 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 hover:border-indigo-300 transition"
                             >
-                              <span>🏷️</span> Print Labels
+                              <svg className="w-3.5 h-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                              </svg>
+                              Labels
                             </Link>
 
                             {/* Dispatch / Sell Button */}
                             <Link
                               href={`/dashboard/products/${p.id}/dispatch`}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 shadow-sm transition"
+                              className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1 text-xs font-semibold text-white shadow-xs shadow-indigo-600/20 hover:bg-indigo-700 transition"
                             >
-                              <span>⚡</span> Dispatch / Sell
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                              </svg>
+                              Dispatch
                             </Link>
                           </div>
                         </td>
@@ -449,30 +474,30 @@ export default function ProductsListPage() {
 }
 
 // ── Stat Card Component ──────────────────────────────────────
-function StatCard({ title, value, icon, color }) {
-  const colorStyles = {
-    indigo: "border-indigo-100 bg-indigo-50/50 text-indigo-700",
-    emerald: "border-emerald-100 bg-emerald-50/50 text-emerald-700",
-    violet: "border-violet-100 bg-violet-50/50 text-violet-700",
-    rose: "border-rose-100 bg-rose-50/50 text-rose-700",
-    slate: "border-slate-200 bg-slate-50/50 text-slate-700",
+function StatCard({ title, value, icon, isAlert = false, accentColor = "indigo" }) {
+  const badgeColors = {
+    indigo: "bg-indigo-50 border-indigo-200/80 text-indigo-600",
+    emerald: "bg-emerald-50 border-emerald-200/80 text-emerald-600",
+    violet: "bg-violet-50 border-violet-200/80 text-violet-600",
+    rose: "bg-rose-50 border-rose-200/80 text-rose-600",
+    slate: "bg-slate-100 border-slate-200 text-slate-600",
   };
 
   return (
-    <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-sm ring-1 ring-slate-200/80">
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-slate-300 transition-colors">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-medium">
           {title}
         </span>
-        <span
-          className={`flex h-8 w-8 items-center justify-center rounded-xl border text-sm ${
-            colorStyles[color] || colorStyles.indigo
-          }`}
-        >
+        <span className={`flex h-7 w-7 items-center justify-center rounded-lg border ${badgeColors[accentColor] || badgeColors.indigo}`}>
           {icon}
         </span>
       </div>
-      <div className="mt-3 text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+      <div
+        className={`mt-2 text-xl sm:text-2xl font-bold font-mono tracking-tight ${
+          isAlert ? "text-rose-600" : "text-slate-900"
+        }`}
+      >
         {value}
       </div>
     </div>
@@ -483,7 +508,7 @@ function StatCard({ title, value, icon, color }) {
 function SearchIcon() {
   return (
     <svg
-      className="h-4 w-4"
+      className="h-3.5 w-3.5"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -503,7 +528,7 @@ function SearchIcon() {
 function Spinner({ size = 20 }) {
   return (
     <svg
-      className="animate-spin text-indigo-600"
+      className="animate-spin text-zinc-900"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

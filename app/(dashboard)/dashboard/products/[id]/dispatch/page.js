@@ -398,7 +398,10 @@ function ProductDispatchContent({ params }) {
               <span className="text-indigo-600 font-semibold">Dispatch Checkout</span>
             </nav>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-              <span>⚡</span> Product Dispatch &amp; Checkout
+              <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>Product Dispatch &amp; Checkout</span>
             </h1>
             <p className="mt-0.5 text-xs text-slate-500">
               Scan serialized barcodes and generate multi-courier delivery orders.
@@ -425,7 +428,15 @@ function ProductDispatchContent({ params }) {
             }`}
           >
             <div className="flex items-center gap-2">
-              <span>{toast.type === "success" ? "✓" : toast.type === "error" ? "⚠️" : "ℹ️"}</span>
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  toast.type === "success"
+                    ? "bg-emerald-500"
+                    : toast.type === "error"
+                    ? "bg-rose-500"
+                    : "bg-indigo-500"
+                }`}
+              />
               <span className="font-medium">{toast.message}</span>
             </div>
             <button
@@ -447,7 +458,10 @@ function ProductDispatchContent({ params }) {
             <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200/80 space-y-5">
               <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span>👤</span> Customer &amp; Recipient Details
+                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>Customer &amp; Recipient Details</span>
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Enter recipient information for the courier waybill.
@@ -524,7 +538,10 @@ function ProductDispatchContent({ params }) {
             <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200/80 space-y-4">
               <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span>🚚</span> Select Courier Partner
+                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  <span>Select Courier Partner</span>
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Pick the delivery partner to generate consignment tracking.

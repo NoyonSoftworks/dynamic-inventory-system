@@ -257,7 +257,9 @@ function PrintStickersContent({ params }) {
                 disabled={printableItems.length === 0}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-700 hover:shadow-indigo-600/40 focus:ring-2 focus:ring-indigo-600/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                <span>🖨️</span>
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
                 <span>Print {printableItems.length} Thermal Stickers</span>
               </button>
             </div>
@@ -308,7 +310,11 @@ function PrintStickersContent({ params }) {
 
           {items.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
-              <span className="text-3xl">📭</span>
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
               <h4 className="mt-2 text-sm font-bold text-slate-800">No inventory units found</h4>
               <p className="mt-1 text-xs text-slate-500">
                 This product does not have any barcodes generated in <code>inventory_items</code> yet.

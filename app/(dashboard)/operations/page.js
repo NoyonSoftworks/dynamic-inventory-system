@@ -207,84 +207,98 @@ function OperationsPageContent() {
 
   if (pageLoading || ctxLoading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <Spinner size={32} />
+      <main className="min-h-screen bg-zinc-50/60 flex items-center justify-center font-sans">
+        <Spinner size={24} />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl space-y-8">
-        {/* ── header ───────────────────────────────── */}
+    <main className="min-h-screen bg-zinc-50/60 py-8 px-4 sm:px-6 lg:px-8 font-sans text-zinc-900">
+      <div className="mx-auto max-w-4xl space-y-6">
+        {/* ── Header ───────────────────────────────── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
+              <span>Operations</span>
+              <span>/</span>
+              <span className="text-zinc-900 font-medium">Stock Adjustments</span>
+            </div>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">
               Stock Operations
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Restock or deduct inventory for any product variant.
+            <p className="mt-1 text-xs text-zinc-500">
+              Restock incoming shipments or record manual stock deductions for SKU variants.
             </p>
           </div>
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition"
+            href="/dashboard/products"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-xs hover:bg-zinc-50 transition"
           >
-            ← Dashboard
+            ← Return to Catalog
           </Link>
         </div>
 
-        {/* ── toast ────────────────────────────────── */}
+        {/* ── Toast ────────────────────────────────── */}
         {toast && (
           <div
-            className={`rounded-lg border px-4 py-3 text-sm ${
+            className={`rounded-xl border px-4 py-3 text-xs flex items-center gap-2.5 ${
               toast.type === "success"
-                ? "border-green-200 bg-green-50 text-green-700"
-                : "border-red-200 bg-red-50 text-red-700"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-rose-200 bg-rose-50 text-rose-900"
             }`}
           >
-            {toast.type === "success" ? "✓" : "✗"} {toast.message}
+            {toast.type === "success" ? (
+              <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+            <span>{toast.message}</span>
           </div>
         )}
 
-        {/* ── form card ────────────────────────────── */}
+        {/* ── Form Card ────────────────────────────── */}
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200 space-y-6"
+          className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs space-y-5"
         >
-          {/* row 1: product + variant */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {/* Row 1: Product + Variant */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                 Product
               </label>
               <select
                 value={selectedProductId}
                 onChange={(e) => setSelectedProductId(e.target.value)}
-                className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                className="block w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs text-zinc-900 shadow-xs focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none transition"
               >
-                <option value="">— Select Product —</option>
+                <option value="">— Select Catalog Product —</option>
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name} ({p.category})
+                    {p.name} {p.category ? `(${p.category})` : ""}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                 Variant
               </label>
               <select
                 value={selectedVariantId}
                 onChange={(e) => setSelectedVariantId(e.target.value)}
                 disabled={!selectedProductId}
-                className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                className="block w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs text-zinc-900 shadow-xs focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 <option value="">
                   {selectedProductId
-                    ? "— Select Variant —"
+                    ? "— Select SKU Variant —"
                     : "Select a product first"}
                 </option>
                 {variants.map((v) => (
@@ -296,74 +310,74 @@ function OperationsPageContent() {
             </div>
           </div>
 
-          {/* stock info card */}
+          {/* Stock Info Card */}
           {selectedVariant && (
-            <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 flex flex-wrap items-center gap-6">
+            <div className="rounded-xl bg-zinc-50 border border-zinc-200 p-4 flex flex-wrap items-center gap-6">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Current Stock</p>
+                <p className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">Current Stock</p>
                 <p
-                  className={`text-2xl font-bold ${
+                  className={`text-xl font-bold font-mono mt-0.5 ${
                     selectedVariant.stock_quantity > 0
-                      ? "text-emerald-600"
-                      : "text-red-500"
+                      ? "text-zinc-900"
+                      : "text-rose-600"
                   }`}
                 >
-                  {selectedVariant.stock_quantity}
+                  {selectedVariant.stock_quantity} units
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase">Price</p>
-                <p className="text-lg font-semibold text-gray-800">
+                <p className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">Unit Price</p>
+                <p className="text-base font-semibold font-mono text-zinc-900 mt-0.5">
                   ${Number(selectedVariant.price).toFixed(2)}
                 </p>
               </div>
               {selectedVariant.attributes &&
                 Object.entries(selectedVariant.attributes).map(([k, val]) => (
                   <div key={k}>
-                    <p className="text-xs font-medium text-gray-500 uppercase">
+                    <p className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
                       {k}
                     </p>
-                    <p className="text-sm font-semibold text-gray-800">{val}</p>
+                    <p className="text-xs font-semibold text-zinc-800 mt-0.5">{val}</p>
                   </div>
                 ))}
             </div>
           )}
 
-          {/* row 2: action + quantity + note */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          {/* Row 2: Action + Quantity + Note */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Action
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+                Operation Type
               </label>
-              <div className="flex rounded-lg overflow-hidden border border-gray-300 shadow-sm">
+              <div className="flex rounded-xl overflow-hidden border border-slate-200 p-0.5 bg-slate-100">
                 <button
                   type="button"
                   onClick={() => setAction("IN")}
-                  className={`flex-1 px-4 py-2.5 text-sm font-semibold transition ${
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
                     action === "IN"
-                      ? "bg-emerald-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  ↑ Restock (IN)
+                  + Restock (IN)
                 </button>
                 <button
                   type="button"
                   onClick={() => setAction("OUT")}
-                  className={`flex-1 px-4 py-2.5 text-sm font-semibold transition border-l border-gray-300 ${
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
                     action === "OUT"
-                      ? "bg-red-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
+                      ? "bg-rose-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  ↓ Deduct (OUT)
+                  - Deduct (OUT)
                 </button>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                Quantity Units
               </label>
               <input
                 type="number"
@@ -371,75 +385,72 @@ function OperationsPageContent() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0"
-                className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 font-mono shadow-xs placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
                 Reference Note{" "}
-                <span className="text-gray-400 font-normal">(optional)</span>
+                <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <input
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. Order #1234"
-                className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                placeholder="e.g. PO-8839 / Warehouse transfer"
+                className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
               />
             </div>
           </div>
 
-          {/* submit */}
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
-            className={`w-full rounded-xl px-6 py-3 text-base font-semibold text-white shadow-sm focus:ring-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition ${
+            className={`w-full rounded-xl py-2.5 text-xs font-bold text-white shadow-xs focus:ring-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition ${
               action === "IN"
-                ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500/40"
-                : "bg-red-600 hover:bg-red-700 focus:ring-red-500/40"
+                ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 focus:ring-emerald-500/30"
+                : "bg-rose-600 hover:bg-rose-700 shadow-rose-600/20 focus:ring-rose-500/30"
             }`}
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">
-                <Spinner /> Processing…
+                <Spinner size={16} /> Processing…
               </span>
             ) : action === "IN" ? (
-              "↑ Restock Inventory"
+              "Confirm Restock Intake"
             ) : (
-              "↓ Deduct Inventory"
+              "Confirm Stock Deduction"
             )}
           </button>
         </form>
 
-        {/* ── recent activity ──────────────────────── */}
+        {/* ── Recent Activity ──────────────────────── */}
         {recent.length > 0 && (
-          <div className="rounded-2xl bg-white shadow-xl ring-1 ring-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-800">
-                Recent Transactions
+          <div className="rounded-2xl border border-zinc-200 bg-white shadow-xs overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-zinc-100">
+              <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-500">
+                Recent Stock Operations
               </h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-100">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-zinc-100 text-xs text-left">
+                <thead className="bg-zinc-50/60 font-mono text-zinc-500 uppercase tracking-wider">
                   <tr>
-                    {["Time", "Product", "Variant", "Type", "Qty", "Note"].map(
+                    {["Timestamp", "Product", "Variant", "Operation", "Units", "Reference Note"].map(
                       (h) => (
-                        <th
-                          key={h}
-                          className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
-                        >
+                        <th key={h} className="px-5 py-3 font-medium">
                           {h}
                         </th>
                       )
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-zinc-100 bg-white">
                   {recent.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-50/60 transition">
-                      <td className="whitespace-nowrap px-5 py-3 text-xs text-gray-500">
+                    <tr key={tx.id} className="hover:bg-zinc-50/80 transition-colors">
+                      <td className="whitespace-nowrap px-5 py-3 font-mono text-[11px] text-zinc-500">
                         {new Date(tx.created_at).toLocaleString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -447,10 +458,10 @@ function OperationsPageContent() {
                           minute: "2-digit",
                         })}
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-sm font-medium text-gray-900">
+                      <td className="whitespace-nowrap px-5 py-3 font-medium text-zinc-900">
                         {tx.products?.name || "—"}
                       </td>
-                      <td className="px-5 py-3 text-xs text-gray-600">
+                      <td className="px-5 py-3 text-zinc-500">
                         {tx.variants?.attributes
                           ? Object.entries(tx.variants.attributes)
                               .map(([k, v]) => `${k}: ${v}`)
@@ -459,19 +470,19 @@ function OperationsPageContent() {
                       </td>
                       <td className="whitespace-nowrap px-5 py-3">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-mono font-medium border ${
                             tx.transaction_type === "IN"
-                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20"
-                              : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                              : "bg-rose-50 text-rose-800 border-rose-200"
                           }`}
                         >
-                          {tx.transaction_type === "IN" ? "↑ IN" : "↓ OUT"}
+                          {tx.transaction_type === "IN" ? "+ IN" : "- OUT"}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-sm font-semibold text-gray-800">
+                      <td className="whitespace-nowrap px-5 py-3 font-mono font-semibold text-zinc-900">
                         {tx.quantity}
                       </td>
-                      <td className="px-5 py-3 text-xs text-gray-500 max-w-[200px] truncate">
+                      <td className="px-5 py-3 text-zinc-500 max-w-[200px] truncate">
                         {tx.reference_note || "—"}
                       </td>
                     </tr>
@@ -485,6 +496,7 @@ function OperationsPageContent() {
     </main>
   );
 }
+
 
 // ── spinner ──────────────────────────────────────────────
 function Spinner({ size = 20 }) {

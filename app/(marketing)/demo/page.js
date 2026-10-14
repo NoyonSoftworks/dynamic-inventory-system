@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory";
 
-// ── Dummy Catalog Data for Merchants ────────────────────────────
+// ── Sample Catalog for Merchants ──────────────────────────────
 const SAMPLE_PRODUCTS = [
   {
     id: "prod-1",
@@ -50,24 +50,19 @@ const SAMPLE_PRODUCTS = [
     category: "Accessories",
     stock: 4,
     price: 45,
-    status: "Critical Low",
+    status: "Low Stock",
   },
 ];
 
 export default function InteractiveDemoPage() {
-  // ── Tab state: 'dashboard' | 'scanner' | 'dispatch'
-  const [activeTab, setActiveTab] = useState("dashboard");
-
-  // ── Catalog filter & items state
+  const [activeTab, setActiveTab] = useState("dashboard"); // 'dashboard' | 'scanner' | 'dispatch'
   const [products, setProducts] = useState(SAMPLE_PRODUCTS);
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // ── Scanner Simulation State
   const [scanState, setScanState] = useState("idle"); // 'idle' | 'scanning' | 'detected'
   const [detectedProduct, setDetectedProduct] = useState(null);
 
-  // ── Dispatch Simulation State
   const [dispatchStep, setDispatchStep] = useState("idle"); // 'idle' | 'dispatching' | 'completed'
   const [activeCustomer, setActiveCustomer] = useState({
     name: "Tanvir Ahmed",
@@ -79,7 +74,7 @@ export default function InteractiveDemoPage() {
   });
   const [showNotificationToast, setShowNotificationToast] = useState(false);
 
-  // ── Synthesized Success Audio Beep ─────────────────────────
+  // Audio Beep Synthesizer
   function playBeepSound() {
     try {
       if (typeof window === "undefined") return;
@@ -90,8 +85,8 @@ export default function InteractiveDemoPage() {
       const gain = ctx.createGain();
 
       osc.type = "sine";
-      osc.frequency.setValueAtTime(880, ctx.currentTime); // 880 Hz High Pitch
-      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
 
       osc.connect(gain);
@@ -103,7 +98,6 @@ export default function InteractiveDemoPage() {
     }
   }
 
-  // ── Handle Simulated Barcode Scan ──────────────────────────
   function handleTriggerScan(targetProduct = null) {
     const item = targetProduct || products[0];
     setScanState("scanning");
@@ -113,10 +107,9 @@ export default function InteractiveDemoPage() {
       playBeepSound();
       setDetectedProduct(item);
       setScanState("detected");
-    }, 700);
+    }, 600);
   }
 
-  // ── Check-In (+1 stock)
   function handleStockCheckIn(productId) {
     playBeepSound();
     setProducts((prev) =>
@@ -129,7 +122,6 @@ export default function InteractiveDemoPage() {
     }
   }
 
-  // ── Handle Simulated Courier & WhatsApp Dispatch ───────────
   function handleTriggerDispatch(customerData = null) {
     if (customerData) setActiveCustomer(customerData);
     setDispatchStep("dispatching");
@@ -140,9 +132,8 @@ export default function InteractiveDemoPage() {
       setShowNotificationToast(true);
       playBeepSound();
 
-      // Automatically hide pop-up toast after 5 seconds
       setTimeout(() => setShowNotificationToast(false), 5000);
-    }, 1100);
+    }, 900);
   }
 
   const filteredProducts = products.filter((p) => {
@@ -155,27 +146,24 @@ export default function InteractiveDemoPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white pb-20">
-      {/* ── WhatsApp Pop-up Banner Simulation ─────────────────── */}
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900 pb-24">
+      {/* ── WhatsApp Pop-up Notification Simulator ────────────── */}
       {showNotificationToast && (
-        <div className="fixed top-5 right-5 z-50 max-w-sm w-full bg-slate-900 border border-emerald-500/50 rounded-2xl p-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-5 right-5 z-50 max-w-sm w-full bg-white border border-emerald-300 rounded-2xl p-4 shadow-xl backdrop-blur-md animate-in slide-in-from-top-4">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-xl shrink-0">
-              💬
-            </div>
-            <div className="space-y-1 min-w-0 flex-1">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
+            <div className="space-y-1 min-w-0 flex-1 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <span>WhatsApp Business Alert</span>
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <span className="font-bold text-slate-900">
+                  WhatsApp Alert Dispatched
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono">Just Now</span>
               </div>
-              <p className="text-xs text-slate-300 font-medium">
-                Sent to <strong>{activeCustomer.name}</strong> ({activeCustomer.phone})
+              <p className="text-slate-600">
+                To <strong>{activeCustomer.name}</strong> ({activeCustomer.phone})
               </p>
-              <div className="mt-1.5 rounded-xl bg-slate-950 p-2.5 border border-slate-800 text-[11px] font-mono text-emerald-300 leading-relaxed">
-                "Hello {activeCustomer.name}! Your order #{activeCustomer.orderId} has been dispatched via {activeCustomer.courier}. Tracking: steadfast.com.bd/t/SF-994821"
+              <div className="mt-1.5 rounded-xl bg-slate-50 p-2.5 border border-slate-200 text-[11px] font-mono text-emerald-700 font-semibold">
+                &quot;Order #{activeCustomer.orderId} dispatched via {activeCustomer.courier}. Tracking: steadfast.com.bd/t/SF-994821&quot;
               </div>
             </div>
           </div>
@@ -183,26 +171,28 @@ export default function InteractiveDemoPage() {
       )}
 
       {/* ── Top Header Navigation ─────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
-          <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-8 h-16">
+          <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-indigo-600 transition"
             >
-              <span>←</span>
-              <span>Back to Overview</span>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>Back to Home</span>
             </Link>
 
-            <span className="text-slate-700">|</span>
+            <span className="text-slate-300">|</span>
 
             <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
+              <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
-                Interactive Sandbox · No Login Required
+              <span className="text-[11px] font-mono font-bold text-indigo-700 uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/60">
+                Interactive Sandbox
               </span>
             </div>
           </div>
@@ -210,38 +200,42 @@ export default function InteractiveDemoPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:brightness-110 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-indigo-700 transition shadow-sm shadow-indigo-600/25 active:scale-[0.98]"
             >
-              <span>Launch Live Store Free</span>
-              <span>→</span>
+              <span>Get Started Free</span>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </Link>
           </div>
         </div>
       </header>
 
       {/* ── Sandbox Hero Banner ───────────────────────────────── */}
-      <div className="relative pt-8 pb-6 border-b border-slate-900 bg-gradient-to-b from-indigo-950/20 via-slate-950 to-slate-950">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center space-y-3">
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-            Experience {APP_NAME} in Action
+      <div className="pt-12 pb-10 border-b border-slate-200/80 bg-white">
+        <div className="mx-auto max-w-4xl px-4 sm:px-8 text-center space-y-3">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-3 py-1 rounded-full">
+            No Account Required
+          </span>
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-950">
+            Interactive Fulfillment Sandbox
           </h1>
-          <p className="max-w-2xl mx-auto text-xs sm:text-sm text-slate-400 leading-relaxed">
-            Test the warehouse cockpit without creating an account. Click below to try the simulated inventory catalog, test mobile barcode scanning with sound, or trigger an automated courier dispatch with live WhatsApp customer tracking.
+          <p className="text-xs sm:text-base text-slate-600 leading-relaxed max-w-xl mx-auto">
+            Test warehouse catalog management, mobile barcode scanning, and 1-click Steadfast courier dispatch in real time.
           </p>
 
-          {/* Interactive Mode Pills */}
-          <div className="pt-3 flex flex-wrap items-center justify-center gap-2">
+          {/* Segmented Sandbox Tabs */}
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-2">
             <button
               type="button"
               onClick={() => setActiveTab("dashboard")}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activeTab === "dashboard"
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
-                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              <span>📊</span>
-              <span>1. Inventory Catalog Sandbox</span>
+              1. Catalog &amp; Stock Table
             </button>
 
             <button
@@ -250,14 +244,13 @@ export default function InteractiveDemoPage() {
                 setActiveTab("scanner");
                 handleTriggerScan();
               }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activeTab === "scanner"
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
-                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              <span>📱</span>
-              <span>2. Camera Barcode Scanner</span>
+              2. Camera Barcode Scanner
             </button>
 
             <button
@@ -266,81 +259,72 @@ export default function InteractiveDemoPage() {
                 setActiveTab("dispatch");
                 handleTriggerDispatch();
               }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activeTab === "dispatch"
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
-                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              <span>🚚</span>
-              <span>3. Courier &amp; WhatsApp Alert</span>
+              3. Courier &amp; WhatsApp Alert
             </button>
           </div>
         </div>
       </div>
 
       {/* ── MAIN SANDBOX BODY ─────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
+      <main className="mx-auto max-w-6xl px-4 sm:px-8 mt-10 space-y-8">
         {/* ======================================================= */}
-        {/* TAB 1: SIMULATED INVENTORY DASHBOARD                    */}
+        {/* TAB 1: SIMULATED INVENTORY CATALOG                      */}
         {/* ======================================================= */}
         {activeTab === "dashboard" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Top Telemetry Metric Cards */}
+          <div className="space-y-6">
+            {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-lg">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Total Active SKUs
-                </span>
-                <div className="text-2xl font-black text-white font-mono mt-1">
-                  {products.length} Items
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+                <span className="text-[11px] font-mono uppercase font-bold text-slate-500">Total Active SKUs</span>
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-950 font-mono mt-1">
+                  {products.length} SKUs
                 </div>
-                <div className="text-[10px] text-emerald-400 mt-1">✓ Multi-variant enabled</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">Multi-variant tracking</div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-lg">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Total Stock On Hand
-                </span>
-                <div className="text-2xl font-black text-emerald-400 font-mono mt-1">
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+                <span className="text-[11px] font-mono uppercase font-bold text-slate-500">Units on Hand</span>
+                <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 font-mono mt-1">
                   {products.reduce((acc, p) => acc + p.stock, 0)} Units
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1">Real-time sync</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">Live catalog count</div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-lg">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Inventory Valuation
-                </span>
-                <div className="text-2xl font-black text-white font-mono mt-1">
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+                <span className="text-[11px] font-mono uppercase font-bold text-slate-500">Inventory Valuation</span>
+                <div className="text-2xl sm:text-3xl font-extrabold text-indigo-700 font-mono mt-1">
                   ${products.reduce((acc, p) => acc + p.stock * p.price, 0).toLocaleString()}
                 </div>
-                <div className="text-[10px] text-indigo-400 mt-1">Calculated at retail</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">Retail catalog sum</div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 shadow-lg">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Courier Integration
-                </span>
-                <div className="text-2xl font-black text-sky-400 font-mono mt-1">
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+                <span className="text-[11px] font-mono uppercase font-bold text-slate-500">Connected Logistics</span>
+                <div className="text-2xl sm:text-3xl font-extrabold text-slate-950 font-mono mt-1">
                   Steadfast BD
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1">1-Click Dispatch API</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">Automated consignment API</div>
               </div>
             </div>
 
             {/* Filter Toolbar */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
                 {["ALL", "Electronics", "Apparel", "Accessories"].map((cat) => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                       selectedCategory === cat
-                        ? "bg-indigo-600 text-white"
-                        : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                     }`}
                   >
                     {cat}
@@ -353,66 +337,72 @@ export default function InteractiveDemoPage() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Filter by name or SKU…"
-                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+                  placeholder="Filter catalog…"
+                  className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 font-mono focus:outline-none focus:border-indigo-600 focus:bg-white transition"
                 />
               </div>
             </div>
 
             {/* Catalog Table */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl overflow-hidden">
+            <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800 font-mono">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-[10px] uppercase font-mono tracking-wider text-slate-500 border-b border-slate-200">
                     <tr>
-                      <th className="px-5 py-3.5">SKU / Code</th>
-                      <th className="px-5 py-3.5">Item Description</th>
-                      <th className="px-5 py-3.5">Category</th>
-                      <th className="px-5 py-3.5">In Stock</th>
-                      <th className="px-5 py-3.5">Unit Price</th>
-                      <th className="px-5 py-3.5">Status</th>
-                      <th className="px-5 py-3.5 text-right">Interactive Actions</th>
+                      <th className="px-5 py-3.5 font-bold">SKU</th>
+                      <th className="px-5 py-3.5 font-bold">Item Name</th>
+                      <th className="px-5 py-3.5 font-bold">Category</th>
+                      <th className="px-5 py-3.5 font-bold font-mono">Stock</th>
+                      <th className="px-5 py-3.5 font-bold font-mono">Price</th>
+                      <th className="px-5 py-3.5 font-bold font-mono">Status</th>
+                      <th className="px-5 py-3.5 font-bold text-right font-mono">Simulate Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-sans">
+                  <tbody className="divide-y divide-slate-100">
                     {filteredProducts.map((p) => {
                       return (
-                        <tr key={p.id} className="hover:bg-slate-800/40 transition group">
-                          <td className="px-5 py-3.5 font-mono text-[11px] font-bold text-indigo-400">
+                        <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="px-5 py-3.5 font-mono text-[11px] text-slate-600 font-semibold">
                             {p.sku}
                           </td>
-                          <td className="px-5 py-3.5 font-semibold text-white">
+                          <td className="px-5 py-3.5 font-bold text-slate-900">
                             {p.name}
                           </td>
-                          <td className="px-5 py-3.5 text-slate-400">
-                            {p.category}
+                          <td className="px-5 py-3.5 text-slate-600">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 text-[11px] font-mono font-medium">
+                              {p.category}
+                            </span>
                           </td>
-                          <td className="px-5 py-3.5 font-mono font-bold text-white">
+                          <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
                             {p.stock} units
                           </td>
-                          <td className="px-5 py-3.5 font-mono font-bold text-white">
+                          <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
                             ${p.price}.00
                           </td>
-                          <td className="px-5 py-3.5">
+                          <td className="px-5 py-3.5 font-mono">
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                                 p.stock > 10
-                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                                  : "bg-rose-500/10 text-rose-400 border-rose-500/30"
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : "bg-rose-50 text-rose-700 border border-rose-200"
                               }`}
                             >
-                              {p.stock > 10 ? "● Available" : "● Low Stock"}
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  p.stock > 10 ? "bg-emerald-500" : "bg-rose-500"
+                                }`}
+                              />
+                              {p.stock > 10 ? "In Stock" : "Low Stock"}
                             </span>
                           </td>
                           <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end gap-1.5">
                               <button
                                 type="button"
                                 onClick={() => handleStockCheckIn(p.id)}
-                                title="Simulate scanning & check-in (+1)"
-                                className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 px-2.5 py-1 text-[11px] font-semibold text-white transition"
+                                className="rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 transition shadow-xs cursor-pointer"
                               >
-                                <span>+1 In</span>
+                                +1 Stock
                               </button>
 
                               <button
@@ -421,9 +411,9 @@ export default function InteractiveDemoPage() {
                                   setActiveTab("scanner");
                                   handleTriggerScan(p);
                                 }}
-                                className="inline-flex items-center gap-1 rounded-lg border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 text-[11px] font-semibold text-indigo-300 transition"
+                                className="rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 text-[11px] font-bold text-indigo-700 transition cursor-pointer"
                               >
-                                <span>📷 Scan</span>
+                                Scan
                               </button>
 
                               <button
@@ -439,9 +429,9 @@ export default function InteractiveDemoPage() {
                                     amount: `$${p.price}.00`,
                                   });
                                 }}
-                                className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 transition"
+                                className="rounded-lg bg-indigo-600 hover:bg-indigo-700 px-2.5 py-1 text-[11px] font-bold text-white transition shadow-xs cursor-pointer"
                               >
-                                <span>🚚 Dispatch</span>
+                                Dispatch
                               </button>
                             </div>
                           </td>
@@ -456,105 +446,101 @@ export default function InteractiveDemoPage() {
         )}
 
         {/* ======================================================= */}
-        {/* TAB 2: INTERACTIVE CAMERA SCANNER                       */}
+        {/* TAB 2: CAMERA BARCODE SCANNER                           */}
         {/* ======================================================= */}
         {activeTab === "scanner" && (
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start animate-in fade-in duration-200">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             {/* Viewfinder Mockup */}
-            <div className="md:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
+            <div className="md:col-span-7 rounded-2xl border border-slate-200/90 bg-white p-7 space-y-5 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <span>📱</span> Camera Barcode Scanner
+                  <h3 className="text-base font-bold text-slate-950">
+                    Camera Barcode Decoding
                   </h3>
-                  <p className="text-xs text-slate-400">
-                    Runs on any iPhone or Android camera with sub-second WebAssembly decoding.
+                  <p className="text-xs text-slate-600">
+                    Runs in any iOS or Android browser with real-time WebAssembly decoding.
                   </p>
                 </div>
-                <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-[11px] font-mono font-bold text-emerald-400">
-                  ● Camera Active
+                <span className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  Scanner Ready
                 </span>
               </div>
 
               {/* Viewport Frame */}
-              <div className="relative rounded-2xl border-2 border-dashed border-slate-800 bg-slate-950 p-8 flex flex-col items-center justify-center min-h-[320px] overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(#312e81_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
-
-                {/* Cyber Laser Reticle */}
-                <div className="relative w-64 h-40 rounded-2xl border-2 border-indigo-500/40 flex items-center justify-center">
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-indigo-400" />
-                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-indigo-400" />
-                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-indigo-400" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-indigo-400" />
-
-                  {/* Pulsing Scan Beam */}
-                  <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-rose-500 to-transparent shadow-[0_0_12px_#f43f5e] animate-pulse" />
+              <div className="rounded-2xl border-2 border-dashed border-indigo-300 bg-indigo-50/30 p-8 flex flex-col items-center justify-center min-h-[280px] text-center space-y-4">
+                <div className="w-56 h-36 rounded-xl border-2 border-indigo-400 bg-white shadow-inner flex flex-col items-center justify-center font-mono text-xs text-slate-500">
+                  {scanState === "scanning" ? (
+                    <div className="flex flex-col items-center gap-2 text-indigo-600">
+                      <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                      <span className="font-bold">Decoding Stream…</span>
+                    </div>
+                  ) : scanState === "detected" ? (
+                    <div className="flex flex-col items-center gap-1 text-emerald-600">
+                      <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="font-bold">MATCH: 0.28s</span>
+                    </div>
+                  ) : (
+                    <span>[ Align Barcode Inside Box ]</span>
+                  )}
                 </div>
 
-                <div className="relative z-10 mt-6 text-center space-y-3">
-                  <div className="text-xs text-slate-400 font-mono">
-                    Align Code128 / QR Code within the brackets
-                  </div>
-                  <div className="flex flex-wrap items-center justify-center gap-2">
-                    {SAMPLE_PRODUCTS.slice(0, 3).map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleTriggerScan(item)}
-                        className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-[11px] font-mono text-slate-300 hover:text-white hover:border-slate-500 transition"
-                      >
-                        ⚡ Scan {item.sku}
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  {SAMPLE_PRODUCTS.slice(0, 3).map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleTriggerScan(item)}
+                      className="rounded-xl border border-slate-300 bg-white hover:bg-slate-100 px-3 py-1.5 text-xs font-mono font-bold text-slate-800 transition shadow-xs cursor-pointer"
+                    >
+                      Scan {item.sku}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
 
             {/* Scan Result Card */}
-            <div className="md:col-span-5 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 space-y-6 shadow-2xl">
+            <div className="md:col-span-5 rounded-2xl border border-slate-200/90 bg-white p-7 space-y-5 shadow-xs">
               <div>
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">
-                  Telemetry Engine Result
+                <span className="text-[11px] font-mono uppercase font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/60">
+                  Decoded Inventory Record
                 </span>
-                <h3 className="text-lg font-bold text-white mt-1">
-                  {detectedProduct ? "Product Authenticated" : "Awaiting Barcode Scan"}
+                <h3 className="text-base font-bold text-slate-950 mt-1.5">
+                  {detectedProduct ? "SKU Verified in Catalog" : "Awaiting Camera Scan"}
                 </h3>
               </div>
 
               {scanState === "scanning" && (
-                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-8 text-center space-y-3">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent mx-auto" />
-                  <p className="text-xs text-slate-400 font-mono">Decoding Code128 symbology…</p>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center space-y-2">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent mx-auto" />
+                  <p className="text-xs text-slate-600 font-mono">Decoding Code128 format…</p>
                 </div>
               )}
 
               {detectedProduct && scanState === "detected" && (
-                <div className="rounded-2xl border border-emerald-500/40 bg-emerald-950/20 p-5 space-y-4 animate-in zoom-in-95 duration-200">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-indigo-400">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+                  <div>
+                    <span className="font-mono text-xs text-indigo-700 font-bold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/60">
                       {detectedProduct.sku}
                     </span>
-                    <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
-                      ✓ Sound Verified
-                    </span>
+                    <h4 className="text-sm font-bold text-slate-950 mt-1.5">
+                      {detectedProduct.name}
+                    </h4>
                   </div>
 
-                  <h4 className="text-base font-bold text-white">
-                    {detectedProduct.name}
-                  </h4>
-
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-emerald-500/20">
-                    <div className="rounded-xl bg-slate-950/80 p-3">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400">Available Stock</span>
-                      <div className="text-2xl font-black text-emerald-400 font-mono mt-0.5">
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-200 text-xs font-mono">
+                    <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
+                      <span className="text-[10px] uppercase font-bold text-slate-500">In Stock</span>
+                      <div className="text-xl font-extrabold text-emerald-600">
                         {detectedProduct.stock} units
                       </div>
                     </div>
-
-                    <div className="rounded-xl bg-slate-950/80 p-3">
-                      <span className="text-[10px] uppercase font-semibold text-slate-400">Unit Retail</span>
-                      <div className="text-2xl font-black text-white font-mono mt-0.5">
+                    <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
+                      <span className="text-[10px] uppercase font-bold text-slate-500">Retail Price</span>
+                      <div className="text-xl font-extrabold text-slate-950">
                         ${detectedProduct.price}.00
                       </div>
                     </div>
@@ -564,9 +550,9 @@ export default function InteractiveDemoPage() {
                     <button
                       type="button"
                       onClick={() => handleStockCheckIn(detectedProduct.id)}
-                      className="flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 py-2.5 text-xs font-bold text-white transition text-center shadow-md shadow-indigo-600/30"
+                      className="flex-1 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 py-2.5 text-xs font-bold text-slate-800 transition shadow-xs cursor-pointer"
                     >
-                      🔽 Check-In (+1 Stock)
+                      +1 Check-In
                     </button>
                     <button
                       type="button"
@@ -581,18 +567,17 @@ export default function InteractiveDemoPage() {
                           amount: `$${detectedProduct.price}.00`,
                         });
                       }}
-                      className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-xs font-bold text-white transition text-center shadow-md shadow-emerald-600/30"
+                      className="flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 py-2.5 text-xs font-bold text-white transition shadow-sm shadow-indigo-600/30 cursor-pointer"
                     >
-                      🚚 Quick Dispatch
+                      Dispatch Order
                     </button>
                   </div>
                 </div>
               )}
 
               {scanState === "idle" && (
-                <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950 p-8 text-center text-xs text-slate-500 space-y-2">
-                  <span className="text-3xl block">📷</span>
-                  <p>Click any sample SKU above to trigger sub-second decoding and acoustic audio verification.</p>
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-xs text-slate-500">
+                  Select any sample SKU on the left to simulate camera decoding with audio confirmation.
                 </div>
               )}
             </div>
@@ -600,125 +585,105 @@ export default function InteractiveDemoPage() {
         )}
 
         {/* ======================================================= */}
-        {/* TAB 3: SIMULATED COURIER DISPATCH & WHATSAPP            */}
+        {/* TAB 3: COURIER DISPATCH & WHATSAPP ALERT                */}
         {/* ======================================================= */}
         {activeTab === "dispatch" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-in fade-in duration-200">
-            {/* Dispatch Controller */}
-            <div className="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-7 rounded-2xl border border-slate-200/90 bg-white p-7 space-y-5 shadow-xs">
               <div>
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
-                  Automated Logistics Pipeline
+                <span className="text-[11px] font-mono font-bold uppercase text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200/60">
+                  Carrier Integration Pipeline
                 </span>
-                <h3 className="text-xl font-bold text-white mt-1">
-                  1-Click Steadfast Dispatch &amp; WhatsApp Alert
+                <h3 className="text-base font-bold text-slate-950 mt-1.5">
+                  Steadfast Courier &amp; WhatsApp Notification
                 </h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  The second your packing staff clicks "Confirm Dispatch", our engine creates a consignment ID on Steadfast Courier and pings the customer with their parcel tracking link.
+                <p className="text-xs text-slate-600 mt-1">
+                  When staff confirms dispatch, the consignment is created with Steadfast and an automated WhatsApp tracking message is sent to the buyer.
                 </p>
               </div>
 
-              {/* Order Details Preview */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-3 font-sans text-xs">
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span className="text-slate-400">Order Reference:</span>
-                  <span className="font-mono font-bold text-white">{activeCustomer.orderId}</span>
+              {/* Order Preview */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5 text-xs">
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                  <span className="text-slate-500 font-medium">Order ID:</span>
+                  <span className="font-mono font-bold text-slate-900">{activeCustomer.orderId}</span>
                 </div>
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span className="text-slate-400">Recipient Customer:</span>
-                  <span className="font-semibold text-white">{activeCustomer.name}</span>
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                  <span className="text-slate-500 font-medium">Customer:</span>
+                  <span className="font-bold text-slate-900">{activeCustomer.name}</span>
                 </div>
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span className="text-slate-400">Recipient Phone:</span>
-                  <span className="font-mono text-emerald-400 font-bold">{activeCustomer.phone}</span>
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                  <span className="text-slate-500 font-medium">Phone:</span>
+                  <span className="font-mono text-slate-700">{activeCustomer.phone}</span>
                 </div>
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span className="text-slate-400">Delivery Address:</span>
-                  <span className="text-slate-200">{activeCustomer.address}</span>
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                  <span className="text-slate-500 font-medium">Address:</span>
+                  <span className="text-slate-700">{activeCustomer.address}</span>
                 </div>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-slate-400">COD Total to Collect:</span>
-                  <span className="font-mono font-black text-white text-base">{activeCustomer.amount}</span>
+                  <span className="text-slate-500 font-medium">COD Collection:</span>
+                  <span className="font-mono font-extrabold text-emerald-700 text-sm">{activeCustomer.amount}</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleTriggerDispatch()}
-                  disabled={dispatchStep === "dispatching"}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-indigo-600 py-3.5 text-xs font-bold text-white shadow-xl shadow-emerald-600/30 hover:brightness-110 active:scale-95 transition disabled:opacity-50"
-                >
-                  <span>{dispatchStep === "dispatching" ? "Dispatching API…" : "🚀 Test 1-Click Dispatch Pipeline"}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => handleTriggerDispatch()}
+                disabled={dispatchStep === "dispatching"}
+                className="w-full flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 py-3 text-xs sm:text-sm font-bold text-white transition active:scale-[0.99] disabled:opacity-50 shadow-md shadow-indigo-600/30 cursor-pointer"
+              >
+                <span>{dispatchStep === "dispatching" ? "Dispatching consignment…" : "Trigger Simulated Courier Dispatch"}</span>
+              </button>
             </div>
 
-            {/* Mockup WhatsApp Device */}
-            <div className="lg:col-span-5 flex justify-center">
-              <div className="w-full max-w-sm rounded-[36px] border-4 border-slate-800 bg-slate-950 p-4 shadow-2xl relative">
-                {/* Phone Speaker Notch */}
-                <div className="h-4 w-28 bg-slate-800 rounded-full mx-auto mb-3" />
-
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-slate-950 text-xs">
-                      S
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">{APP_NAME} Bot</div>
-                      <div className="text-[10px] text-emerald-400">Official Merchant Channel</div>
-                    </div>
+            {/* Mock WhatsApp Device */}
+            <div className="lg:col-span-5 rounded-2xl border border-slate-200/90 bg-white p-5 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                    WA
                   </div>
-                  <span className="text-[10px] text-slate-500 font-mono">10:48 AM</span>
+                  <div>
+                    <span className="font-bold text-slate-900 text-xs block">Merchant Store Bot</span>
+                    <span className="text-[10px] text-emerald-600 font-mono font-semibold">Official Business Account</span>
+                  </div>
                 </div>
+                <span className="text-[10px] text-slate-400 font-mono">10:48 AM</span>
+              </div>
 
-                {/* WhatsApp Chat Message */}
-                <div className="rounded-2xl rounded-tl-sm bg-emerald-950/70 border border-emerald-800/50 p-4 text-xs text-slate-200 space-y-2.5 shadow-lg">
-                  <p className="font-semibold text-white">Hello {activeCustomer.name}! 👋</p>
-                  <p className="text-slate-300 leading-relaxed">
-                    Great news! Your package <strong>#{activeCustomer.orderId}</strong> has just been verified and dispatched via <strong>{activeCustomer.courier}</strong>.
-                  </p>
-                  <div className="rounded-xl bg-slate-950/90 p-3 border border-emerald-700/40 text-[11px] font-mono text-emerald-300 space-y-1">
-                    <div className="text-slate-400 text-[10px]">REAL-TIME PARCEL TRACKING:</div>
-                    <a
-                      href="#dispatch"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert("Simulation: Opened Steadfast Courier live tracking portal for consignment SF-994821.");
-                      }}
-                      className="text-indigo-400 underline block font-bold"
-                    >
-                      steadfast.com.bd/t/SF-994821
-                    </a>
-                  </div>
-                  <p className="text-[10px] text-slate-400 pt-1 border-t border-emerald-900/50">
-                    Amount to Pay: {activeCustomer.amount} · Thank you for ordering with us!
-                  </p>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2 text-xs text-slate-700">
+                <p className="font-bold text-slate-900">Order #{activeCustomer.orderId} Dispatched</p>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Your parcel has been verified and handed to <strong>{activeCustomer.courier}</strong>.
+                </p>
+                <div className="pt-2 font-mono text-[11px] text-emerald-700 font-bold border-t border-slate-200">
+                  Tracking: steadfast.com.bd/t/SF-994821
+                </div>
+                <div className="text-[11px] text-slate-500 font-mono">
+                  Cash on Delivery: {activeCustomer.amount}
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── HIGH CONVERTING CALL TO ACTION ──────────────────── */}
-        <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/60 via-slate-900/90 to-emerald-950/60 p-8 sm:p-12 text-center space-y-5 shadow-2xl">
-          <span className="rounded-full bg-indigo-500/20 border border-indigo-500/30 px-3.5 py-1 text-xs font-bold text-indigo-300">
-            ★ Zero Hardware Required
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-black text-white">
-            Ready to Automate Your Real Warehouse?
+        {/* ── FOOTER CALL TO ACTION ───────────────────────────── */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 sm:p-12 text-center space-y-4 shadow-xs">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-950">
+            Ready to configure your warehouse workspace?
           </h2>
-          <p className="max-w-xl mx-auto text-xs sm:text-sm text-slate-300">
-            Every merchant starts with 100 free orders every month. Experience bank-grade PostgreSQL Row-Level Security, multi-carrier dispatch, and automated WhatsApp notifications today.
+          <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+            100 orders included free every month. Connect your private Steadfast keys and start camera scanning today.
           </p>
           <div className="pt-2">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-indigo-600/30 hover:scale-105 transition"
+              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-6 py-3 text-xs sm:text-sm font-bold text-white transition shadow-sm shadow-indigo-600/30 active:scale-[0.99]"
             >
-              <span>Get Started Free (100 Orders)</span>
-              <span>→</span>
+              <span>Create Account Free</span>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </Link>
           </div>
         </div>

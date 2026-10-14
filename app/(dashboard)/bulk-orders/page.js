@@ -188,95 +188,107 @@ export default function BulkOrdersPage() {
 
   if (pageLoading || ctxLoading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <Spinner size={32} />
+      <main className="min-h-screen bg-zinc-50/60 flex items-center justify-center font-sans">
+        <Spinner size={24} />
       </main>
     );
   }
 
+  const validRowsCount = rows.filter(
+    (r) => r.productId && r.variantId && Number(r.quantity) > 0
+  ).length;
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        {/* header */}
+    <main className="min-h-screen bg-zinc-50/60 py-8 px-4 sm:px-6 lg:px-8 font-sans text-zinc-900">
+      <div className="mx-auto max-w-5xl space-y-6">
+        {/* ── Header ───────────────────────────────── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Daily Bulk Orders
+            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
+              <span>Operations</span>
+              <span>/</span>
+              <span className="text-zinc-900 font-medium">Batch Processing</span>
+            </div>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">
+              Bulk Sales Order Entry
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Enter all daily sales at once. Each row deducts stock for a specific variant.
+            <p className="mt-1 text-xs text-zinc-500">
+              Record multiple SKU sales transactions at once. Each entry deducts stock from the specified variant.
             </p>
           </div>
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition"
+            href="/dashboard/products"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-xs hover:bg-zinc-50 transition"
           >
-            ← Dashboard
+            ← Return to Catalog
           </Link>
         </div>
 
-        {/* toast */}
+        {/* ── Toast ────────────────────────────────── */}
         {toast && (
           <div
-            className={`rounded-lg border px-4 py-3 text-sm ${
+            className={`rounded-xl border px-4 py-3 text-xs flex items-center gap-2.5 ${
               toast.type === "success"
-                ? "border-green-200 bg-green-50 text-green-700"
-                : "border-red-200 bg-red-50 text-red-700"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-rose-200 bg-rose-50 text-rose-900"
             }`}
           >
-            {toast.type === "success" ? "✓" : "✗"} {toast.message}
+            {toast.type === "success" ? (
+              <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+            <span>{toast.message}</span>
           </div>
         )}
 
-        {/* order rows card */}
-        <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200 space-y-4">
-          {/* header row */}
-          <div className="hidden sm:grid sm:grid-cols-12 gap-3 px-1">
-            <span className="col-span-4 text-xs font-semibold uppercase text-gray-500">
-              Product
-            </span>
-            <span className="col-span-4 text-xs font-semibold uppercase text-gray-500">
-              Variant
-            </span>
-            <span className="col-span-2 text-xs font-semibold uppercase text-gray-500">
-              Quantity
-            </span>
-            <span className="col-span-2" />
+        {/* ── Order Rows Card ──────────────────────── */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs space-y-4">
+          {/* Header Row */}
+          <div className="hidden sm:grid sm:grid-cols-12 gap-3 px-1 text-xs font-mono text-zinc-500 uppercase tracking-wider">
+            <span className="col-span-5 font-medium">Catalog Product</span>
+            <span className="col-span-4 font-medium">SKU Variant</span>
+            <span className="col-span-2 font-medium">Quantity</span>
+            <span className="col-span-1" />
           </div>
 
-          {/* rows */}
+          {/* Rows */}
           {rows.map((row, i) => (
             <div
               key={i}
-              className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end rounded-lg border border-gray-100 bg-slate-50/50 p-3"
+              className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center rounded-xl border border-zinc-100 bg-zinc-50/50 p-3"
             >
-              <div className="sm:col-span-4">
-                <label className="sm:hidden block text-xs font-medium text-gray-500 mb-1">
+              <div className="sm:col-span-5">
+                <label className="sm:hidden block text-xs font-medium text-zinc-700 mb-1">
                   Product
                 </label>
                 <select
                   value={row.productId}
                   onChange={(e) => updateRow(i, "productId", e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="block w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 shadow-xs focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none transition"
                 >
-                  <option value="">— Select Product —</option>
+                  <option value="">— Select Catalog Product —</option>
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.category})
+                      {p.name} {p.category ? `(${p.category})` : ""}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="sm:col-span-4">
-                <label className="sm:hidden block text-xs font-medium text-gray-500 mb-1">
+                <label className="sm:hidden block text-xs font-medium text-zinc-700 mb-1">
                   Variant
                 </label>
                 <select
                   value={row.variantId}
                   onChange={(e) => updateRow(i, "variantId", e.target.value)}
                   disabled={!row.productId}
-                  className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none disabled:opacity-50"
+                  className="block w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 shadow-xs focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none disabled:opacity-50 transition"
                 >
                   <option value="">
                     {row.productId ? "— Select Variant —" : "Select product first"}
@@ -290,55 +302,58 @@ export default function BulkOrdersPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="sm:hidden block text-xs font-medium text-gray-500 mb-1">
-                  Qty
+                <label className="sm:hidden block text-xs font-medium text-zinc-700 mb-1">
+                  Quantity
                 </label>
                 <input
                   type="number"
                   min="1"
                   value={row.quantity}
                   onChange={(e) => updateRow(i, "quantity", e.target.value)}
-                  placeholder="Qty"
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  placeholder="0"
+                  className="block w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-mono text-zinc-900 shadow-xs placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none transition"
                 />
               </div>
 
-              <div className="sm:col-span-2 flex gap-2 justify-end">
+              <div className="sm:col-span-1 flex justify-end">
                 {rows.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeRow(i)}
-                    className="rounded-lg px-3 py-2 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 transition"
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                    title="Remove row"
                   >
-                    Remove
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
                   </button>
                 )}
               </div>
             </div>
           ))}
 
-          {/* add row */}
+          {/* Add Row Button */}
           <button
             type="button"
             onClick={addRow}
-            className="inline-flex items-center gap-1.5 rounded-lg border-2 border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-3.5 py-2 text-xs font-semibold text-indigo-700 hover:border-indigo-300 hover:bg-indigo-50 transition"
           >
-            + Add Row
+            <span>+</span> Add Another Row
           </button>
         </div>
 
-        {/* process button */}
+        {/* Process Button */}
         <button
           onClick={handleProcess}
-          disabled={loading}
-          className="w-full rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 px-8 py-5 text-lg font-bold text-white shadow-xl hover:from-red-700 hover:to-rose-700 focus:ring-4 focus:ring-red-500/30 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          disabled={loading || validRowsCount === 0}
+          className="w-full rounded-xl bg-indigo-600 py-3 text-xs font-bold text-white shadow-xs shadow-indigo-600/30 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-600/30 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed transition"
         >
           {loading ? (
-            <span className="inline-flex items-center gap-3">
-              <Spinner /> Processing Orders…
+            <span className="inline-flex items-center gap-2">
+              <Spinner size={16} /> Processing Batch Deductions…
             </span>
           ) : (
-            <span>⚡ Process Daily Orders ({rows.filter((r) => r.productId && r.variantId && Number(r.quantity) > 0).length} valid rows)</span>
+            <span>Commit Bulk Sales Orders ({validRowsCount} valid items)</span>
           )}
         </button>
       </div>

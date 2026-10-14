@@ -392,73 +392,78 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
     COURIER_OPTIONS.find((c) => c.id === selectedCourier) || COURIER_OPTIONS[0];
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 py-8 px-4 sm:px-6 lg:px-8 font-sans">
+    <main className="min-h-screen bg-zinc-50/60 py-8 px-4 sm:px-6 lg:px-8 font-sans text-zinc-900">
       <div className="mx-auto max-w-5xl space-y-6">
         {/* ── Top Header Bar ──────────────────────────────── */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 pb-5">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-700">
-                <span>🏢</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 border border-zinc-200 px-2.5 py-0.5 text-[11px] font-mono font-medium text-zinc-700">
                 <span>{businessName || "Workspace Settings"}</span>
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Settings &amp; Integrations Hub
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+              Settings &amp; Integrations
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-slate-500">
-              Configure couriers, automated inbound webhooks, business profile, and team access.
+            <p className="mt-1 text-xs text-zinc-500">
+              Configure courier credentials, inbound webhook endpoints, team access, and store profile.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition"
+              href="/dashboard/products"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-xs hover:bg-zinc-50 transition"
             >
-              ← Back to Catalog
+              ← Return to Catalog
             </Link>
           </div>
         </div>
 
         {/* ── Unified 3-Tab Navigation Bar ─────────────────── */}
-        <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab("couriers")}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition shrink-0 ${
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition shrink-0 ${
               activeTab === "couriers"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80"
+                ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/30"
+                : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>⚡</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
             <span>Courier Integrations</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("webhooks")}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition shrink-0 ${
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition shrink-0 ${
               activeTab === "webhooks"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80"
+                ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/30"
+                : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>🔗</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
             <span>Webhooks &amp; APIs</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("team")}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition shrink-0 ${
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition shrink-0 ${
               activeTab === "team"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80"
+                ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/30"
+                : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>👥</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
             <span>Store Profile &amp; Team</span>
           </button>
         </div>
@@ -473,7 +478,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             }`}
           >
             <div className="flex items-center gap-2">
-              <span>{toast.type === "success" ? "✓" : "⚠️"}</span>
+              <span className={`h-2 w-2 rounded-full ${toast.type === "success" ? "bg-emerald-500" : "bg-rose-500"}`} />
               <span>{toast.message}</span>
             </div>
             <button
@@ -494,7 +499,10 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <span>🚚</span> Select Courier Gateway
+                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  <span>Select Courier Gateway</span>
                 </h2>
                 <span className="text-[11px] text-slate-400 font-medium">
                   Click a provider to manage API credentials
@@ -606,7 +614,9 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                         </>
                       ) : (
                         <>
-                          <span>💾</span>
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
                           <span>Save {selectedCourier} Credentials</span>
                         </>
                       )}
@@ -633,7 +643,10 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span>⚡</span> Inbound Order Webhook Endpoint
+                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Inbound Order Webhook Endpoint</span>
                 </h3>
                 <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
                   HTTP POST Ready
@@ -692,7 +705,9 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
               {/* WooCommerce Guide */}
               <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🟣</span>
+                  <span className="h-6 w-6 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-xs font-bold text-purple-700 font-mono">
+                    W
+                  </span>
                   <h4 className="text-sm font-bold text-slate-900">WooCommerce Webhook Setup</h4>
                 </div>
                 <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside leading-relaxed">
@@ -708,7 +723,9 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
               {/* Shopify Guide */}
               <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🟢</span>
+                  <span className="h-6 w-6 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-xs font-bold text-emerald-700 font-mono">
+                    S
+                  </span>
                   <h4 className="text-sm font-bold text-slate-900">Shopify Custom Webhook Setup</h4>
                 </div>
                 <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside leading-relaxed">
@@ -755,7 +772,10 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span>🏢</span> Store Profile Details
+                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span>Store Profile Details</span>
                 </h3>
                 <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md">
                   Tenant ID: {businessId || "Unassigned"}
@@ -773,7 +793,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                     value={bizName}
                     onChange={(e) => setCustomBizName(e.target.value)}
                     placeholder="e.g. My Awesome Store"
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none"
                   />
                 </div>
                 <button
@@ -790,7 +810,10 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-sm space-y-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span>👥</span> Pre-Register Team Member
+                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  <span>Pre-Register Team Member</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
                   Add staff accounts without requiring an email server. They can immediately log in
@@ -805,12 +828,12 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@example.com"
-                  className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none"
                 />
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                  className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none"
                 >
                   <option value="operator">Operator (Orders, Scanner, Stock)</option>
                   <option value="viewer">Viewer (Read-only catalog &amp; reports)</option>
@@ -830,7 +853,10 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <span>👥</span> Registered Staff Members ({users.length})
+                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  <span>Registered Staff Members ({users.length})</span>
                 </h3>
               </div>
 

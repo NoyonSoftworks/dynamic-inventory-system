@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 
-// ── view modes ───────────────────────────────────────────
+// ── View Modes ──────────────────────────────────────────────
 const VIEW = {
   SIGN_IN: "signin",
   SIGN_UP: "signup",
@@ -38,13 +39,11 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     const target = (params.get("redirect") || params.get("next") || "").trim();
 
-    // Super admin default: /admin | Merchant default: /dashboard/products
     const isSuperAdmin =
       Boolean(currentUserEmail) &&
       currentUserEmail.toLowerCase().trim() === ADMIN_EMAIL;
     const defaultTarget = isSuperAdmin ? "/admin" : "/dashboard/products";
 
-    // Strict validation against Open Redirect attacks (reject //evil.com and ://)
     if (
       target.startsWith("/") &&
       !target.startsWith("//") &&
@@ -82,7 +81,6 @@ export default function LoginPage() {
       }
     });
 
-    // If already authenticated, redirect to requested page
     async function checkExistingSession() {
       const {
         data: { session },
@@ -135,542 +133,470 @@ export default function LoginPage() {
         if (resendErr) throw resendErr;
       }
 
-      setMessage("A fresh 6-digit verification code has been sent to your email.");
+      setMessage("A verification code has been sent to your email address.");
       setResendTimer(60);
     } catch (err) {
-      setError(err.message || "Failed to resend code. Please try again.");
+      setError(err?.message || "Failed to resend code. Please try again.");
     } finally {
       setResendLoading(false);
     }
   }
 
-  // ── Form Submission ────────────────────────────────────
+  // ── Form Submit Handler ────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setMessage(null);
+    setLoading(true);
 
     try {
-      // 1. ── OTP Verification Mode ────────────────────────
-      if (view === VIEW.OTP_VERIFICATION) {
-        if (!otp.trim() || otp.trim().length !== 6) {
-          throw new Error("Please enter a valid 6-digit verification code.");
+      // 1. SIGN IN WITH PASSWORD
+      if (view === VIEW.SIGN_IN) {
+        const { data, error: signInErr } =
+          await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          });
+
+        if (signInErr) {
+          if (
+            signInErr.message?.toLowerCase().includes("email not confirmed")
+          ) {
+            setOtpType("signup");
+            switchView(VIEW.OTP_VERIFICATION);
+            setMessage("Please enter the verification code sent to your email.");
+            setResendTimer(60);
+            return;
+          }
+          throw signInErr;
         }
 
-        const { data, error: verifyErr } = await supabase.auth.verifyOtp({
-          email: email.trim(),
-          token: otp.trim(),
-          type: otpType, // 'signup' | 'recovery'
-        });
-
-        if (verifyErr) {
-          throw new Error(verifyErr.message || "Invalid or expired verification code.");
-        }
-
-        // Set cookies immediately before redirect
         if (data?.session) {
           setAuthCookies(data.session);
+          const target = getRedirectTarget(data.user?.email);
+          router.replace(target);
         }
-
-        setMessage("Verification successful! Redirecting...");
-        const target = getRedirectTarget(data?.user?.email || email);
-        router.push(target);
-        return;
       }
 
-      // 2. ── Reset Password (Request OTP) ────────────────
-      if (view === VIEW.RESET) {
-        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
-          email.trim()
-        );
-        if (resetErr) throw resetErr;
-
-        setOtpType("recovery");
-        setResendTimer(60);
-        setView(VIEW.OTP_VERIFICATION);
-        setMessage(
-          "Password reset code sent! Please enter the 6-digit code from your email."
-        );
-        return;
-      }
-
-      // 3. ── Sign Up (Triggers OTP) ───────────────────────
+      // 2. SIGN UP WITH EMAIL & PASSWORD
       if (view === VIEW.SIGN_UP) {
         const { data, error: signUpErr } = await supabase.auth.signUp({
           email: email.trim(),
           password,
         });
 
-        if (signUpErr) {
-          if (signUpErr.message.includes("already registered")) {
-            throw new Error(
-              "This email is already registered. Try signing in instead."
-            );
-          }
-          throw signUpErr;
-        }
+        if (signUpErr) throw signUpErr;
 
-        if (data?.user?.identities?.length === 0) {
-          throw new Error(
-            "This email is already registered. Try signing in instead."
-          );
-        }
-
-        setOtpType("signup");
-        setResendTimer(60);
-        setView(VIEW.OTP_VERIFICATION);
-        setMessage(
-          "Account created! Please enter the 6-digit verification code sent to your email."
-        );
-        setPassword("");
-        return;
-      }
-
-      // 4. ── Standard Sign In (with Email Confirmation Intercept) ─
-      const { error: signInErr, data } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (signInErr) {
-        // Intercept 'Email not confirmed' specifically
-        if (
-          signInErr.message.toLowerCase().includes("email not confirmed") ||
-          signInErr.message.toLowerCase().includes("email address not confirmed")
-        ) {
-          // Trigger a fresh OTP code to be sent to them
-          try {
-            await supabase.auth.resend({
-              type: "signup",
-              email: email.trim(),
-            });
-          } catch (resendErr) {
-            console.warn("Auto-resend OTP error:", resendErr);
-          }
-
-          setOtpType("signup");
-          setOtp("");
-          setResendTimer(60);
-          setView(VIEW.OTP_VERIFICATION);
-          setMessage(
-            "Your email is not confirmed yet. We've sent a new 6-digit verification code to your email."
-          );
+        if (data?.session) {
+          setAuthCookies(data.session);
+          const target = getRedirectTarget(data.user?.email);
+          router.replace(target);
           return;
         }
 
-        if (signInErr.message.includes("Invalid login credentials")) {
-          throw new Error(
-            "Invalid email or password. Please check your credentials and try again."
-          );
-        }
-
-        throw signInErr;
-      }
-
-      // ── Manual Frontend Email Confirmation Security Lock ──
-      if (!data?.user?.email_confirmed_at) {
-        // 1. Immediately destroy unverified session
-        await supabase.auth.signOut();
-        document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
-        document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
-
-        // 2. Automatically trigger a new OTP
-        try {
-          await supabase.auth.resend({
-            type: "signup",
-            email: email.trim(),
-          });
-        } catch (resendErr) {
-          console.warn("Auto-resend OTP error:", resendErr);
-        }
-
-        // 3. Switch UI back to OTP_VERIFICATION and start 60s cooldown
         setOtpType("signup");
-        setOtp("");
+        switchView(VIEW.OTP_VERIFICATION);
+        setMessage("We've sent a 6-digit confirmation code to your email.");
         setResendTimer(60);
-        setView(VIEW.OTP_VERIFICATION);
-
-        // 4. Set error message
-        setError("Please verify your email first. A new 6-digit code has been sent to your email.");
-        return;
       }
 
-      // Set cookies immediately before redirect to prevent race conditions
-      if (data?.session) {
-        setAuthCookies(data.session);
+      // 3. RESET PASSWORD (REQUEST CODE)
+      if (view === VIEW.RESET) {
+        const { error: resetErr } =
+          await supabase.auth.resetPasswordForEmail(email.trim());
+
+        if (resetErr) throw resetErr;
+
+        setOtpType("recovery");
+        switchView(VIEW.OTP_VERIFICATION);
+        setMessage("Password reset code sent. Please check your inbox.");
+        setResendTimer(60);
       }
 
-      const target = getRedirectTarget(data?.user?.email || email);
-      router.push(target);
-      return;
+      // 4. VERIFY OTP CODE
+      if (view === VIEW.OTP_VERIFICATION) {
+        const cleanOtp = otp.trim().replace(/\D/g, "");
+        if (cleanOtp.length !== 6) {
+          throw new Error("Please enter a valid 6-digit verification code.");
+        }
+
+        const verifyType = otpType === "recovery" ? "recovery" : "signup";
+        const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+          email: email.trim(),
+          token: cleanOtp,
+          type: verifyType,
+        });
+
+        if (verifyErr) throw verifyErr;
+
+        if (verifyType === "recovery") {
+          router.replace("/update-password");
+          return;
+        }
+
+        if (data?.session) {
+          setAuthCookies(data.session);
+          const target = getRedirectTarget(data.user?.email);
+          router.replace(target);
+        } else {
+          switchView(VIEW.SIGN_IN);
+          setMessage("Email verified successfully. You can now sign in.");
+        }
+      }
     } catch (err) {
-      setError(
-        err.message || "An unexpected error occurred. Please try again."
-      );
+      setError(err?.message || "An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  // ── Google OAuth ───────────────────────────────────────
+  // ── Google OAuth Handler ───────────────────────────────
   async function handleGoogleSignIn() {
-    setGoogleLoading(true);
     setError(null);
+    setGoogleLoading(true);
 
     try {
-      const { error: oauthErr } = await supabase.auth.signInWithOAuth({
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+      const params = new URLSearchParams(window.location.search);
+      const requestedRedirect = params.get("redirect") || params.get("next") || "/dashboard/products";
+
+      const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(
+        requestedRedirect
+      )}`;
+
+      const { error: googleErr } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
+          queryParams: {
+            access_type: "offline",
+            prompt: "select_account",
+          },
         },
       });
-      if (oauthErr) throw oauthErr;
+
+      if (googleErr) throw googleErr;
     } catch (err) {
-      setError(err.message || "Google sign-in failed. Please try again.");
+      setError(err?.message || "Google authentication failed. Please try again.");
       setGoogleLoading(false);
     }
   }
 
-  // ── heading config per view ────────────────────
   const headings = {
     [VIEW.SIGN_IN]: {
-      title: "Welcome Back",
-      sub: "Sign in to your inventory dashboard",
+      title: "Sign in to workspace",
+      sub: "Enter your credentials to access your inventory and orders.",
     },
     [VIEW.SIGN_UP]: {
-      title: "Create Account",
-      sub: "Sign up to start managing your inventory",
+      title: "Create your account",
+      sub: "Start managing your physical inventory with automated logistics.",
     },
     [VIEW.RESET]: {
-      title: "Reset Password",
-      sub: "We'll send a 6-digit verification code to your email",
+      title: "Reset password",
+      sub: "Enter your email to receive a secure recovery code.",
     },
     [VIEW.OTP_VERIFICATION]: {
-      title: "Enter 6-Digit Code",
-      sub: `Enter the code sent to ${email || "your email address"}`,
+      title: "Enter verification code",
+      sub: `Sent to ${email || "your email address"}`,
     },
   };
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
-      {/* ── animated gradient background ────────────────── */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950" />
-      <div className="absolute inset-0 -z-10 opacity-30">
-        <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-indigo-500/40 blur-[120px] animate-pulse" />
-        <div className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-purple-500/40 blur-[120px] animate-pulse [animation-delay:2s]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] w-[300px] rounded-full bg-cyan-500/20 blur-[100px] animate-pulse [animation-delay:4s]" />
-      </div>
-
-      {/* ── subtle grid overlay ─────────────────────────── */}
+    <main className="relative flex min-h-screen items-center justify-center bg-slate-50 text-slate-900 font-sans antialiased px-4 py-12 selection:bg-indigo-500 selection:text-white">
+      {/* ── Subtle Geometric Background Dot Grid ───────────── */}
       <div
-        className="absolute inset-0 -z-10 opacity-[0.03]"
+        className="absolute inset-0 -z-10 opacity-[0.04]"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
+            "radial-gradient(#4f46e5 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
         }}
       />
 
-      <div className="w-full max-w-md space-y-8">
-        {/* ── logo & heading ───────────────────────────── */}
-        <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20 shadow-lg">
-            <span className="text-3xl">📦</span>
-          </div>
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-white">
+      <div className="w-full max-w-[420px] space-y-6">
+        {/* ── Brand Header ─────────────────────────────────── */}
+        <div className="text-center space-y-2">
+          <Link
+            href="/"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 transition"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </Link>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
             {headings[view].title}
           </h1>
-          <p className="mt-2 text-sm text-indigo-200/70">
+          <p className="text-xs text-slate-500 max-w-xs mx-auto">
             {headings[view].sub}
           </p>
         </div>
 
-        {/* ── glassmorphism card ────────────────────────── */}
-        <form
-          onSubmit={handleSubmit}
-          className="relative rounded-3xl border border-white/10 bg-white/[0.07] p-8 shadow-2xl backdrop-blur-xl space-y-6"
-        >
-          {/* decorative corner glows */}
-          <div className="pointer-events-none absolute -top-px -right-px h-20 w-20 rounded-tr-3xl bg-gradient-to-bl from-indigo-400/20 to-transparent" />
-          <div className="pointer-events-none absolute -bottom-px -left-px h-20 w-20 rounded-bl-3xl bg-gradient-to-tr from-purple-400/20 to-transparent" />
-
-          {/* ── alerts ─────────────────────────────────── */}
+        {/* ── Enterprise Card ──────────────────────────────── */}
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-7 sm:p-8 shadow-xl shadow-slate-200/50 space-y-5">
+          {/* Alerts */}
           {error && (
-            <div className="flex items-start gap-3 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 backdrop-blur">
-              <span className="mt-0.5 shrink-0 text-red-400">
+            <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-800">
+              <span className="mt-0.5 shrink-0 text-rose-500">
                 <ErrorIcon />
               </span>
-              <p className="text-sm text-red-200">{error}</p>
+              <p className="leading-relaxed font-medium">{error}</p>
             </div>
           )}
+
           {message && (
-            <div className="flex items-start gap-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 backdrop-blur">
-              <span className="mt-0.5 shrink-0 text-emerald-400">
+            <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-800">
+              <span className="mt-0.5 shrink-0 text-emerald-600">
                 <CheckIcon />
               </span>
-              <p className="text-sm text-emerald-200">{message}</p>
+              <p className="leading-relaxed font-medium">{message}</p>
             </div>
           )}
 
-          {/* ── VIEW: OTP VERIFICATION ──────────────────── */}
-          {view === VIEW.OTP_VERIFICATION ? (
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-indigo-100/80 text-center">
-                  6-Digit Verification Code
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  required
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  placeholder="123456"
-                  className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3.5 px-4 text-center text-3xl font-mono tracking-widest text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
-                />
-              </div>
-
-              <div className="rounded-lg bg-white/[0.04] p-3 text-center">
-                <p className="text-xs text-indigo-200/60">
-                  Code sent to <span className="font-semibold text-white">{email}</span>
-                </p>
-              </div>
-
-              {/* Verify Button */}
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 6}
-                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />
-                {loading ? (
-                  <span className="inline-flex items-center gap-2.5">
-                    <Spinner /> Verifying Code…
-                  </span>
-                ) : (
-                  "Verify & Continue"
-                )}
-              </button>
-
-              {/* Resend Code Text Button with 60s Cooldown */}
-              <div className="text-center pt-1">
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={resendTimer > 0 || resendLoading}
-                  className="text-xs font-medium text-indigo-300/80 hover:text-white disabled:text-indigo-300/40 disabled:cursor-not-allowed transition"
-                >
-                  {resendLoading ? (
-                    "Sending new code…"
-                  ) : resendTimer > 0 ? (
-                    <span>
-                      Resend code in{" "}
-                      <strong className="text-white font-mono">{resendTimer}s</strong>
-                    </span>
-                  ) : (
-                    "Resend Code"
-                  )}
-                </button>
-              </div>
-
-              {/* Back to sign in */}
-              <button
-                type="button"
-                onClick={() => switchView(VIEW.SIGN_IN)}
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-indigo-200 hover:bg-white/[0.08] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition-all duration-200"
-              >
-                ← Back to Sign In
-              </button>
-            </div>
-          ) : (
-            /* ── VIEW: SIGN IN / SIGN UP / RESET ──────────── */
-            <>
-              {/* email field */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-indigo-100/80">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-300/50">
-                    <MailIcon />
-                  </span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {view === VIEW.OTP_VERIFICATION ? (
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 text-center font-mono uppercase tracking-wider">
+                    6-Digit Security Code
+                  </label>
                   <input
-                    type="email"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
                     required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@company.com"
-                    className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-4 text-sm text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    placeholder="123456"
+                    className="block w-full rounded-xl border border-slate-300 bg-white py-3 text-center text-2xl font-mono font-bold tracking-[0.3em] text-slate-900 placeholder:text-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
                   />
                 </div>
-              </div>
 
-              {/* password field (hidden in RESET) */}
-              {view !== VIEW.RESET && (
+                <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-center text-[11px] text-slate-500 font-mono">
+                  Code sent to <span className="font-bold text-slate-800">{email}</span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || otp.length !== 6}
+                  className="w-full flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 transition active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Spinner /> Verifying…
+                    </span>
+                  ) : (
+                    "Verify & Continue"
+                  )}
+                </button>
+
+                <div className="flex items-center justify-between pt-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => switchView(VIEW.SIGN_IN)}
+                    className="text-slate-500 hover:text-slate-800 transition font-medium"
+                  >
+                    ← Back
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={resendTimer > 0 || resendLoading}
+                    className="text-slate-500 hover:text-indigo-600 disabled:text-slate-300 disabled:cursor-not-allowed transition font-mono font-semibold"
+                  >
+                    {resendLoading
+                      ? "Sending…"
+                      : resendTimer > 0
+                      ? `Resend in ${resendTimer}s`
+                      : "Resend Code"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Email field */}
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-indigo-100/80">
-                    Password
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Work Email
                   </label>
                   <div className="relative">
-                    <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-300/50">
-                      <LockIcon />
+                    <span className="pointer-events-none absolute left-3 top-3 text-slate-400">
+                      <MailIcon />
                     </span>
                     <input
-                      type={showPassword ? "text" : "password"}
+                      type="email"
                       required
-                      minLength={6}
-                      autoComplete={
-                        view === VIEW.SIGN_IN ? "current-password" : "new-password"
-                      }
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-12 text-sm text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@company.com"
+                      className="block w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
                     />
+                  </div>
+                </div>
+
+                {/* Password field */}
+                {view !== VIEW.RESET && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                        Password
+                      </label>
+                      {view === VIEW.SIGN_IN && (
+                        <button
+                          type="button"
+                          onClick={() => switchView(VIEW.RESET)}
+                          className="text-[11px] font-semibold text-slate-500 hover:text-indigo-600 transition"
+                        >
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-3 top-3 text-slate-400">
+                        <LockIcon />
+                      </span>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        minLength={6}
+                        autoComplete={
+                          view === VIEW.SIGN_IN ? "current-password" : "new-password"
+                        }
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="block w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600 transition"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 transition active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed mt-2"
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Spinner />
+                      {view === VIEW.RESET
+                        ? "Sending code…"
+                        : view === VIEW.SIGN_UP
+                        ? "Creating account…"
+                        : "Signing in…"}
+                    </span>
+                  ) : view === VIEW.RESET ? (
+                    "Send Recovery Code"
+                  ) : view === VIEW.SIGN_UP ? (
+                    "Create Account"
+                  ) : (
+                    "Sign In"
+                  )}
+                </button>
+
+                {view === VIEW.RESET && (
+                  <button
+                    type="button"
+                    onClick={() => switchView(VIEW.SIGN_IN)}
+                    className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition pt-1"
+                  >
+                    ← Back to Sign In
+                  </button>
+                )}
+
+                {/* OAuth & View Toggle */}
+                {(view === VIEW.SIGN_IN || view === VIEW.SIGN_UP) && (
+                  <>
+                    <div className="relative my-3">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-200" />
+                      </div>
+                      <div className="relative flex justify-center text-[11px] font-mono">
+                        <span className="bg-white px-2 text-slate-400 uppercase">or</span>
+                      </div>
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-indigo-300/50 hover:text-indigo-200 transition"
-                      tabIndex={-1}
+                      onClick={handleGoogleSignIn}
+                      disabled={googleLoading}
+                      className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs transition active:scale-[0.99] disabled:opacity-40"
                     >
-                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      {googleLoading ? <Spinner /> : <GoogleLogo />}
+                      <span>{googleLoading ? "Redirecting…" : "Continue with Google"}</span>
                     </button>
-                  </div>
-                  {view === VIEW.SIGN_UP && (
-                    <p className="text-xs text-indigo-300/40">
-                      Must be at least 6 characters
-                    </p>
-                  )}
-                </div>
-              )}
 
-              {/* forgot password link (sign-in only) */}
-              {view === VIEW.SIGN_IN && (
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => switchView(VIEW.RESET)}
-                    className="text-xs font-medium text-indigo-300/60 hover:text-indigo-200 transition"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-              )}
-
-              {/* submit button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />
-
-                {loading ? (
-                  <span className="inline-flex items-center gap-2.5">
-                    <Spinner />
-                    {view === VIEW.RESET
-                      ? "Sending Code…"
-                      : view === VIEW.SIGN_UP
-                      ? "Creating Account…"
-                      : "Signing In…"}
-                  </span>
-                ) : view === VIEW.RESET ? (
-                  "Send 6-Digit Code"
-                ) : view === VIEW.SIGN_UP ? (
-                  "Sign Up with Code"
-                ) : (
-                  "Sign In"
+                    <div className="pt-2 text-center text-xs text-slate-500">
+                      {view === VIEW.SIGN_UP ? (
+                        <span>
+                          Already have an account?{" "}
+                          <button
+                            type="button"
+                            onClick={() => switchView(VIEW.SIGN_IN)}
+                            className="font-bold text-indigo-600 hover:underline"
+                          >
+                            Sign in
+                          </button>
+                        </span>
+                      ) : (
+                        <span>
+                          Don&apos;t have an account?{" "}
+                          <button
+                            type="button"
+                            onClick={() => switchView(VIEW.SIGN_UP)}
+                            className="font-bold text-indigo-600 hover:underline"
+                          >
+                            Create one
+                          </button>
+                        </span>
+                      )}
+                    </div>
+                  </>
                 )}
-              </button>
+              </>
+            )}
+          </form>
+        </div>
 
-              {/* back to login (reset view only) */}
-              {view === VIEW.RESET && (
-                <button
-                  type="button"
-                  onClick={() => switchView(VIEW.SIGN_IN)}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-indigo-200 hover:bg-white/[0.08] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition-all duration-200"
-                >
-                  ← Back to Sign In
-                </button>
-              )}
-
-              {/* OAuth + toggle (sign-in / sign-up views) */}
-              {(view === VIEW.SIGN_IN || view === VIEW.SIGN_UP) && (
-                <>
-                  {/* divider */}
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-white/10" />
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                      <span className="px-3 text-indigo-300/40 bg-[rgba(15,15,30,0.5)]">
-                        or continue with
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Google button */}
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    disabled={googleLoading}
-                    className="group w-full flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-6 py-3 text-sm font-medium text-white hover:bg-white/[0.12] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    {googleLoading ? <Spinner /> : <GoogleLogo />}
-                    {googleLoading ? "Redirecting…" : "Sign in with Google"}
-                  </button>
-
-                  {/* toggle sign-in / sign-up */}
-                  <div className="relative mt-2">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-white/10" />
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                      <span className="px-3 text-indigo-300/40 bg-[rgba(15,15,30,0.5)]">
-                        {view === VIEW.SIGN_UP
-                          ? "Already registered?"
-                          : "New here?"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      switchView(
-                        view === VIEW.SIGN_UP ? VIEW.SIGN_IN : VIEW.SIGN_UP
-                      )
-                    }
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-indigo-200 hover:bg-white/[0.08] hover:border-white/20 focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition-all duration-200"
-                  >
-                    {view === VIEW.SIGN_UP
-                      ? "Sign in to existing account"
-                      : "Create a new account"}
-                  </button>
-                </>
-              )}
-            </>
-          )}
-        </form>
-
-        {/* footer */}
-        <p className="text-center text-xs text-indigo-300/30">
-          Dynamic Inventory Management System
-        </p>
+        {/* ── Security & Compliance Footer ─────────────────── */}
+        <div className="flex items-center justify-center gap-2 text-[11px] font-mono text-slate-400 text-center">
+          <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span>256-Bit SSL Encrypted · Multi-Tenant Isolation</span>
+        </div>
       </div>
     </main>
   );
 }
 
-// ── icons ─────────────────────────────────────────────────
+// ── Minimalist SVG Icons ─────────────────────────────────────
 function Spinner() {
   return (
     <svg
-      className="h-5 w-5 animate-spin"
+      className="h-3.5 w-3.5 animate-spin text-zinc-900"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -694,7 +620,7 @@ function Spinner() {
 
 function GoogleLogo() {
   return (
-    <svg width="18" height="18" viewBox="0 0 48 48">
+    <svg width="15" height="15" viewBox="0 0 48 48">
       <path
         fill="#EA4335"
         d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
@@ -717,7 +643,7 @@ function GoogleLogo() {
 
 function MailIcon() {
   return (
-    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
     </svg>
   );
@@ -725,7 +651,7 @@ function MailIcon() {
 
 function LockIcon() {
   return (
-    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
     </svg>
   );
@@ -733,7 +659,7 @@ function LockIcon() {
 
 function EyeIcon() {
   return (
-    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
@@ -742,7 +668,7 @@ function EyeIcon() {
 
 function EyeOffIcon() {
   return (
-    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
       <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
     </svg>
   );
@@ -750,7 +676,7 @@ function EyeOffIcon() {
 
 function ErrorIcon() {
   return (
-    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
     </svg>
   );
@@ -758,7 +684,7 @@ function ErrorIcon() {
 
 function CheckIcon() {
   return (
-    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
