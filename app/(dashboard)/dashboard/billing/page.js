@@ -20,10 +20,13 @@ export default function ClientBillingPage() {
     bdt_exchange_rate: 122.0,
   });
 
-  // Upgrade Modal State
+  // Upgrade Modal & Payment Gateway State
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [processingUpgrade, setProcessingUpgrade] = useState(false);
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
+  const [upgradeError, setUpgradeError] = useState(null);
+  const [isProPlan, setIsProPlan] = useState(false);
+  const [paymentNotice, setPaymentNotice] = useState(null);
 
   // ── Days Left in Current Calendar Month (Computed on client in useEffect)
   const [daysLeftInMonth, setDaysLeftInMonth] = useState(15);
@@ -89,6 +92,44 @@ export default function ClientBillingPage() {
           if (!allErr && allCount !== null) {
             setTotalAllTimeOrders(allCount);
           }
+
+          // 3. Check Workspace Subscription Status
+          try {
+            const { data: bizData } = await supabase
+              .from("businesses")
+              .select("subscription_plan")
+              .eq("id", businessId)
+              .maybeSingle();
+
+            if (bizData?.subscription_plan === "pro") {
+              setIsProPlan(true);
+            }
+          } catch {
+            // ignore if column not present yet
+          }
+
+          // 4. Check URL query parameters for payment return state
+          if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const paymentStatus = params.get("payment");
+            if (paymentStatus === "success") {
+              setUpgradeSuccess(true);
+              setIsProPlan(true);
+              setUpgradeModalOpen(true);
+            } else if (paymentStatus === "failed") {
+              setPaymentNotice({
+                type: "error",
+                message:
+                  "Payment transaction failed or was declined by the gateway. Please try again.",
+              });
+            } else if (paymentStatus === "cancelled") {
+              setPaymentNotice({
+                type: "warning",
+                message:
+                  "Payment checkout was cancelled. Your workspace remains on the Free tier.",
+              });
+            }
+          }
         }
       } catch (err) {
         console.warn("Billing data fetch note:", err);
@@ -106,10 +147,9 @@ export default function ClientBillingPage() {
 
   // ── Usage Metrics ──────────────────────────────────────────
   const limit = pricingConfig.free_order_limit;
-  const usagePercentage = Math.min(
-    100,
-    Math.round((currentMonthOrders / limit) * 100)
-  );
+  const usagePercentage = isProPlan
+    ? 0
+    : Math.min(100, Math.round((currentMonthOrders / limit) * 100));
 
   // Status color based on percentage
   const usageColor =
@@ -119,13 +159,37 @@ export default function ClientBillingPage() {
       ? "amber"
       : "emerald";
 
-  // ── Simulated Checkout Upgrade Action ──────────────────────
+  // ── Real SSLCommerz Checkout Upgrade Action ─────────────────
   const handleConfirmUpgrade = async () => {
-    setProcessingUpgrade(true);
-    setTimeout(() => {
+    try {
+      setProcessingUpgrade(true);
+      setUpgradeError(null);
+
+      const res = await fetch("/api/payment/sslcommerz/init", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ businessId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success || !data.gatewayUrl) {
+        throw new Error(
+          data.error || "Failed to initialize SSLCommerz payment gateway."
+        );
+      }
+
+      // Redirect client directly to SSLCommerz Hosted Checkout (bKash/Nagad/Cards)
+      window.location.href = data.gatewayUrl;
+    } catch (err) {
+      console.error("Upgrade initialization error:", err);
+      setUpgradeError(
+        err.message || "Failed to initialize payment gateway. Please try again."
+      );
       setProcessingUpgrade(false);
-      setUpgradeSuccess(true);
-    }, 1500);
+    }
   };
 
   if (ctxLoading || loading) {
@@ -439,6 +503,13 @@ export default function ClientBillingPage() {
                   </button>
                 </div>
 
+                {upgradeError && (
+                  <div className="rounded-xl border border-rose-900/60 bg-rose-950/60 p-3 text-xs text-rose-300 flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span>{upgradeError}</span>
+                  </div>
+                )}
+
                 <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-400">Plan:</span>
@@ -450,25 +521,30 @@ export default function ClientBillingPage() {
                   </div>
                   <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-sm">
                     <span className="text-white font-bold">Total Due Today:</span>
-                    <span className="text-xl font-black text-indigo-400 font-mono">
-                      ${pricingConfig.pro_plan_price.toFixed(2)}
-                    </span>
+                    <div className="text-right">
+                      <div className="text-lg font-black text-emerald-400 font-mono">
+                        ৳{Math.round(pricingConfig.pro_plan_price * pricingConfig.bdt_exchange_rate).toLocaleString()} BDT
+                      </div>
+                      <div className="text-[11px] text-slate-400 font-mono">
+                        (${pricingConfig.pro_plan_price.toFixed(2)} USD)
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Select Payment Method:
+                    Accepted Local &amp; Global Methods:
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="rounded-xl border-2 border-indigo-500 bg-indigo-950/20 p-2.5 text-center text-xs font-bold text-white">
-                      💳 Card
+                      💳 Visa/Master
                     </div>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950 p-2.5 text-center text-xs font-bold text-slate-300">
+                    <div className="rounded-xl border border-pink-500/30 bg-pink-950/20 p-2.5 text-center text-xs font-bold text-pink-300">
                       📱 bKash
                     </div>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950 p-2.5 text-center text-xs font-bold text-slate-300">
-                      ⚡ Nagad
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-2.5 text-center text-xs font-bold text-amber-300">
+                      ⚡ Nagad/Rocket
                     </div>
                   </div>
                 </div>
@@ -476,9 +552,12 @@ export default function ClientBillingPage() {
                 <div className="flex items-center gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => setUpgradeModalOpen(false)}
+                    onClick={() => {
+                      setUpgradeModalOpen(false);
+                      setUpgradeError(null);
+                    }}
                     disabled={processingUpgrade}
-                    className="w-1/2 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-50"
+                    className="w-1/3 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -486,9 +565,16 @@ export default function ClientBillingPage() {
                     type="button"
                     onClick={handleConfirmUpgrade}
                     disabled={processingUpgrade}
-                    className="w-1/2 inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition disabled:opacity-50"
+                    className="w-2/3 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:from-emerald-500 hover:to-indigo-500 transition disabled:opacity-50 active:scale-95"
                   >
-                    {processingUpgrade ? "Activating…" : "Confirm Upgrade"}
+                    {processingUpgrade ? (
+                      <>
+                        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <span>Connecting SSLCommerz…</span>
+                      </>
+                    ) : (
+                      <span>Pay via SSLCommerz ➔</span>
+                    )}
                   </button>
                 </div>
               </>

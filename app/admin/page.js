@@ -1127,6 +1127,45 @@ export default function SuperAdminDashboard() {
                 </button>
               </div>
 
+              {/* Currency Rails Selector */}
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">💱</span>
+                    <h3 className="text-sm font-bold text-white">Default Currency Mode</h3>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Controls whether clients checkout in BDT (SSLCommerz) or USD (Stripe).
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {[
+                    { mode: "AUTO", label: "Auto (Geo-IP)" },
+                    { mode: "BDT", label: "BDT (৳) Only" },
+                    { mode: "USD", label: "USD ($) Only" },
+                  ].map(({ mode, label }) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          currency_mode: mode,
+                        }))
+                      }
+                      className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition ${
+                        (saasSettings.currency_mode || "AUTO").toUpperCase() === mode
+                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                          : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-2">
                 {/* SSLCommerz Card */}
                 <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
