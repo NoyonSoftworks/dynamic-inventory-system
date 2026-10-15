@@ -306,13 +306,13 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-slate-50 text-slate-900 font-sans antialiased px-4 py-12 selection:bg-indigo-500 selection:text-white">
+    <main className="relative flex min-h-screen items-center justify-center bg-slate-50 text-slate-900 font-sans antialiased px-4 py-12 selection:bg-orange-500 selection:text-white">
       {/* ── Subtle Geometric Background Dot Grid ───────────── */}
       <div
         className="absolute inset-0 -z-10 opacity-[0.04]"
         style={{
           backgroundImage:
-            "radial-gradient(#4f46e5 1px, transparent 1px)",
+            "radial-gradient(#ea580c 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
       />
@@ -322,7 +322,7 @@ export default function LoginPage() {
         <div className="text-center space-y-2">
           <Link
             href="/"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 transition"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-600 text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition"
           >
             <svg
               className="w-6 h-6"
@@ -379,7 +379,7 @@ export default function LoginPage() {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                     placeholder="123456"
-                    className="block w-full rounded-xl border border-slate-300 bg-white py-3 text-center text-2xl font-mono font-bold tracking-[0.3em] text-slate-900 placeholder:text-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
+                    className="block w-full rounded-xl border border-slate-300 bg-white py-3 text-center text-2xl font-mono font-bold tracking-[0.3em] text-slate-900 placeholder:text-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
                   />
                 </div>
 
@@ -390,7 +390,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading || otp.length !== 6}
-                  className="w-full flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 transition active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center rounded-xl bg-orange-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="inline-flex items-center gap-2">
@@ -414,7 +414,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleResendCode}
                     disabled={resendTimer > 0 || resendLoading}
-                    className="text-slate-500 hover:text-indigo-600 disabled:text-slate-300 disabled:cursor-not-allowed transition font-mono font-semibold"
+                    className="text-slate-500 hover:text-orange-600 disabled:text-slate-300 disabled:cursor-not-allowed transition font-mono font-semibold"
                   >
                     {resendLoading
                       ? "Sending…"
@@ -442,7 +442,7 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@company.com"
-                      className="block w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
                     />
                   </div>
                 </div>
@@ -458,7 +458,7 @@ export default function LoginPage() {
                         <button
                           type="button"
                           onClick={() => switchView(VIEW.RESET)}
-                          className="text-[11px] font-semibold text-slate-500 hover:text-indigo-600 transition"
+                          className="text-[11px] font-semibold text-slate-500 hover:text-orange-600 transition"
                         >
                           Forgot password?
                         </button>
@@ -478,7 +478,7 @@ export default function LoginPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="block w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
+                        className="block w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
                       />
                       <button
                         type="button"
@@ -496,7 +496,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 transition active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed mt-2"
+                  className="w-full flex items-center justify-center rounded-xl bg-orange-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-40 disabled:cursor-not-allowed mt-2"
                 >
                   {loading ? (
                     <span className="inline-flex items-center gap-2">
@@ -542,7 +542,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={handleGoogleSignIn}
                       disabled={googleLoading}
-                      className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs transition active:scale-[0.99] disabled:opacity-40"
+                      className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs btn-tactile transition disabled:opacity-40"
                     >
                       {googleLoading ? <Spinner /> : <GoogleLogo />}
                       <span>{googleLoading ? "Redirecting…" : "Continue with Google"}</span>
@@ -555,7 +555,7 @@ export default function LoginPage() {
                           <button
                             type="button"
                             onClick={() => switchView(VIEW.SIGN_IN)}
-                            className="font-bold text-indigo-600 hover:underline"
+                            className="font-bold text-orange-600 hover:text-orange-500 hover:underline"
                           >
                             Sign in
                           </button>
@@ -566,7 +566,7 @@ export default function LoginPage() {
                           <button
                             type="button"
                             onClick={() => switchView(VIEW.SIGN_UP)}
-                            className="font-bold text-indigo-600 hover:underline"
+                            className="font-bold text-orange-600 hover:text-orange-500 hover:underline"
                           >
                             Create one
                           </button>

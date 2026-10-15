@@ -85,10 +85,10 @@ export default function DashboardLayout({ children }) {
   // Loading state while verifying cryptographic session
   if (authChecking) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#0b1120] flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600/20 border border-indigo-500/30">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-600/20 border border-orange-500/30">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
           </div>
           <div className="space-y-1">
             <h2 className="text-sm font-bold text-white tracking-wide">
@@ -109,8 +109,8 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      <Suspense fallback={<div className="h-14 sm:h-16 bg-white border-b border-slate-200" />}>
+    <div className="min-h-screen flex flex-col bg-[#0b1120] text-[#f8fafc] selection:bg-orange-500/30 selection:text-orange-200">
+      <Suspense fallback={<div className="h-14 sm:h-16 bg-[#0b1120] border-b border-[#1e293b]" />}>
         <Navbar />
       </Suspense>
       <main className="flex-1 w-full">

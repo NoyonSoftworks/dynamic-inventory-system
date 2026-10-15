@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 import AdminTasksTab from "./components/AdminTasksTab";
+import AdminBlogTab from "./components/AdminBlogTab";
 
 const ADMIN_EMAIL = (
   process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
@@ -342,9 +343,9 @@ export default function SuperAdminDashboard() {
   // ── 1. LOADING SCREEN ──────────────────────────────────────
   if (authChecking) {
     return (
-      <main className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-slate-300 font-sans">
+      <main className="min-h-screen bg-[#0b1120] flex flex-col items-center justify-center p-4 text-slate-300 font-sans">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
           <div className="text-center space-y-1">
             <p className="text-sm font-bold text-white tracking-wide">
               Authenticating Super Admin Clearance…
@@ -361,9 +362,9 @@ export default function SuperAdminDashboard() {
   // ── 2. ACCESS DENIED SCREEN (403 FORBIDDEN) ────────────────
   if (!isAuthorized) {
     return (
-      <main className="min-h-screen bg-slate-950 flex items-center justify-center p-4 sm:p-6 font-sans">
-        <div className="max-w-md w-full rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-red-500 to-rose-600" />
+      <main className="min-h-screen bg-[#0b1120] flex items-center justify-center p-4 sm:p-6 font-sans">
+        <div className="max-w-md w-full rounded-3xl bg-[#131d31] border border-slate-800 p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-orange-500 to-rose-600" />
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 shadow-inner">
             <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -382,7 +383,7 @@ export default function SuperAdminDashboard() {
               Your current account does not have super admin authorization.
             </p>
           </div>
-          <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 text-left text-xs font-mono space-y-1">
+          <div className="rounded-xl bg-[#0b1120] border border-slate-800 p-3.5 text-left text-xs font-mono space-y-1">
             <div className="text-[10px] text-slate-500 uppercase tracking-wider">
               Signed in account:
             </div>
@@ -393,7 +394,7 @@ export default function SuperAdminDashboard() {
           <div className="pt-2 flex flex-col gap-2.5">
             <Link
               href="/dashboard/products"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition"
             >
               <span>← Return to Merchant Dashboard</span>
             </Link>
@@ -427,7 +428,7 @@ export default function SuperAdminDashboard() {
     (summary.totalOrders || 0) > 0 ? summary.totalOrders : 1;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8 selection:bg-indigo-500 selection:text-white font-sans">
+    <main className="min-h-screen bg-[#0b1120] text-slate-100 py-8 px-4 sm:px-6 lg:px-8 selection:bg-orange-500 selection:text-white font-sans">
       {/* ── Toast Notification ─────────────────────────────────── */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/95 px-5 py-3.5 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
@@ -450,21 +451,21 @@ export default function SuperAdminDashboard() {
           <div>
             <div className="flex items-center gap-2.5 mb-1.5">
               <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500" />
               </span>
-              <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-orange-400 font-bold">
                 Platform Control Plane · Super Administrator
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-              <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               <span>{process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory"} Admin Console</span>
             </h1>
             <p className="mt-1 text-xs text-slate-400">
-              Authenticated session: <code className="text-indigo-400 font-mono">{currentUserEmail}</code>
+              Authenticated session: <code className="text-orange-400 font-mono">{currentUserEmail}</code>
             </p>
           </div>
 
@@ -488,7 +489,7 @@ export default function SuperAdminDashboard() {
 
             <Link
               href="/dashboard/billing"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/20 px-3 py-1.5 text-xs font-semibold transition"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 px-3 py-1.5 text-xs font-semibold btn-tactile transition"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -516,7 +517,7 @@ export default function SuperAdminDashboard() {
             onClick={() => setActiveTab("overview")}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "overview"
-                ? "bg-indigo-600 text-white shadow-xs"
+                ? "bg-orange-600 text-white shadow-xs btn-tactile"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
             }`}
           >
@@ -531,7 +532,7 @@ export default function SuperAdminDashboard() {
             onClick={() => setActiveTab("pricing")}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "pricing"
-                ? "bg-indigo-600 text-white shadow-xs"
+                ? "bg-orange-600 text-white shadow-xs btn-tactile"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
             }`}
           >
@@ -546,7 +547,7 @@ export default function SuperAdminDashboard() {
             onClick={() => setActiveTab("payments")}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "payments"
-                ? "bg-indigo-600 text-white shadow-xs"
+                ? "bg-orange-600 text-white shadow-xs btn-tactile"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
             }`}
           >
@@ -564,7 +565,7 @@ export default function SuperAdminDashboard() {
             onClick={() => setActiveTab("integrations")}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "integrations"
-                ? "bg-indigo-600 text-white shadow-xs"
+                ? "bg-orange-600 text-white shadow-xs btn-tactile"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
             }`}
           >
@@ -579,7 +580,7 @@ export default function SuperAdminDashboard() {
             onClick={() => setActiveTab("footprints")}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "footprints"
-                ? "bg-indigo-600 text-white shadow-xs"
+                ? "bg-orange-600 text-white shadow-xs btn-tactile"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
             }`}
           >
@@ -588,7 +589,7 @@ export default function SuperAdminDashboard() {
             </svg>
             <span>Activity Logs</span>
             {activityLogs.length > 0 && (
-              <span className="rounded-full bg-indigo-500/30 px-1.5 py-0.2 text-[10px] font-mono text-indigo-300">
+              <span className="rounded-full bg-orange-500/20 px-1.5 py-0.2 text-[10px] font-mono text-orange-300">
                 {activityLogs.length}
               </span>
             )}
@@ -599,7 +600,7 @@ export default function SuperAdminDashboard() {
             onClick={() => setActiveTab("tasks")}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "tasks"
-                ? "bg-indigo-600 text-white shadow-xs"
+                ? "bg-orange-600 text-white shadow-xs btn-tactile"
                 : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
             }`}
           >
@@ -607,6 +608,21 @@ export default function SuperAdminDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
             <span>Operational Tasks</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("blog")}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === "blog"
+                ? "bg-orange-600 text-white shadow-xs btn-tactile"
+                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+            </svg>
+            <span>Content &amp; Blog</span>
           </button>
         </div>
 
@@ -633,12 +649,12 @@ export default function SuperAdminDashboard() {
           <div className="space-y-8 animate-in fade-in duration-300">
             {/* Top Metric Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+              <div className="rounded-2xl bg-[#131d31] border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 card-lift transition">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     Active Tenants
                   </span>
-                  <span className="rounded-lg bg-indigo-500/10 border border-indigo-500/20 p-2 text-indigo-400 text-sm">
+                  <span className="rounded-lg bg-orange-500/10 border border-orange-500/20 p-2 text-orange-400 text-sm">
                     🏢
                   </span>
                 </div>
@@ -651,15 +667,15 @@ export default function SuperAdminDashboard() {
                 <p className="mt-2 text-[11px] text-slate-400">
                   Isolated multi-tenant SaaS accounts
                 </p>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-indigo-700 opacity-60" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-orange-700 opacity-60" />
               </div>
 
-              <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+              <div className="rounded-2xl bg-[#131d31] border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 card-lift transition">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     Global Catalog SKUs
                   </span>
-                  <span className="rounded-lg bg-purple-500/10 border border-purple-500/20 p-2 text-purple-400 text-sm">
+                  <span className="rounded-lg bg-teal-500/10 border border-teal-500/20 p-2 text-teal-400 text-sm">
                     📦
                   </span>
                 </div>
@@ -672,7 +688,7 @@ export default function SuperAdminDashboard() {
                 <p className="mt-2 text-[11px] text-slate-400">
                   Serialized unique barcodes across stores
                 </p>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-purple-700 opacity-60" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-teal-700 opacity-60" />
               </div>
 
               <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
@@ -776,17 +792,17 @@ export default function SuperAdminDashboard() {
                       <th className="px-6 py-3.5 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
+                    <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
                     {tenants.map((t) => (
                       <tr key={t.id} className="hover:bg-slate-800/40 transition">
                         <td className="px-6 py-4 font-bold text-white font-sans">
                           {t.name}
                         </td>
                         <td className="px-6 py-4 text-slate-300">{t.ownerEmail}</td>
-                        <td className="px-6 py-4 text-indigo-400 font-bold">
+                        <td className="px-6 py-4 text-orange-400 font-bold font-mono">
                           {t.skuCount}
                         </td>
-                        <td className="px-6 py-4 text-emerald-400 font-bold">
+                        <td className="px-6 py-4 text-emerald-400 font-bold font-mono">
                           {t.orderCount}
                         </td>
                         <td className="px-6 py-4 font-sans">
@@ -848,7 +864,7 @@ export default function SuperAdminDashboard() {
                   value={filterQuery}
                   onChange={(e) => setFilterQuery(e.target.value)}
                   placeholder="Filter customer, phone, courier…"
-                  className="rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none w-full sm:w-64"
+                  className="rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none w-full sm:w-64 transition"
                 />
               </div>
 
@@ -867,7 +883,7 @@ export default function SuperAdminDashboard() {
                   <tbody className="divide-y divide-slate-800/60 font-sans">
                     {filteredOrders.slice(0, 10).map((ord) => (
                       <tr key={ord.id} className="hover:bg-slate-800/30">
-                        <td className="px-4 py-3 font-mono text-indigo-400 font-bold">
+                        <td className="px-4 py-3 font-mono text-teal-400 font-bold">
                           #{ord.id}
                         </td>
                         <td className="px-4 py-3 text-slate-300 font-medium">
@@ -906,9 +922,9 @@ export default function SuperAdminDashboard() {
           <div className="space-y-8 animate-in fade-in duration-300">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Form Card */}
-              <div className="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+              <div className="lg:col-span-7 rounded-3xl border border-slate-800 bg-[#131d31] p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-400">
                     💎 Dynamic Pricing Engine
                   </span>
                   <h2 className="mt-2 text-2xl font-black text-white tracking-tight">
@@ -941,7 +957,7 @@ export default function SuperAdminDashboard() {
                             pro_plan_price: parseFloat(e.target.value) || 0,
                           }))
                         }
-                        className="block w-full rounded-2xl border border-slate-800 bg-slate-950 pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                        className="block w-full rounded-2xl border border-slate-800 bg-[#0b1120] pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition"
                         placeholder="49.00"
                       />
                     </div>
@@ -966,7 +982,7 @@ export default function SuperAdminDashboard() {
                             free_order_limit: parseInt(e.target.value, 10) || 1,
                           }))
                         }
-                        className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white font-mono font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                        className="block w-full rounded-2xl border border-slate-800 bg-[#0b1120] px-4 py-3 text-sm text-white font-mono font-bold focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition"
                         placeholder="100"
                       />
                     </div>
@@ -997,8 +1013,8 @@ export default function SuperAdminDashboard() {
                           }
                           className={`rounded-2xl border p-3 text-left transition ${
                             saasSettings.currency_mode === item.id
-                              ? "border-indigo-500 bg-indigo-950/40 text-white shadow-md shadow-indigo-500/20"
-                              : "border-slate-800 bg-slate-950/80 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                              ? "border-orange-500 bg-orange-950/40 text-white shadow-md shadow-orange-500/20"
+                              : "border-slate-800 bg-[#0b1120] text-slate-400 hover:border-slate-700 hover:text-slate-200"
                           }`}
                         >
                           <div className="text-xs font-bold">{item.label}</div>
@@ -1028,7 +1044,7 @@ export default function SuperAdminDashboard() {
                             bdt_exchange_rate: parseFloat(e.target.value) || 122.0,
                           }))
                         }
-                        className="block w-full rounded-2xl border border-slate-800 bg-slate-950 pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                        className="block w-full rounded-2xl border border-slate-800 bg-[#0b1120] pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition"
                         placeholder="122.00"
                       />
                     </div>
@@ -1046,7 +1062,7 @@ export default function SuperAdminDashboard() {
                     type="button"
                     onClick={() => handleSaveSettings("Pricing & Currency")}
                     disabled={savingSettings || settingsLoading}
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50"
                   >
                     {savingSettings ? "Saving…" : "Save Pricing & Currency"}
                   </button>
@@ -1054,11 +1070,9 @@ export default function SuperAdminDashboard() {
               </div>
 
               {/* Live Preview Card */}
-              <div className="lg:col-span-5 rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-indigo-950/40 via-slate-900/90 to-slate-950 p-6 sm:p-7 shadow-2xl space-y-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 -mr-8 -mt-8 h-36 w-36 rounded-full bg-indigo-500/20 blur-2xl pointer-events-none" />
-
+              <div className="lg:col-span-5 rounded-3xl border border-slate-800 bg-[#131d31] p-6 sm:p-7 shadow-2xl space-y-6 relative overflow-hidden">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-orange-400">
                     Live Client View Preview
                   </span>
                   <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
@@ -1086,7 +1100,7 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {/* Quota Indicator Preview */}
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 space-y-2.5">
+                <div className="rounded-2xl border border-slate-800 bg-[#0b1120] p-4 space-y-2.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-400">Free Monthly Quota:</span>
                     <span className="font-mono font-bold text-white">
@@ -1095,7 +1109,7 @@ export default function SuperAdminDashboard() {
                   </div>
                   <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400"
+                      className="h-full bg-gradient-to-r from-orange-500 to-teal-400"
                       style={{ width: "45%" }}
                     />
                   </div>
@@ -1178,7 +1192,7 @@ export default function SuperAdminDashboard() {
                       }
                       className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition ${
                         (saasSettings.currency_mode || "AUTO").toUpperCase() === mode
-                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                          ? "bg-orange-600 text-white shadow-md shadow-orange-600/20 btn-tactile"
                           : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
                       }`}
                     >
@@ -1262,7 +1276,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. lavan64a938c..."
-                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
@@ -1275,7 +1289,7 @@ export default function SuperAdminDashboard() {
                       <button
                         type="button"
                         onClick={() => setShowSslPasswd(!showSslPasswd)}
-                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono"
+                        className="text-[10px] text-orange-400 hover:text-orange-300 font-mono"
                       >
                         {showSslPasswd ? "Hide" : "Show"}
                       </button>
@@ -1290,7 +1304,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="Store password from SSLCommerz"
-                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
@@ -1310,7 +1324,7 @@ export default function SuperAdminDashboard() {
                 <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-lg">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 text-lg">
                         🌐
                       </span>
                       <div>
@@ -1322,7 +1336,7 @@ export default function SuperAdminDashboard() {
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
                         saasSettings.stripe_public_key
-                          ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/30"
+                          ? "bg-teal-500/10 text-teal-400 border-teal-500/30"
                           : "bg-slate-800 text-slate-400 border-slate-700"
                       }`}
                     >
@@ -1345,7 +1359,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="pk_live_... or pk_test_..."
-                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
@@ -1358,7 +1372,7 @@ export default function SuperAdminDashboard() {
                       <button
                         type="button"
                         onClick={() => setShowStripeSecret(!showStripeSecret)}
-                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono"
+                        className="text-[10px] text-orange-400 hover:text-orange-300 font-mono"
                       >
                         {showStripeSecret ? "Hide" : "Show"}
                       </button>
@@ -1373,14 +1387,14 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="sk_live_... or sk_test_..."
-                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
                   {/* Webhook Guide */}
                   <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-3 text-[11px] space-y-1 text-slate-400">
                     <div className="font-bold text-slate-300">Stripe Webhook Endpoint:</div>
-                    <code className="text-indigo-400 font-mono text-[10px] block break-all">
+                    <code className="text-teal-400 font-mono text-[10px] block break-all">
                       https://your-domain.com/api/payment/stripe/webhook
                     </code>
                     <p className="text-[10px] text-slate-500 pt-0.5">
@@ -1433,7 +1447,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="https://api.green-api.com"
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                     <p className="text-[10px] text-slate-400">
                       e.g., <code className="text-slate-300">https://api.green-api.com</code> or{" "}
@@ -1456,7 +1470,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. 7103859201"
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
@@ -1469,7 +1483,7 @@ export default function SuperAdminDashboard() {
                       <button
                         type="button"
                         onClick={() => setShowWhatsappToken(!showWhatsappToken)}
-                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono"
+                        className="text-[10px] text-orange-400 hover:text-orange-300 font-mono"
                       >
                         {showWhatsappToken ? "Hide" : "Show"}
                       </button>
@@ -1484,7 +1498,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. 9b8c2d1e4f..."
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
                 </div>
@@ -1494,7 +1508,7 @@ export default function SuperAdminDashboard() {
                     type="button"
                     onClick={() => handleSaveSettings("WhatsApp credentials")}
                     disabled={savingSettings}
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 transition disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 btn-tactile transition disabled:opacity-50"
                   >
                     <span>💾</span>
                     <span>Save WhatsApp Config</span>
@@ -1506,7 +1520,7 @@ export default function SuperAdminDashboard() {
               <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xl">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xl">
                       📱
                     </span>
                     <div>
@@ -1530,7 +1544,7 @@ export default function SuperAdminDashboard() {
                       <button
                         type="button"
                         onClick={() => setShowSmsApiKey(!showSmsApiKey)}
-                        className="text-[10px] text-indigo-400 hover:text-indigo-300 font-mono"
+                        className="text-[10px] text-orange-400 hover:text-orange-300 font-mono"
                       >
                         {showSmsApiKey ? "Hide" : "Show"}
                       </button>
@@ -1545,7 +1559,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. 5x81n49..."
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
@@ -1564,7 +1578,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. 8809612345678 or SMARTINV"
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
@@ -1583,7 +1597,7 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="http://bulksmsbd.net/api/smsapi"
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-indigo-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
                 </div>
@@ -1593,7 +1607,7 @@ export default function SuperAdminDashboard() {
                     type="button"
                     onClick={() => handleSaveSettings("SMS credentials")}
                     disabled={savingSettings}
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50"
                   >
                     <span>💾</span>
                     <span>Save SMS Gateway Config</span>
@@ -1612,7 +1626,7 @@ export default function SuperAdminDashboard() {
             <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-300">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-xs font-semibold text-teal-400">
                     🐾 Immutable Ledger
                   </span>
                   <h2 className="mt-2 text-2xl font-black text-white tracking-tight">
@@ -1654,7 +1668,7 @@ export default function SuperAdminDashboard() {
                       onClick={() => setLogFilterAction(pill.id)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                         logFilterAction === pill.id
-                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                          ? "bg-orange-600 text-white shadow-md shadow-orange-600/20 btn-tactile"
                           : "bg-slate-950/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800"
                       }`}
                     >
@@ -1673,7 +1687,7 @@ export default function SuperAdminDashboard() {
                     value={logSearchQuery}
                     onChange={(e) => setLogSearchQuery(e.target.value)}
                     placeholder="Search logs, email, IP..."
-                    className="block w-full rounded-xl border border-slate-800 bg-slate-950 pl-8 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none transition"
+                    className="block w-full rounded-xl border border-slate-800 bg-slate-950 pl-8 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none transition"
                   />
                   {logSearchQuery && (
                     <button
@@ -1731,7 +1745,7 @@ export default function SuperAdminDashboard() {
                               "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
                           } else if (log.action_type === "SETTINGS_UPDATED") {
                             badgeClass =
-                              "bg-indigo-500/10 text-indigo-400 border-indigo-500/30";
+                              "bg-orange-500/10 text-orange-400 border-orange-500/30";
                           } else if (log.action_type === "PRODUCT_CREATED") {
                             badgeClass =
                               "bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
@@ -1803,7 +1817,7 @@ export default function SuperAdminDashboard() {
                                         isExpanded ? null : log.id
                                       )
                                     }
-                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2 py-1 text-[10px] font-mono text-indigo-400 hover:text-indigo-300 hover:border-slate-700 transition"
+                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2 py-1 text-[10px] font-mono text-orange-400 hover:text-orange-300 hover:border-slate-700 transition"
                                   >
                                     <span>{isExpanded ? "▲ Hide" : "▼ Payload"}</span>
                                   </button>
@@ -1842,6 +1856,11 @@ export default function SuperAdminDashboard() {
         {/* ── TASKS & LOGISTICS TEAM DISPATCH TAB ────────────────── */}
         {activeTab === "tasks" && (
           <AdminTasksTab triggerToast={triggerToast} />
+        )}
+
+        {/* ── CONTENT & BLOG SEO TAB ──────────────────────────────── */}
+        {activeTab === "blog" && (
+          <AdminBlogTab triggerToast={triggerToast} />
         )}
       </div>
     </main>

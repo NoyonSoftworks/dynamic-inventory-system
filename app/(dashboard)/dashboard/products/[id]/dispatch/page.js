@@ -383,11 +383,11 @@ function ProductDispatchContent({ params }) {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <nav className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1">
-              <Link href="/" className="hover:text-indigo-600 transition">
+              <Link href="/" className="hover:text-orange-600 transition">
                 Dashboard
               </Link>
               <span>/</span>
-              <Link href="/dashboard/products" className="hover:text-indigo-600 transition">
+              <Link href="/dashboard/products" className="hover:text-orange-600 transition">
                 Products
               </Link>
               <span>/</span>
@@ -395,10 +395,10 @@ function ProductDispatchContent({ params }) {
                 {product.name}
               </span>
               <span>/</span>
-              <span className="text-indigo-600 font-semibold">Dispatch Checkout</span>
+              <span className="text-orange-600 font-semibold">Dispatch Checkout</span>
             </nav>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span>Product Dispatch &amp; Checkout</span>
@@ -410,7 +410,7 @@ function ProductDispatchContent({ params }) {
 
           <Link
             href="/dashboard/products"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 btn-tactile transition"
           >
             ← Back to Products
           </Link>
@@ -424,7 +424,7 @@ function ProductDispatchContent({ params }) {
                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                 : toast.type === "error"
                 ? "border-rose-200 bg-rose-50 text-rose-900"
-                : "border-indigo-200 bg-indigo-50 text-indigo-900"
+                : "border-orange-200 bg-orange-50 text-orange-900"
             }`}
           >
             <div className="flex items-center gap-2">
@@ -434,7 +434,7 @@ function ProductDispatchContent({ params }) {
                     ? "bg-emerald-500"
                     : toast.type === "error"
                     ? "bg-rose-500"
-                    : "bg-indigo-500"
+                    : "bg-orange-500"
                 }`}
               />
               <span className="font-medium">{toast.message}</span>
@@ -458,7 +458,7 @@ function ProductDispatchContent({ params }) {
             <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200/80 space-y-5">
               <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span>Customer &amp; Recipient Details</span>
@@ -480,8 +480,8 @@ function ProductDispatchContent({ params }) {
                     disabled={submitting}
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="e.g. Tanvir Ahmed"
-                    className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                    placeholder="e.g. Rahim Ahmed"
+                    className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                   />
                 </div>
 
@@ -497,7 +497,7 @@ function ProductDispatchContent({ params }) {
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="017XXXXXXXX"
-                    className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                    className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                   />
                 </div>
 
@@ -513,7 +513,7 @@ function ProductDispatchContent({ params }) {
                     value={customerAddress}
                     onChange={(e) => setCustomerAddress(e.target.value)}
                     placeholder="House / Flat #, Road #, Sector / Thana, City"
-                    className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                    className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                   />
                 </div>
 
@@ -528,7 +528,7 @@ function ProductDispatchContent({ params }) {
                     value={orderNotes}
                     onChange={(e) => setOrderNotes(e.target.value)}
                     placeholder="e.g. Call before delivery / Deliver after 3 PM"
-                    className="block w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                    className="block w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -538,7 +538,7 @@ function ProductDispatchContent({ params }) {
             <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200/80 space-y-4">
               <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
                   <span>Select Courier Partner</span>
@@ -556,9 +556,9 @@ function ProductDispatchContent({ params }) {
                     <div
                       key={c.id}
                       onClick={() => setSelectedCourier(c.id)}
-                      className={`cursor-pointer rounded-xl border p-3.5 flex items-center justify-between transition-all ${
+                      className={`cursor-pointer rounded-xl border p-3.5 flex items-center justify-between btn-tactile transition-all ${
                         isChosen
-                          ? "border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-600/20 shadow-sm"
+                          ? "border-orange-500 bg-orange-50/60 ring-2 ring-orange-500/20 shadow-sm"
                           : "border-slate-200 bg-white hover:border-slate-300"
                       }`}
                     >
@@ -569,7 +569,7 @@ function ProductDispatchContent({ params }) {
                         </span>
                       </div>
                       <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                        isChosen ? "border-indigo-600 bg-indigo-600" : "border-slate-300"
+                        isChosen ? "border-orange-600 bg-orange-600" : "border-slate-300"
                       }`}>
                         {isChosen && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
                       </div>
@@ -587,9 +587,9 @@ function ProductDispatchContent({ params }) {
                   <button
                     type="button"
                     onClick={() => setDeliveryArea("inside_dhaka")}
-                    className={`rounded-xl border p-3 text-left transition ${
+                    className={`rounded-xl border p-3 text-left btn-tactile transition ${
                       deliveryArea === "inside_dhaka"
-                        ? "border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-600/20 font-bold text-indigo-900"
+                        ? "border-orange-500 bg-orange-50/60 ring-2 ring-orange-500/20 font-bold text-orange-950"
                         : "border-slate-200 bg-white text-slate-700"
                     }`}
                   >
@@ -600,9 +600,9 @@ function ProductDispatchContent({ params }) {
                   <button
                     type="button"
                     onClick={() => setDeliveryArea("outside_dhaka")}
-                    className={`rounded-xl border p-3 text-left transition ${
+                    className={`rounded-xl border p-3 text-left btn-tactile transition ${
                       deliveryArea === "outside_dhaka"
-                        ? "border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-600/20 font-bold text-indigo-900"
+                        ? "border-orange-500 bg-orange-50/60 ring-2 ring-orange-500/20 font-bold text-orange-950"
                         : "border-slate-200 bg-white text-slate-700"
                     }`}
                   >
@@ -778,7 +778,7 @@ function ProductDispatchContent({ params }) {
 
                 <div className="border-t border-slate-200 pt-2 flex justify-between text-base font-bold text-slate-900">
                   <span>Total Payable:</span>
-                  <span className="text-indigo-600">${subtotal.toFixed(2)} + ৳{deliveryFee}</span>
+                  <span className="text-orange-600 font-mono">${subtotal.toFixed(2)} + ৳{deliveryFee}</span>
                 </div>
               </div>
 
@@ -786,7 +786,7 @@ function ProductDispatchContent({ params }) {
               <button
                 type="submit"
                 disabled={submitting || scannedItems.length === 0}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-700 hover:shadow-indigo-600/40 focus:ring-2 focus:ring-indigo-600/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-orange-600/25 hover:bg-orange-500 hover:shadow-orange-600/40 focus:ring-2 focus:ring-orange-500/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed btn-tactile transition-all"
               >
                 {submitting ? (
                   <>

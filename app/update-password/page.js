@@ -44,54 +44,56 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
-      {/* ── animated gradient background ────────────────── */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950" />
-      <div className="absolute inset-0 -z-10 opacity-30">
-        <div className="absolute -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-indigo-500/40 blur-[120px] animate-pulse" />
-        <div className="absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-purple-500/40 blur-[120px] animate-pulse [animation-delay:2s]" />
-      </div>
+    <main className="relative flex min-h-screen items-center justify-center bg-[#0b1120] text-slate-100 font-sans antialiased px-4 py-12 selection:bg-orange-500 selection:text-white">
+      {/* ── Subtle Geometric Background Dot Grid ───────────── */}
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.03]"
+        style={{
+          backgroundImage: "radial-gradient(#ea580c 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
 
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20 shadow-lg">
-            <span className="text-3xl">🔐</span>
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center space-y-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-600/10 border border-orange-500/20 text-orange-400 shadow-sm">
+            <span className="text-2xl">🔐</span>
           </div>
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-100">
             Update Password
           </h1>
-          <p className="mt-2 text-sm text-indigo-200/70">
-            Secure your account with a new password
+          <p className="text-xs text-slate-400">
+            Secure your SmartInventory account with a new password
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="relative rounded-3xl border border-white/10 bg-white/[0.07] p-8 shadow-2xl backdrop-blur-xl space-y-6"
+          className="rounded-3xl border border-[#1e293b] bg-[#131d31] p-7 sm:p-8 shadow-xl space-y-5"
         >
           {error && (
-            <div className="flex items-start gap-3 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 backdrop-blur">
-              <span className="mt-0.5 shrink-0 text-red-400">
+            <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-300">
+              <span className="mt-0.5 shrink-0 text-rose-400">
                 <ErrorIcon />
               </span>
-              <p className="text-sm text-red-200">{error}</p>
+              <p className="leading-relaxed font-medium">{error}</p>
             </div>
           )}
           {message && (
-            <div className="flex items-start gap-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 backdrop-blur">
+            <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-300">
               <span className="mt-0.5 shrink-0 text-emerald-400">
                 <CheckIcon />
               </span>
-              <p className="text-sm text-emerald-200">{message}</p>
+              <p className="leading-relaxed font-medium">{message}</p>
             </div>
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-indigo-100/80">
+            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
               New Password
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-300/50">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
                 <LockIcon />
               </span>
               <input
@@ -102,12 +104,12 @@ export default function UpdatePasswordPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-12 text-sm text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
+                className="block w-full rounded-xl border border-[#1e293b] bg-[#0b1120] py-2.5 pl-11 pr-12 text-sm text-slate-100 placeholder:text-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-indigo-300/50 hover:text-indigo-200 transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-slate-300 transition"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -116,11 +118,11 @@ export default function UpdatePasswordPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-indigo-100/80">
+            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
               Confirm New Password
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-300/50">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
                 <LockIcon />
               </span>
               <input
@@ -131,7 +133,7 @@ export default function UpdatePasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="block w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-12 text-sm text-white shadow-inner placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-400/20 focus:outline-none transition"
+                className="block w-full rounded-xl border border-[#1e293b] bg-[#0b1120] py-2.5 pl-11 pr-12 text-sm text-slate-100 placeholder:text-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
               />
             </div>
           </div>
@@ -139,9 +141,8 @@ export default function UpdatePasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+            className="w-full flex items-center justify-center rounded-xl bg-orange-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />
             {loading ? "Updating..." : "Update Password"}
           </button>
         </form>
