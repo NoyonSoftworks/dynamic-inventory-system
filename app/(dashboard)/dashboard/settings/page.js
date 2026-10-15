@@ -427,7 +427,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             onClick={() => setActiveTab("couriers")}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition shrink-0 ${
               activeTab === "couriers"
-                ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/30"
+                ? "bg-orange-600 text-white shadow-xs shadow-orange-600/30"
                 : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
             }`}
           >
@@ -442,7 +442,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             onClick={() => setActiveTab("webhooks")}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition shrink-0 ${
               activeTab === "webhooks"
-                ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/30"
+                ? "bg-orange-600 text-white shadow-xs shadow-orange-600/30"
                 : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
             }`}
           >
@@ -457,7 +457,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             onClick={() => setActiveTab("team")}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition shrink-0 ${
               activeTab === "team"
-                ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/30"
+                ? "bg-orange-600 text-white shadow-xs shadow-orange-600/30"
                 : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
             }`}
           >
@@ -499,7 +499,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
                   <span>Select Courier Gateway</span>
@@ -519,7 +519,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                       onClick={() => setSelectedCourier(c.id)}
                       className={`flex flex-col text-left p-3 rounded-xl border transition relative ${
                         isSelected
-                          ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs"
+                          ? "border-orange-600 bg-orange-50/50 ring-2 ring-orange-500/20 shadow-xs"
                           : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                       }`}
                     >
@@ -560,7 +560,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                   href={selectedCourierObj.endpointDocs}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600 hover:text-orange-700 transition"
                 >
                   <span>Official API Documentation ↗</span>
                 </a>
@@ -583,7 +583,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                       value={apiKeyInput}
                       onChange={(e) => setApiKeyInput(e.target.value)}
                       placeholder={`Enter ${selectedCourier} API Key`}
-                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm font-mono text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm font-mono text-slate-900 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none"
                     />
                   </div>
 
@@ -597,7 +597,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                       value={apiSecretInput}
                       onChange={(e) => setApiSecretInput(e.target.value)}
                       placeholder={`Enter ${selectedCourier} API Secret`}
-                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm font-mono text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm font-mono text-slate-900 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none"
                     />
                   </div>
 
@@ -605,7 +605,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                     <button
                       type="submit"
                       disabled={savingCredentials}
-                      className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-600/30 transition disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/30 transition disabled:opacity-50"
                     >
                       {savingCredentials ? (
                         <>
@@ -643,7 +643,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                   <span>Inbound Order Webhook Endpoint</span>
@@ -671,7 +671,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                   <button
                     type="button"
                     onClick={() => handleCopy(webhookUrl, "url")}
-                    className="rounded-xl bg-slate-900 hover:bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white transition shrink-0"
+                    className="rounded-xl bg-slate-900 hover:bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition shrink-0"
                   >
                     {copiedUrl ? "✓ Copied" : "Copy URL"}
                   </button>
@@ -713,10 +713,10 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                 <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside leading-relaxed">
                   <li>Go to <strong>WP Admin → WooCommerce → Settings → Advanced → Webhooks</strong>.</li>
                   <li>Click <strong>Add Webhook</strong>.</li>
-                  <li>Set <strong>Topic</strong> to <code className="font-mono text-indigo-600 font-bold">Order created</code>.</li>
+                  <li>Set <strong>Topic</strong> to <code className="font-mono text-orange-600 font-bold">Order created</code>.</li>
                   <li>Paste the <strong>Delivery URL</strong> above into Delivery URL.</li>
                   <li>Set <strong>Secret</strong> to your Webhook Key.</li>
-                  <li>Set <strong>API Version</strong> to <code className="font-mono text-indigo-600 font-bold">WP REST API Integration v3</code>.</li>
+                  <li>Set <strong>API Version</strong> to <code className="font-mono text-orange-600 font-bold">WP REST API Integration v3</code>.</li>
                 </ol>
               </div>
 
@@ -731,8 +731,8 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                 <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside leading-relaxed">
                   <li>Go to <strong>Shopify Admin → Settings → Notifications</strong>.</li>
                   <li>Scroll to the <strong>Webhooks</strong> section and click <strong>Create webhook</strong>.</li>
-                  <li>Set <strong>Event</strong> to <code className="font-mono text-indigo-600 font-bold">Order creation</code>.</li>
-                  <li>Set <strong>Format</strong> to <code className="font-mono text-indigo-600 font-bold">JSON</code>.</li>
+                  <li>Set <strong>Event</strong> to <code className="font-mono text-orange-600 font-bold">Order creation</code>.</li>
+                  <li>Set <strong>Format</strong> to <code className="font-mono text-orange-600 font-bold">JSON</code>.</li>
                   <li>Paste the Webhook URL into the <strong>URL</strong> field.</li>
                   <li>Click <strong>Save</strong> to activate live order synchronization.</li>
                 </ol>
@@ -772,7 +772,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                   <span>Store Profile Details</span>
@@ -793,13 +793,13 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                     value={bizName}
                     onChange={(e) => setCustomBizName(e.target.value)}
                     placeholder="e.g. My Awesome Store"
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={bizSaving || !bizName.trim()}
-                  className="self-end rounded-xl bg-indigo-600 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 disabled:opacity-50 transition"
+                  className="self-end rounded-xl bg-orange-600 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/30 hover:bg-orange-500 disabled:opacity-50 transition"
                 >
                   {bizSaving ? "Saving…" : "Save Name"}
                 </button>
@@ -810,7 +810,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-sm space-y-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
                   <span>Pre-Register Team Member</span>
@@ -828,12 +828,12 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@example.com"
-                  className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none"
+                  className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
                 />
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none"
+                  className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
                 >
                   <option value="operator">Operator (Orders, Scanner, Stock)</option>
                   <option value="viewer">Viewer (Read-only catalog &amp; reports)</option>
@@ -853,7 +853,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                   <span>Registered Staff Members ({users.length})</span>

@@ -217,13 +217,15 @@ export default function AddProductPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <nav className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1.5">
-              <Link href="/" className="hover:text-indigo-600 transition">
+              <Link href="/dashboard/products" className="hover:text-orange-600 transition">
                 Dashboard
               </Link>
               <span>/</span>
-              <span className="text-slate-400">Products</span>
+              <Link href="/dashboard/products" className="hover:text-orange-600 transition">
+                Products
+              </Link>
               <span>/</span>
-              <span className="text-slate-900 font-semibold">Add Product</span>
+              <span className="text-orange-600 font-semibold">Add Product</span>
             </nav>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               New Inventory Product
@@ -234,10 +236,10 @@ export default function AddProductPage() {
           </div>
 
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition"
+            href="/dashboard/products"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:border-slate-400 btn-tactile transition"
           >
-            ← Back to Dashboard
+            ← Back to Products
           </Link>
         </div>
 
@@ -259,17 +261,17 @@ export default function AddProductPage() {
 
         {/* ── Success Summary Card ─────────────────────── */}
         {createdSummary && (
-          <div className="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-6 shadow-sm space-y-4">
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-sm">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white font-bold text-sm">
                   📦
                 </span>
                 <div>
-                  <h3 className="text-base font-bold text-indigo-950">
+                  <h3 className="text-base font-bold text-orange-950">
                     Product Saved: {createdSummary.name}
                   </h3>
-                  <p className="text-xs text-indigo-700">
+                  <p className="text-xs text-orange-700">
                     Base SKU: <code className="font-mono font-bold">{createdSummary.baseSku}</code> · {createdSummary.quantity} Barcodes Generated
                   </p>
                 </div>
@@ -277,27 +279,27 @@ export default function AddProductPage() {
               <button
                 type="button"
                 onClick={() => setCreatedSummary(null)}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition"
+                className="text-xs font-medium text-orange-600 hover:text-orange-800 transition"
               >
                 Dismiss
               </button>
             </div>
 
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-indigo-900/70">
+              <p className="text-xs font-semibold uppercase tracking-wider text-orange-900/70">
                 Generated Barcode Samples:
               </p>
               <div className="flex flex-wrap gap-2">
                 {createdSummary.sampleBarcodes.map((code) => (
                   <span
                     key={code}
-                    className="inline-flex items-center rounded-md bg-white border border-indigo-200 px-2.5 py-1 text-xs font-mono font-semibold text-indigo-900 shadow-2xl"
+                    className="inline-flex items-center rounded-md bg-white border border-orange-200 px-2.5 py-1 text-xs font-mono font-semibold text-orange-900 shadow-2xs"
                   >
                     🏷️ {code}
                   </span>
                 ))}
                 {createdSummary.quantity > createdSummary.sampleBarcodes.length && (
-                  <span className="inline-flex items-center text-xs text-indigo-700 italic px-1 self-center">
+                  <span className="inline-flex items-center text-xs text-orange-700 italic px-1 self-center">
                     + {createdSummary.quantity - createdSummary.sampleBarcodes.length} more in stock
                   </span>
                 )}
@@ -315,7 +317,7 @@ export default function AddProductPage() {
           <div className="space-y-5">
             <div className="border-b border-slate-100 pb-3">
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <span>Product Specifications</span>
@@ -338,7 +340,7 @@ export default function AddProductPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Ergonomic Mechanical Keyboard"
-                  className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                  className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                 />
               </div>
 
@@ -354,7 +356,7 @@ export default function AddProductPage() {
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   placeholder="e.g. Electronics, Apparel, Accessories"
-                  className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                  className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                 />
               </div>
 
@@ -376,7 +378,7 @@ export default function AddProductPage() {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="49.99"
-                    className="block w-full rounded-xl border border-slate-300 pl-8 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                    className="block w-full rounded-xl border border-slate-300 pl-8 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -387,7 +389,7 @@ export default function AddProductPage() {
           <div className="space-y-5">
             <div className="border-b border-slate-100 pb-3">
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
                 <span>Serialization &amp; Stock Intake</span>
@@ -411,7 +413,7 @@ export default function AddProductPage() {
                     value={baseSku}
                     onChange={(e) => setBaseSku(e.target.value.toUpperCase())}
                     placeholder="e.g. TSHIRT, KEYB-PRO"
-                    className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono font-semibold uppercase text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                    className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-mono font-semibold uppercase text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                   />
                 </div>
                 <p className="mt-1.5 text-xs text-slate-500">
@@ -433,7 +435,7 @@ export default function AddProductPage() {
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="10"
-                  className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 focus:outline-none transition disabled:opacity-50"
+                  className="block w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition disabled:opacity-50"
                 />
                 <p className="mt-1.5 text-xs text-slate-500">
                   How many physical units are arriving to be cataloged.
@@ -448,7 +450,7 @@ export default function AddProductPage() {
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Live Barcode Generation Preview:
                   </span>
-                  <span className="text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200/60 rounded-full px-2 py-0.5">
+                  <span className="text-xs font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded-full px-2.5 py-0.5">
                     {parseInt(quantity, 10) || 0} Total Barcodes
                   </span>
                 </div>
@@ -457,7 +459,7 @@ export default function AddProductPage() {
                   {sampleBarcodes.map((code, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-3 py-2 text-xs font-mono font-bold text-slate-800 shadow-sm"
+                      className="flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-3 py-2 text-xs font-mono font-bold text-slate-800 shadow-xs"
                     >
                       <span className="text-slate-400 font-normal">#{idx + 1}</span>
                       <span className="truncate">{code}</span>
@@ -466,7 +468,7 @@ export default function AddProductPage() {
                 </div>
 
                 <p className="text-[11px] text-slate-500 italic">
-                  Format: <code className="font-mono text-indigo-700 font-bold">{formattedSku}-[5-CHAR-CODE]</code>. Barcodes are unique and marked as <code className="font-bold text-emerald-700">IN_STOCK</code>.
+                  Format: <code className="font-mono text-orange-700 font-bold">{formattedSku}-[5-CHAR-CODE]</code>. Barcodes are unique and marked as <code className="font-bold text-emerald-700">IN_STOCK</code>.
                 </p>
               </div>
             )}
@@ -484,7 +486,7 @@ export default function AddProductPage() {
             <button
               type="submit"
               disabled={loading || ctxLoading}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 hover:bg-indigo-700 hover:shadow-indigo-600/40 focus:ring-2 focus:ring-indigo-600/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-500 hover:shadow-orange-600/30 focus:ring-2 focus:ring-orange-500/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed btn-tactile transition-all"
             >
               {loading ? (
                 <>

@@ -336,7 +336,7 @@ export default function BulkOrdersPage() {
           <button
             type="button"
             onClick={addRow}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-3.5 py-2 text-xs font-semibold text-indigo-700 hover:border-indigo-300 hover:bg-indigo-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-orange-200 bg-orange-50/40 px-3.5 py-2 text-xs font-semibold text-orange-700 hover:border-orange-300 hover:bg-orange-50 btn-tactile transition"
           >
             <span>+</span> Add Another Row
           </button>
@@ -346,7 +346,7 @@ export default function BulkOrdersPage() {
         <button
           onClick={handleProcess}
           disabled={loading || validRowsCount === 0}
-          className="w-full rounded-xl bg-indigo-600 py-3 text-xs font-bold text-white shadow-xs shadow-indigo-600/30 hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-600/30 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed transition"
+          className="w-full rounded-xl bg-orange-600 py-3 text-xs font-bold text-white shadow-xs shadow-orange-600/20 hover:bg-orange-500 focus:ring-2 focus:ring-orange-500/30 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed btn-tactile transition"
         >
           {loading ? (
             <span className="inline-flex items-center gap-2">

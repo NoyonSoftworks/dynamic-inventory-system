@@ -485,7 +485,7 @@ export default function BulkImportPage() {
     return (
       <main className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
           <p className="text-xs font-mono text-slate-500">Loading workspace context…</p>
         </div>
       </main>
@@ -515,11 +515,11 @@ export default function BulkImportPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1">
-              <Link href="/dashboard/products" className="hover:text-indigo-600 transition">
+              <Link href="/dashboard/products" className="hover:text-orange-600 transition">
                 Products
               </Link>
               <span>/</span>
-              <span className="text-indigo-600 font-semibold">Bulk Intake</span>
+              <span className="text-orange-600 font-semibold">Bulk Intake</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               CSV Bulk Product Onboarding
@@ -536,7 +536,7 @@ export default function BulkImportPage() {
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition shadow-xs"
             >
               <svg
-                className="w-4 h-4 text-indigo-600"
+                className="w-4 h-4 text-orange-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -590,7 +590,7 @@ export default function BulkImportPage() {
                 <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">
                   Barcodes Serialized
                 </div>
-                <div className="text-2xl font-bold text-indigo-600 mt-1 font-mono">
+                <div className="text-2xl font-bold text-orange-600 mt-1 font-mono">
                   {importResult.itemsCount} Units
                 </div>
               </div>
@@ -607,7 +607,7 @@ export default function BulkImportPage() {
             <div className="flex flex-wrap items-center gap-3 pt-3">
               <Link
                 href="/dashboard/products"
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 transition"
+                className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/25 hover:bg-orange-500 transition btn-tactile"
               >
                 <span>View Products in Catalog</span>
               </Link>
@@ -631,8 +631,8 @@ export default function BulkImportPage() {
             onClick={() => fileInputRef.current?.click()}
             className={`relative group cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-200 ${
               isDragging
-                ? "border-indigo-600 bg-indigo-50/60 shadow-lg"
-                : "border-slate-300 hover:border-indigo-500 bg-white hover:bg-slate-50/60 shadow-xs"
+                ? "border-orange-600 bg-orange-50/60 shadow-lg"
+                : "border-slate-300 hover:border-orange-500 bg-white hover:bg-slate-50/60 shadow-xs"
             }`}
           >
             <input
@@ -643,9 +643,9 @@ export default function BulkImportPage() {
               className="hidden"
             />
 
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-100 bg-indigo-50 text-indigo-600 shadow-xs group-hover:scale-105 transition-all">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-200 bg-orange-50 text-orange-600 shadow-xs group-hover:scale-105 transition-all">
               {isParsing ? (
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
               ) : (
                 <svg
                   className="h-7 w-7"
@@ -666,16 +666,16 @@ export default function BulkImportPage() {
             <div className="mt-4 space-y-1.5">
               <p className="text-sm font-bold text-slate-900">
                 {isParsing ? (
-                  <span className="text-indigo-600 font-bold">
+                  <span className="text-orange-600 font-bold">
                     Parsing &amp; Validating CSV rows…
                   </span>
                 ) : selectedFile ? (
-                  <span className="text-indigo-600 font-bold">
+                  <span className="text-orange-600 font-bold">
                     {selectedFile.name}
                   </span>
                 ) : (
                   <>
-                    <span className="text-indigo-600 hover:underline">
+                    <span className="text-orange-600 hover:underline">
                       Click to upload
                     </span>{" "}
                     or drag and drop your CSV spreadsheet
@@ -773,11 +773,11 @@ export default function BulkImportPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-indigo-200 bg-white p-4 shadow-xs">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">
+            <div className="rounded-2xl border border-orange-200 bg-white p-4 shadow-xs">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-orange-600">
                 Units To Generate
               </div>
-              <div className="mt-1.5 text-2xl font-bold text-indigo-600 font-mono">
+              <div className="mt-1.5 text-2xl font-bold text-orange-600 font-mono">
                 {totalStockUnits.toLocaleString()}
               </div>
             </div>
@@ -838,7 +838,7 @@ export default function BulkImportPage() {
                         key={row.rowNumber}
                         className={`transition-colors ${
                           row.isValid
-                            ? "hover:bg-indigo-50/30"
+                            ? "hover:bg-orange-50/30"
                             : "bg-rose-50/40 hover:bg-rose-50/60"
                         }`}
                       >
@@ -877,7 +877,7 @@ export default function BulkImportPage() {
                         </td>
 
                         {/* 4. Base SKU */}
-                        <td className="px-5 py-3.5 font-bold text-indigo-600">
+                        <td className="px-5 py-3.5 font-bold text-orange-600">
                           {row.base_sku ? (
                             row.base_sku
                           ) : (
@@ -944,7 +944,7 @@ export default function BulkImportPage() {
                   {validRows.length} products
                 </span>{" "}
                 and automatically generate{" "}
-                <span className="text-indigo-600 font-bold">
+                <span className="text-orange-600 font-bold">
                   {totalStockUnits.toLocaleString()} individual barcodes
                 </span>{" "}
                 for workspace{" "}
@@ -969,7 +969,7 @@ export default function BulkImportPage() {
                 type="button"
                 onClick={executeBulkImport}
                 disabled={isImporting || validRows.length === 0}
-                className="w-1/2 md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-7 py-3 text-xs font-bold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-1/2 md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-7 py-3 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed btn-tactile"
               >
                 {isImporting ? (
                   <>
@@ -1013,14 +1013,14 @@ export default function BulkImportPage() {
 
         {/* ── Stepper / Progress Bar During Import ────────────────── */}
         {isImporting && (
-          <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-5 space-y-3 shadow-xs">
-            <div className="flex items-center justify-between text-xs text-indigo-700 font-semibold">
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/50 p-5 space-y-3 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-orange-700 font-semibold">
               <span>{importStep}</span>
               <span className="font-mono">{importProgress}%</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-indigo-100 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-orange-100 overflow-hidden">
               <div
-                className="h-full bg-indigo-600 transition-all duration-300 ease-out"
+                className="h-full bg-orange-600 transition-all duration-300 ease-out"
                 style={{ width: `${importProgress}%` }}
               />
             </div>

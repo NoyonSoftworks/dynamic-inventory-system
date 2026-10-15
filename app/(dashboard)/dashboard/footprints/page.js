@@ -5,72 +5,72 @@ import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
 
-// ── Action badge styling (Swiss-Industrial Trust Palette) ───────
+// ── Action badge styling (Warm Light Palette) ──────────────────
 const ACTION_BADGES = {
   PAYMENT_CONFIRMED: {
     label: "Payment Confirmed",
-    style: "bg-emerald-950/40 text-emerald-300 border-emerald-800/80",
-    dot: "bg-emerald-400",
+    style: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
   },
   PAYMENT_INIT: {
     label: "Payment Initiated",
-    style: "bg-amber-950/40 text-amber-300 border-amber-800/80",
-    dot: "bg-amber-400",
+    style: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-500",
   },
   PAYMENT_FAILED: {
     label: "Payment Failed",
-    style: "bg-rose-950/40 text-rose-300 border-rose-800/80",
-    dot: "bg-rose-400",
+    style: "bg-rose-50 text-rose-700 border-rose-200",
+    dot: "bg-rose-500",
   },
   ORDER_DISPATCHED: {
     label: "Order Dispatched",
-    style: "bg-orange-950/40 text-orange-300 border-orange-800/80",
-    dot: "bg-orange-400",
+    style: "bg-orange-50 text-orange-700 border-orange-200",
+    dot: "bg-orange-500",
   },
   ORDER_CREATED: {
     label: "Order Created",
-    style: "bg-blue-950/40 text-blue-300 border-blue-800/80",
-    dot: "bg-blue-400",
+    style: "bg-blue-50 text-blue-700 border-blue-200",
+    dot: "bg-blue-500",
   },
   PRODUCT_CREATED: {
     label: "Product Created",
-    style: "bg-teal-950/40 text-teal-300 border-teal-800/80",
-    dot: "bg-teal-400",
+    style: "bg-teal-50 text-teal-700 border-teal-200",
+    dot: "bg-teal-500",
   },
   PRODUCT_UPDATED: {
     label: "Product Updated",
-    style: "bg-slate-800 text-slate-300 border-slate-700",
-    dot: "bg-slate-400",
+    style: "bg-slate-100 text-slate-700 border-slate-200",
+    dot: "bg-slate-500",
   },
   PRODUCT_DELETED: {
     label: "Product Deleted",
-    style: "bg-rose-950/40 text-rose-300 border-rose-800/80",
-    dot: "bg-rose-400",
+    style: "bg-rose-50 text-rose-700 border-rose-200",
+    dot: "bg-rose-500",
   },
   STOCK_CHECKIN: {
     label: "Stock Received",
-    style: "bg-emerald-950/40 text-emerald-300 border-emerald-800/80",
-    dot: "bg-emerald-400",
+    style: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
   },
   BULK_IMPORT: {
     label: "Bulk Import",
-    style: "bg-teal-950/40 text-teal-300 border-teal-800/80",
-    dot: "bg-teal-400",
+    style: "bg-teal-50 text-teal-700 border-teal-200",
+    dot: "bg-teal-500",
   },
   SETTINGS_UPDATED: {
     label: "Settings Updated",
-    style: "bg-slate-800 text-slate-300 border-slate-700",
-    dot: "bg-slate-400",
+    style: "bg-slate-100 text-slate-700 border-slate-200",
+    dot: "bg-slate-500",
   },
   COURIER_CONFIGURED: {
     label: "Courier Configured",
-    style: "bg-amber-950/40 text-amber-300 border-amber-800/80",
-    dot: "bg-amber-400",
+    style: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-500",
   },
   USER_LOGIN: {
     label: "User Sign-in",
-    style: "bg-slate-800 text-slate-400 border-slate-700",
-    dot: "bg-slate-500",
+    style: "bg-slate-100 text-slate-600 border-slate-200",
+    dot: "bg-slate-400",
   },
 };
 
@@ -80,22 +80,22 @@ function getBadgeProps(actionType) {
   if (norm.includes("CREATE")) {
     return {
       label: norm.replace(/_/g, " "),
-      style: "bg-teal-950/40 text-teal-300 border-teal-800/80",
-      dot: "bg-teal-400",
+      style: "bg-teal-50 text-teal-700 border-teal-200",
+      dot: "bg-teal-500",
     };
   }
   if (norm.includes("DELETE") || norm.includes("FAIL")) {
     return {
       label: norm.replace(/_/g, " "),
-      style: "bg-rose-950/40 text-rose-300 border-rose-800/80",
-      dot: "bg-rose-400",
+      style: "bg-rose-50 text-rose-700 border-rose-200",
+      dot: "bg-rose-500",
     };
   }
   if (norm.includes("PAYMENT")) {
     return {
       label: norm.replace(/_/g, " "),
-      style: "bg-emerald-950/40 text-emerald-300 border-emerald-800/80",
-      dot: "bg-emerald-400",
+      style: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      dot: "bg-emerald-500",
     };
   }
   return {
@@ -134,13 +134,14 @@ export default function AuditFootprintsPage() {
         .limit(200);
 
       if (error) {
-        console.warn("Footprint fetch warning:", error.message);
+        console.warn("Activity logs notice:", error.message);
+        setLogs([]);
       } else {
         setLogs(data || []);
       }
       setLastRefreshed(new Date().toLocaleTimeString());
     } catch (err) {
-      console.warn("Unexpected footprint fetch error:", err);
+      console.warn("Footprints exception:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -153,77 +154,78 @@ export default function AuditFootprintsPage() {
     }
   }, [businessId, ctxLoading]);
 
-  // ── Filtered Logs Computation ────────────────────────────────
+  // ── Derived Metrics ──────────────────────────────────────────
+  const metrics = useMemo(() => {
+    const total = logs.length;
+    const paymentLogs = logs.filter((l) =>
+      (l.action_type || "").toUpperCase().includes("PAYMENT")
+    ).length;
+    const dispatchLogs = logs.filter(
+      (l) =>
+        (l.action_type || "").toUpperCase().includes("ORDER") ||
+        (l.action_type || "").toUpperCase().includes("DISPATCH")
+    ).length;
+    const uniqueIps = new Set(
+      logs.map((l) => l.ip_address).filter(Boolean)
+    ).size;
+
+    return { total, paymentLogs, dispatchLogs, uniqueIps };
+  }, [logs]);
+
+  // ── Filtering Engine ─────────────────────────────────────────
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
-      const action = (log.action_type || "").toUpperCase();
-
-      // Category tab filtering
-      if (categoryFilter === "PAYMENTS" && !action.includes("PAYMENT")) {
-        return false;
-      }
-      if (
-        categoryFilter === "ORDERS" &&
-        !action.includes("ORDER") &&
-        !action.includes("DISPATCH")
-      ) {
-        return false;
-      }
-      if (
-        categoryFilter === "CATALOG" &&
-        !action.includes("PRODUCT") &&
-        !action.includes("STOCK") &&
-        !action.includes("BULK")
-      ) {
-        return false;
-      }
-      if (
-        categoryFilter === "SECURITY" &&
-        !action.includes("LOGIN") &&
-        !action.includes("SETTINGS") &&
-        !action.includes("AUTH")
-      ) {
-        return false;
+      // 1. Category Filter
+      if (categoryFilter === "PAYMENTS") {
+        if (!log.action_type?.toUpperCase().includes("PAYMENT")) return false;
+      } else if (categoryFilter === "ORDERS") {
+        const a = log.action_type?.toUpperCase() || "";
+        if (!a.includes("ORDER") && !a.includes("DISPATCH")) return false;
+      } else if (categoryFilter === "CATALOG") {
+        const a = log.action_type?.toUpperCase() || "";
+        if (!a.includes("PRODUCT") && !a.includes("STOCK") && !a.includes("IMPORT"))
+          return false;
+      } else if (categoryFilter === "SECURITY") {
+        const a = log.action_type?.toUpperCase() || "";
+        if (
+          !a.includes("USER") &&
+          !a.includes("LOGIN") &&
+          !a.includes("SETTINGS") &&
+          !a.includes("COURIER")
+        )
+          return false;
       }
 
-      // Free text search (action_type, description, ip, user_agent)
+      // 2. Keyword Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matchAction = action.toLowerCase().includes(q);
+        const matchAction = (log.action_type || "").toLowerCase().includes(q);
         const matchDesc = (log.description || log.details || "")
           .toLowerCase()
           .includes(q);
         const matchIp = (log.ip_address || "").toLowerCase().includes(q);
-        const matchUa = (log.user_agent || "").toLowerCase().includes(q);
-
-        if (!matchAction && !matchDesc && !matchIp && !matchUa) {
-          return false;
-        }
+        if (!matchAction && !matchDesc && !matchIp) return false;
       }
 
       return true;
     });
   }, [logs, categoryFilter, searchQuery]);
 
-  // ── KPI Metrics ──────────────────────────────────────────────
-  const metrics = useMemo(() => {
-    const total = logs.length;
-    const paymentLogs = logs.filter((l) => (l.action_type || "").includes("PAYMENT")).length;
-    const dispatchLogs = logs.filter((l) => (l.action_type || "").includes("DISPATCH") || (l.action_type || "").includes("ORDER")).length;
-    const uniqueIps = new Set(logs.map((l) => l.ip_address).filter(Boolean)).size;
-
-    return { total, paymentLogs, dispatchLogs, uniqueIps };
-  }, [logs]);
-
   // ── Export CSV Handler ───────────────────────────────────────
   function handleExportCsv() {
     if (filteredLogs.length === 0) return;
-    const headers = ["Timestamp", "Action Type", "Description", "IP Address", "User Agent"];
+    const headers = [
+      "Timestamp",
+      "Action Type",
+      "Description",
+      "IP Address",
+      "User Agent",
+    ];
     const rows = filteredLogs.map((l) => [
-      new Date(l.created_at).toISOString(),
-      `"${l.action_type || ""}"`,
+      `"${l.created_at}"`,
+      `"${l.action_type}"`,
       `"${(l.description || l.details || "").replace(/"/g, '""')}"`,
-      `"${l.ip_address || "127.0.0.1"}"`,
+      `"${l.ip_address || "N/A"}"`,
       `"${(l.user_agent || "").replace(/"/g, '""')}"`,
     ]);
     const csvContent =
@@ -233,7 +235,7 @@ export default function AuditFootprintsPage() {
     link.setAttribute("href", encodeURI(csvContent));
     link.setAttribute(
       "download",
-      `audit_trail_${new Date().toISOString().split("T")[0]}.csv`
+      `activity_footprints_${new Date().toISOString().split("T")[0]}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -242,11 +244,11 @@ export default function AuditFootprintsPage() {
 
   if (ctxLoading || loading) {
     return (
-      <main className="min-h-screen bg-[#0b1120] text-[#fafafa] flex items-center justify-center p-6">
+      <main className="min-h-screen bg-[#f8fafc] text-slate-900 flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-          <p className="text-xs font-mono text-slate-400">
-            Loading cryptographic audit records…
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
+          <p className="text-xs font-mono text-slate-500">
+            Decrypting workspace security logs and audit telemetry…
           </p>
         </div>
       </main>
@@ -254,20 +256,20 @@ export default function AuditFootprintsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b1120] text-[#fafafa] pb-20">
+    <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         {/* ── TOP HEADER SECTION ───────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#1e293b]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-1">
-              <span className="font-semibold text-slate-200">{businessName || "Workspace"}</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-orange-500 font-semibold">Security &amp; Audit Logs</span>
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
+              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
+              <span className="text-slate-400">/</span>
+              <span className="text-orange-600 font-semibold">Security &amp; Audit Logs</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#fafafa]">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Activity Footprints &amp; Audit Trail
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Immutable telemetry tracking user operations, transactions, and system mutations.
             </p>
           </div>
@@ -277,10 +279,10 @@ export default function AuditFootprintsPage() {
               type="button"
               onClick={handleExportCsv}
               disabled={filteredLogs.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#1e293b] bg-[#131d31] px-3.5 py-2 text-xs font-semibold text-slate-300 shadow-xs hover:bg-[#1e293b] hover:text-[#fafafa] btn-tactile transition disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 btn-tactile transition disabled:opacity-40"
               title="Export filtered records as CSV"
             >
-              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span>Export CSV</span>
@@ -290,11 +292,11 @@ export default function AuditFootprintsPage() {
               type="button"
               onClick={fetchFootprints}
               disabled={refreshing}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-[#1e293b] bg-[#131d31] text-slate-400 hover:text-slate-200 hover:bg-[#1e293b] btn-tactile transition shadow-xs disabled:opacity-50"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 btn-tactile transition shadow-2xs disabled:opacity-50"
               title="Refresh audit trail"
             >
               <svg
-                className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-orange-400" : ""}`}
+                className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-orange-600" : ""}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -307,18 +309,18 @@ export default function AuditFootprintsPage() {
 
         {/* ── METRIC TILES ───────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs card-lift">
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
                 Total Audit Events
               </span>
-              <span className="p-1.5 rounded-lg bg-orange-950/60 border border-orange-800/80 text-orange-400">
+              <span className="p-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-bold text-orange-400 tracking-tight font-mono">
+            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
               {metrics.total}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -326,18 +328,18 @@ export default function AuditFootprintsPage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs card-lift">
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
                 Billing &amp; Payments
               </span>
-              <span className="p-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/80 text-emerald-400">
+              <span className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-bold text-emerald-400 tracking-tight font-mono">
+            <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight font-mono">
               {metrics.paymentLogs}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -345,18 +347,18 @@ export default function AuditFootprintsPage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs card-lift">
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
                 Dispatches &amp; Orders
               </span>
-              <span className="p-1.5 rounded-lg bg-teal-950/60 border border-teal-800/80 text-teal-400">
+              <span className="p-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1m-6 0a1 1 0 11-2 0 1 1 0 012 0zm10 0a1 1 0 11-2 0 1 1 0 012 0z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-bold text-teal-400 tracking-tight font-mono">
+            <div className="mt-3 text-2xl sm:text-3xl font-black text-teal-700 tracking-tight font-mono">
               {metrics.dispatchLogs}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -364,18 +366,18 @@ export default function AuditFootprintsPage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs card-lift">
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
                 Client Network IPs
               </span>
-              <span className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400">
+              <span className="p-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-3-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-3 3-3m-9 9a9 9 0 019-9" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight font-mono">
+            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
               {metrics.uniqueIps}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -385,7 +387,7 @@ export default function AuditFootprintsPage() {
         </div>
 
         {/* ── FILTER & SEARCH TOOLBAR ────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200 bg-white shadow-2xs">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
               { id: "ALL", label: "All Events" },
@@ -398,10 +400,10 @@ export default function AuditFootprintsPage() {
                 key={id}
                 type="button"
                 onClick={() => setCategoryFilter(id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold btn-tactile transition ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold btn-tactile transition ${
                   categoryFilter === id
-                    ? "bg-orange-600 text-white shadow-xs"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                    ? "bg-orange-600 text-white shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
                 {label}
@@ -415,10 +417,10 @@ export default function AuditFootprintsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by IP, action, keyword…"
-              className="w-full sm:w-64 rounded-xl border border-[#1e293b] bg-[#0b1120] px-3 py-1.5 pl-8 text-xs text-[#fafafa] placeholder-slate-500 font-mono focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
+              className="w-full sm:w-64 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 pl-8 text-xs text-slate-900 placeholder-slate-400 font-mono focus:border-orange-500 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
             />
             <svg
-              className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5 pointer-events-none"
+              className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -429,7 +431,7 @@ export default function AuditFootprintsPage() {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1.5 text-xs text-slate-400 hover:text-slate-200"
+                className="absolute right-2.5 top-1.5 text-xs text-slate-400 hover:text-slate-600"
               >
                 ×
               </button>
@@ -438,11 +440,11 @@ export default function AuditFootprintsPage() {
         </div>
 
         {/* ── AUDIT LOG TABLE ────────────────────────────────────── */}
-        <div className="rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-[#1e293b] flex items-center justify-between text-xs font-mono text-slate-400 bg-[#0b1120]/80">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between text-xs font-mono text-slate-600 bg-slate-50">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="font-bold text-slate-200">RECORDED EVENTS ({filteredLogs.length})</span>
+              <span className="font-bold text-slate-900">RECORDED EVENTS ({filteredLogs.length})</span>
             </div>
             {lastRefreshed && (
               <span className="text-[11px] text-slate-500">
@@ -452,8 +454,8 @@ export default function AuditFootprintsPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-[#1e293b] text-left text-xs">
-              <thead className="bg-[#0b1120] text-slate-400 uppercase text-[10px] font-mono tracking-wider font-bold">
+            <table className="w-full divide-y divide-slate-200 text-left text-xs">
+              <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-mono tracking-wider font-bold">
                 <tr>
                   <th className="px-5 py-3 font-bold">Timestamp</th>
                   <th className="px-5 py-3 font-bold">Event Type</th>
@@ -463,7 +465,7 @@ export default function AuditFootprintsPage() {
                   <th className="px-5 py-3 font-bold text-right font-mono">Payload</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1e293b] bg-[#131d31]">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {filteredLogs.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="px-5 py-12 text-center text-slate-500 font-mono">
@@ -481,17 +483,17 @@ export default function AuditFootprintsPage() {
                       Object.keys(log.metadata).length > 0;
 
                     return (
-                      <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
+                      <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
                         {/* Timestamp */}
-                        <td className="px-5 py-3.5 whitespace-nowrap text-slate-300 font-mono text-[11px]">
-                          <div>
+                        <td className="px-5 py-3.5 whitespace-nowrap text-slate-700 font-mono text-[11px]">
+                          <div className="font-bold">
                             {new Date(log.created_at).toLocaleDateString([], {
                               month: "short",
                               day: "2-digit",
                               year: "numeric",
                             })}
                           </div>
-                          <div className="text-[10px] text-slate-500">
+                          <div className="text-[10px] text-slate-400">
                             {new Date(log.created_at).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
@@ -511,24 +513,24 @@ export default function AuditFootprintsPage() {
                         </td>
 
                         {/* Description */}
-                        <td className="px-5 py-3.5 text-[#fafafa] max-w-md">
+                        <td className="px-5 py-3.5 text-slate-900 max-w-md">
                           <div className="line-clamp-2 leading-relaxed text-xs">
                             {description}
                           </div>
                           {isExpanded && hasMetadata && (
-                            <div className="mt-2.5 p-3 rounded-xl bg-[#0b1120] border border-[#1e293b] font-mono text-[11px] text-emerald-400 overflow-x-auto shadow-inner">
+                            <div className="mt-2.5 p-3 rounded-xl bg-slate-900 border border-slate-800 font-mono text-[11px] text-emerald-400 overflow-x-auto shadow-inner">
                               <pre>{JSON.stringify(log.metadata, null, 2)}</pre>
                             </div>
                           )}
                         </td>
 
                         {/* IP Address */}
-                        <td className="px-5 py-3.5 whitespace-nowrap font-mono text-slate-400 text-[11px]">
+                        <td className="px-5 py-3.5 whitespace-nowrap font-mono text-slate-600 text-[11px]">
                           {log.ip_address || "127.0.0.1"}
                         </td>
 
                         {/* User Agent */}
-                        <td className="px-5 py-3.5 text-slate-400 max-w-xs truncate text-[11px] font-mono">
+                        <td className="px-5 py-3.5 text-slate-500 max-w-xs truncate text-[11px] font-mono">
                           {log.user_agent || "Direct API Agent"}
                         </td>
 
@@ -540,12 +542,12 @@ export default function AuditFootprintsPage() {
                               onClick={() =>
                                 setExpandedLogId(isExpanded ? null : log.id)
                               }
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[#1e293b] bg-slate-800 text-[10px] font-semibold text-slate-300 hover:text-white hover:bg-slate-700 btn-tactile transition shadow-xs"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-[10px] font-bold text-slate-700 hover:text-orange-600 hover:border-orange-300 btn-tactile transition shadow-2xs"
                             >
                               {isExpanded ? "Hide JSON" : "View JSON"}
                             </button>
                           ) : (
-                            <span className="text-slate-600 text-[10px] font-mono">None</span>
+                            <span className="text-slate-400 text-[10px] font-mono">None</span>
                           )}
                         </td>
                       </tr>

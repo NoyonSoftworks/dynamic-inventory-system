@@ -78,7 +78,7 @@ export default function MarketingLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b1120] text-[#f8fafc] flex flex-col font-sans selection:bg-orange-500/30 selection:text-orange-200 antialiased">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] flex flex-col font-sans selection:bg-orange-500 selection:text-white antialiased">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -385,7 +385,7 @@ function OperationsPageContent() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0"
-                className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 font-mono shadow-xs placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
+                className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 font-mono shadow-xs placeholder:text-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
               />
             </div>
 
@@ -399,7 +399,7 @@ function OperationsPageContent() {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="e.g. PO-8839 / Warehouse transfer"
-                className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600/20 focus:outline-none transition"
+                className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
               />
             </div>
           </div>

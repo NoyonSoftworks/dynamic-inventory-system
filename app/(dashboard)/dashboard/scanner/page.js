@@ -109,65 +109,84 @@ export default function SmartScannerPage() {
         if (prodData) {
           product = prodData;
         } else {
-          // 2. Check if the scanned barcode is a serialized inventory_item
+          // 2. Match on serialized inventory_items.unique_barcode
           let itemQuery = supabase
             .from("inventory_items")
-            .select(
-              "id, unique_barcode, status, product_id, products(id, name, category, base_sku, price, business_id)"
-            )
+            .select("id, product_id, unique_barcode, status, business_id")
             .eq("unique_barcode", code);
+
+          if (businessId) {
+            itemQuery = itemQuery.eq("business_id", businessId);
+          }
 
           const { data: itemData } = await itemQuery.maybeSingle();
 
-          if (itemData && itemData.products) {
-            if (businessId && itemData.products.business_id && itemData.products.business_id !== businessId) {
-              product = null;
-            } else {
-              matchedItem = itemData;
-              product = itemData.products;
+          if (itemData?.product_id) {
+            matchedItem = itemData;
+            const { data: pData } = await supabase
+              .from("products")
+              .select("id, name, category, base_sku, price, business_id")
+              .eq("id", itemData.product_id)
+              .maybeSingle();
+            if (pData) {
+              product = pData;
             }
           }
         }
 
-        if (!product) {
+        if (product) {
+          setMatchedProduct(product);
+          setScannedInventoryItem(matchedItem);
+
+          // Calculate current available stock
+          let stockQuery = supabase
+            .from("inventory_items")
+            .select("id", { count: "exact", head: true })
+            .eq("product_id", product.id)
+            .eq("status", "IN_STOCK");
+
+          if (businessId) {
+            stockQuery = stockQuery.eq("business_id", businessId);
+          }
+
+          const { count } = await stockQuery;
+          const currentStock = count !== null ? count : 0;
+          setAvailableStock(currentStock);
+
+          // Push to session history
+          setScanHistory((prev) => [
+            {
+              code,
+              name: product.name,
+              status: "MATCHED",
+              stock: currentStock,
+              timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              }),
+            },
+            ...prev.slice(0, 19),
+          ]);
+        } else {
           setNotFound(true);
           setScanHistory((prev) => [
             {
               code,
-              name: "Unknown SKU",
+              name: "Unregistered SKU",
               status: "NOT_FOUND",
-              timestamp: new Date().toLocaleTimeString(),
+              timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              }),
             },
-            ...prev.slice(0, 9),
+            ...prev.slice(0, 19),
           ]);
-          return;
         }
-
-        // 3. Count available IN_STOCK inventory items for this product
-        const { count: stockCount } = await supabase
-          .from("inventory_items")
-          .select("id", { count: "exact", head: true })
-          .eq("product_id", product.id)
-          .eq("status", "IN_STOCK");
-
-        setMatchedProduct(product);
-        setScannedInventoryItem(matchedItem);
-        setAvailableStock(stockCount || 0);
-
-        // Add to recent scan history
-        setScanHistory((prev) => [
-          {
-            code,
-            name: product.name,
-            sku: product.base_sku,
-            status: "MATCHED",
-            stock: stockCount || 0,
-            timestamp: new Date().toLocaleTimeString(),
-          },
-          ...prev.slice(0, 9),
-        ]);
       } catch (err) {
-        console.error("Barcode database lookup failed:", err);
+        console.error("Barcode database lookup exception:", err);
+        setNotFound(true);
       } finally {
         setSearchingDb(false);
       }
@@ -177,43 +196,37 @@ export default function SmartScannerPage() {
 
   // ── Handle Successful Camera Scan ───────────────────────────
   const handleScanSuccess = useCallback(
-    async (decodedText) => {
+    (decodedText) => {
       if (isHandlingScanRef.current) return;
       isHandlingScanRef.current = true;
 
-      // 1. Audio and Haptic Feedback
+      // Provide instant audio & haptic feedback
       playSuccessBeep();
       triggerHaptic();
 
-      // 2. Pause live camera scanner
-      try {
-        if (html5QrCodeRef.current?.isScanning) {
-          await html5QrCodeRef.current.pause(true);
-        }
-      } catch (e) {
-        console.warn("Scanner pause non-critical warning:", e);
+      setScannedText(decodedText);
+
+      // Pause scanner while displaying current product details
+      if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
+        html5QrCodeRef.current.pause(true);
       }
 
-      setScannedText(decodedText);
-      await lookupBarcode(decodedText);
+      // Lookup product from database
+      lookupBarcode(decodedText);
     },
     [lookupBarcode]
   );
 
-  // ── Start / Initialize Camera Scanner ───────────────────────
+  // ── Start Camera Scanner ────────────────────────────────────
   const startScanner = useCallback(
-    async (selectedFacing = facingMode) => {
-      queueMicrotask(() => {
-        setIsInitializing(true);
-        setPermissionError(null);
-      });
+    async (selectedFacing = "environment") => {
+      setIsInitializing(true);
+      setPermissionError(null);
 
       try {
-        const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import(
-          "html5-qrcode"
-        );
+        const { Html5Qrcode } = await import("html5-qrcode");
 
-        // Clean up previous instance if running
+        // Clear existing instance if any
         if (html5QrCodeRef.current) {
           try {
             if (html5QrCodeRef.current.isScanning) {
@@ -225,26 +238,7 @@ export default function SmartScannerPage() {
           }
         }
 
-        const scannerId = "interactive-scanner-viewport";
-        const scannerElement = document.getElementById(scannerId);
-        if (!scannerElement) {
-          setIsInitializing(false);
-          return;
-        }
-
-        const html5QrCode = new Html5Qrcode(scannerId, {
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.QR_CODE,
-          ],
-          verbose: false,
-        });
-
+        const html5QrCode = new Html5Qrcode("interactive-scanner-viewport");
         html5QrCodeRef.current = html5QrCode;
 
         const config = {
@@ -299,7 +293,7 @@ export default function SmartScannerPage() {
         setIsInitializing(false);
       }
     },
-    [facingMode, handleScanSuccess]
+    [handleScanSuccess]
   );
 
   // ── Stop Camera Scanner ─────────────────────────────────────
@@ -398,9 +392,9 @@ export default function SmartScannerPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-zinc-800 selection:text-white pb-12">
+    <main className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans pb-16">
       {/* ── Top Industrial Status Header ────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200 px-4 py-3 sm:px-6 shadow-2xs">
         <div className="mx-auto max-w-2xl flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="flex h-2.5 w-2.5 relative">
@@ -416,10 +410,10 @@ export default function SmartScannerPage() {
               />
             </span>
             <div>
-              <h1 className="text-sm font-semibold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-sm font-bold tracking-tight text-slate-900 flex items-center gap-2">
                 Barcode &amp; QR Optical Scanner
               </h1>
-              <p className="text-[11px] text-slate-400 font-mono truncate max-w-[190px] sm:max-w-xs">
+              <p className="text-[11px] text-slate-500 font-mono truncate max-w-[190px] sm:max-w-xs">
                 {businessName || "Primary Workspace"} · Code128 / QR WASM
               </p>
             </div>
@@ -428,13 +422,13 @@ export default function SmartScannerPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard/products"
-              className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
             >
               Catalog
             </Link>
             <Link
               href="/operations"
-              className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-950 shadow-xs hover:bg-slate-200 transition"
+              className="rounded-xl bg-orange-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-orange-500 transition"
             >
               Operations
             </Link>
@@ -445,9 +439,9 @@ export default function SmartScannerPage() {
       {/* ── Main Scanner Container (Mobile-First) ──────────────── */}
       <div className="mx-auto max-w-2xl w-full px-4 sm:px-6 pt-5 space-y-5">
         {/* ── Viewfinder Viewport Card ─────────────────────────── */}
-        <div className="relative rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
-          {/* Top Industrial Accent */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500/80 z-20" />
+        <div className="relative rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          {/* Top Accent */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-orange-600 z-20" />
 
           {/* Camera Feed Viewport */}
           <div className="relative w-full aspect-[4/3] bg-black flex items-center justify-center overflow-hidden">
@@ -460,17 +454,17 @@ export default function SmartScannerPage() {
             {/* Viewfinder Target Reticle Overlay (Only shown while active & not showing result) */}
             {cameraActive && !scannedText && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10 p-6">
-                <div className="relative w-full max-w-[85%] aspect-[16/9] border-2 border-emerald-400/40 rounded-2xl flex items-center justify-center overflow-hidden shadow-[0_0_25px_rgba(16,185,129,0.15)]">
+                <div className="relative w-full max-w-[85%] aspect-[16/9] border-2 border-emerald-400/50 rounded-2xl flex items-center justify-center overflow-hidden shadow-[0_0_25px_rgba(16,185,129,0.2)]">
                   {/* High-Tech Corner Crosshairs */}
                   <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-emerald-400 rounded-tl-md" />
                   <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-emerald-400 rounded-tr-md" />
                   <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-emerald-400 rounded-bl-md" />
                   <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-emerald-400 rounded-br-md" />
 
-                  {/* Animated Red / Emerald Laser Sweep Bar */}
+                  {/* Animated Emerald Laser Sweep Bar */}
                   <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-laser" />
 
-                  <span className="text-[10px] font-mono tracking-widest text-emerald-400/80 bg-slate-950/70 px-2.5 py-0.5 rounded-full uppercase">
+                  <span className="text-[10px] font-mono tracking-widest text-emerald-400 bg-slate-950/80 px-2.5 py-0.5 rounded-full uppercase font-bold">
                     Align Barcode in Slot
                   </span>
                 </div>
@@ -480,8 +474,8 @@ export default function SmartScannerPage() {
             {/* Loading / Initializing Overlay */}
             {isInitializing && (
               <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-3 z-30">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
-                <p className="text-xs font-mono text-slate-300">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
+                <p className="text-xs font-mono text-slate-300 font-semibold">
                   Starting Optical Sensor…
                 </p>
               </div>
@@ -501,7 +495,7 @@ export default function SmartScannerPage() {
                 </div>
                 <button
                   onClick={() => startScanner(facingMode)}
-                  className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 transition"
+                  className="rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-orange-600/30 hover:bg-orange-500 transition"
                 >
                   Request Permission Again
                 </button>
@@ -510,7 +504,7 @@ export default function SmartScannerPage() {
           </div>
 
           {/* ── Viewport Control Bar ────────────────────────────── */}
-          <div className="p-3 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-xs">
+          <div className="p-3 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-xs text-slate-200">
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -560,7 +554,7 @@ export default function SmartScannerPage() {
 
         {/* ── Scan Result / Match Card ─────────────────────────── */}
         {scannedText && (
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl p-5 sm:p-6 space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200 relative overflow-hidden">
+          <div className="rounded-2xl bg-white border border-slate-200 shadow-md p-5 sm:p-6 space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200 relative overflow-hidden">
             {/* Status Border Indicator */}
             <div
               className={`absolute top-0 left-0 right-0 h-1 ${
@@ -569,30 +563,30 @@ export default function SmartScannerPage() {
             />
 
             {/* Header / Decoded Barcode Badge */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-lg border ${
+                  className={`flex h-8 w-8 items-center justify-center rounded-xl border ${
                     matchedProduct
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-rose-50 text-rose-700 border-rose-200"
                   }`}
                 >
                   {matchedProduct ? (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    <svg className="w-4 h-4 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    <svg className="w-4 h-4 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   )}
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
-                    Optical Read
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 block font-bold">
+                    Decoded Optical Barcode
                   </span>
-                  <span className="font-mono font-semibold text-xs text-white select-all">
+                  <span className="font-mono font-bold text-xs text-slate-900 select-all">
                     {scannedText}
                   </span>
                 </div>
@@ -600,20 +594,20 @@ export default function SmartScannerPage() {
 
               <button
                 onClick={resumeScanner}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                <span>Scan Another</span>
+                <span>Scan Next</span>
               </button>
             </div>
 
             {/* Database Querying State */}
             {searchingDb && (
-              <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400 text-xs">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-transparent" />
-                <span className="font-mono">Verifying SKU catalog…</span>
+              <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-500 text-xs">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
+                <span className="font-mono font-medium">Verifying SKU catalog…</span>
               </div>
             )}
 
@@ -622,40 +616,40 @@ export default function SmartScannerPage() {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div>
-                    <span className="inline-block rounded-md bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-mono text-slate-300 uppercase tracking-wider mb-1">
+                    <span className="inline-block rounded-md bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-mono text-slate-700 uppercase tracking-wider mb-1 font-bold">
                       {matchedProduct.category || "General Inventory"}
                     </span>
-                    <h3 className="text-base font-bold text-white">
+                    <h3 className="text-base font-bold text-slate-900">
                       {matchedProduct.name}
                     </h3>
-                    <p className="text-xs text-slate-400 font-mono mt-0.5">
-                      Base SKU: <span className="text-slate-200 font-semibold">{matchedProduct.base_sku}</span>
+                    <p className="text-xs text-slate-500 font-mono mt-0.5">
+                      Base SKU: <span className="text-slate-900 font-bold">{matchedProduct.base_sku}</span>
                     </p>
                   </div>
 
                   <div className="flex items-center sm:flex-col sm:items-end gap-1">
-                    <div className="text-lg font-bold font-mono text-emerald-400">
+                    <div className="text-lg font-bold font-mono text-emerald-700">
                       ৳{Number(matchedProduct.price || 0).toLocaleString()}
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-                      Unit Price
+                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider font-bold">
+                      Catalog Price
                     </span>
                   </div>
                 </div>
 
                 {/* Stock Telemetry Card */}
-                <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 flex items-center justify-between">
+                <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400">
+                    <div className="h-8 w-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 shadow-2xs">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-slate-200">
+                      <div className="text-xs font-bold text-slate-900">
                         Available Physical Stock
                       </div>
-                      <div className="text-[11px] font-mono text-slate-400">
+                      <div className="text-[11px] font-mono text-slate-500">
                         {scannedInventoryItem
                           ? `Item #${scannedInventoryItem.unique_barcode} (${scannedInventoryItem.status})`
                           : "Ready for courier dispatch"}
@@ -665,15 +659,15 @@ export default function SmartScannerPage() {
 
                   <div className="text-right">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-mono font-semibold border ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-mono font-bold border ${
                         availableStock > 0
-                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                          : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : "bg-rose-50 text-rose-700 border-rose-200"
                       }`}
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
-                          availableStock > 0 ? "bg-emerald-400" : "bg-rose-400"
+                          availableStock > 0 ? "bg-emerald-500" : "bg-rose-500"
                         }`}
                       />
                       <span>{availableStock} units</span>
@@ -687,7 +681,7 @@ export default function SmartScannerPage() {
                     href={`/operations?sku=${encodeURIComponent(
                       matchedProduct.base_sku
                     )}&action=IN`}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs shadow-emerald-600/30 transition active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition active:scale-95"
                   >
                     <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -697,7 +691,7 @@ export default function SmartScannerPage() {
 
                   <Link
                     href={`/dashboard/products/${matchedProduct.id}/dispatch`}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs shadow-indigo-600/30 transition active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm shadow-orange-600/25 transition active:scale-95"
                   >
                     <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -711,18 +705,18 @@ export default function SmartScannerPage() {
             {/* NOT FOUND VIEW */}
             {!searchingDb && notFound && (
               <div className="py-4 text-center space-y-3">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 border border-rose-200 text-rose-600">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-sm font-semibold text-white">
+                  <h4 className="text-sm font-bold text-slate-900">
                     Unrecognized Barcode or SKU
                   </h4>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                  <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
                     No catalog product was found matching{" "}
-                    <code className="text-rose-400 font-mono font-semibold">
+                    <code className="text-rose-600 font-mono font-bold">
                       {scannedText}
                     </code>{" "}
                     in this workspace.
@@ -732,7 +726,7 @@ export default function SmartScannerPage() {
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
                   <Link
                     href={`/dashboard/products/add?sku=${encodeURIComponent(scannedText)}`}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-xs font-semibold text-slate-950 hover:bg-slate-200 transition"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-500 shadow-sm transition"
                   >
                     <span>+</span>
                     <span>Create New Product</span>
@@ -740,7 +734,7 @@ export default function SmartScannerPage() {
 
                   <button
                     onClick={resumeScanner}
-                    className="w-full sm:w-auto rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white transition"
+                    className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
                   >
                     Retry Scan
                   </button>
@@ -751,16 +745,16 @@ export default function SmartScannerPage() {
         )}
 
         {/* ── Manual SKU Search Bar ────────────────────────────── */}
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-2.5">
+        <div className="rounded-2xl bg-white border border-slate-200 p-4 space-y-2.5 shadow-2xs">
           <label
             htmlFor="manual-sku-input"
-            className="text-xs font-semibold text-slate-300 flex items-center justify-between"
+            className="text-xs font-bold text-slate-800 flex items-center justify-between"
           >
             <span className="flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
-              Manual Code / SKU Verification
+              Manual Barcode / SKU Verification
             </span>
             <span className="text-[10px] font-mono text-slate-500">
               Desktop or Laser Fallback
@@ -772,13 +766,13 @@ export default function SmartScannerPage() {
               type="text"
               value={manualSkuInput}
               onChange={(e) => setManualSkuInput(e.target.value)}
-              placeholder="e.g. DA001, BLALHAM, or serial barcode…"
-              className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2 text-xs text-white placeholder:text-slate-600 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 focus:outline-none font-mono transition"
+              placeholder="e.g. SKU-CTG-8821-BLK or barcode serial…"
+              className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:outline-none font-mono transition"
             />
             <button
               type="submit"
               disabled={!manualSkuInput.trim() || searchingDb}
-              className="rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-xs font-bold text-white shadow-xs shadow-indigo-600/30 transition disabled:opacity-40"
+              className="rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2 text-xs font-bold text-white shadow-xs transition disabled:opacity-40"
             >
               Verify
             </button>
@@ -787,46 +781,46 @@ export default function SmartScannerPage() {
 
         {/* ── Recent Scan History Tape ─────────────────────────── */}
         {scanHistory.length > 0 && (
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="rounded-2xl bg-white border border-slate-200 p-4 space-y-3 shadow-2xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
                 Session Scan History
               </span>
-              <span className="text-[10px] font-mono text-slate-500">
+              <span className="text-[10px] font-mono text-slate-500 font-semibold">
                 {scanHistory.length} Scanned
               </span>
             </div>
 
-            <div className="divide-y divide-slate-800/60 max-h-48 overflow-y-auto pr-1">
+            <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto pr-1">
               {scanHistory.map((item, idx) => (
                 <div
                   key={idx}
-                  className="py-2 flex items-center justify-between text-xs hover:bg-slate-800/30 px-2 rounded-lg transition"
+                  className="py-2 flex items-center justify-between text-xs hover:bg-slate-50 px-2 rounded-lg transition"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <span
                       className={`h-2 w-2 rounded-full ${
-                        item.status === "MATCHED" ? "bg-emerald-400" : "bg-rose-400"
+                        item.status === "MATCHED" ? "bg-emerald-500" : "bg-rose-500"
                       }`}
                     />
-                    <span className="font-mono font-bold text-slate-200">
+                    <span className="font-mono font-bold text-slate-900">
                       {item.code}
                     </span>
-                    <span className="text-slate-400 truncate max-w-[120px] text-[11px]">
+                    <span className="text-slate-500 truncate max-w-[120px] text-[11px]">
                       {item.name}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     {item.stock !== undefined && (
-                      <span className="font-mono text-[10px] text-emerald-400 font-semibold">
+                      <span className="font-mono text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         {item.stock} in stock
                       </span>
                     )}
-                    <span className="text-[10px] font-mono text-slate-600">
+                    <span className="text-[10px] font-mono text-slate-400">
                       {item.timestamp}
                     </span>
                   </div>

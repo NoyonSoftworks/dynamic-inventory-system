@@ -81,9 +81,9 @@ const CORE_NAV_LINKS = [
 ];
 
 const ROLE_BADGE_STYLES = {
-  admin: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  operator: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  viewer: "bg-slate-800 text-slate-300 border-slate-700",
+  admin: "bg-orange-50 text-orange-700 border-orange-200",
+  operator: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  viewer: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 export default function Navbar() {
@@ -152,7 +152,7 @@ export default function Navbar() {
   const currentRoleStyle = ROLE_BADGE_STYLES[role] || ROLE_BADGE_STYLES.viewer;
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#0b1120]/95 backdrop-blur-md border-b border-[#1e293b] font-sans">
+    <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs font-sans">
       <div className="mx-auto max-w-[1440px] px-3 sm:px-6">
         <div className="flex h-14 items-center justify-between gap-2 sm:gap-4">
           {/* ── 1. LEFT: Brand & Workspace Identity ───────────── */}
@@ -167,10 +167,10 @@ export default function Navbar() {
                 </svg>
               </div>
               <div className="flex flex-col leading-tight">
-                <span className="font-bold text-sm sm:text-base tracking-tight text-slate-100 group-hover:text-orange-400 transition-colors truncate max-w-[130px] sm:max-w-[200px]">
+                <span className="font-bold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors truncate max-w-[130px] sm:max-w-[200px]">
                   {workspaceDisplayName}
                 </span>
-                <span className="text-[10px] text-orange-400 font-semibold tracking-wide uppercase">
+                <span className="text-[10px] text-orange-600 font-semibold tracking-wide uppercase">
                   {appBrandName}
                 </span>
               </div>
@@ -188,11 +188,11 @@ export default function Navbar() {
                     href={link.href}
                     className={`btn-tactile flex flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 transition-all duration-150 ${
                       active
-                        ? "bg-orange-600 text-white font-semibold shadow-xs shadow-orange-600/30"
-                        : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 border border-transparent"
+                        ? "bg-orange-600 text-white font-semibold shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                     }`}
                   >
-                    <span className={active ? "text-white" : "text-slate-500"}>
+                    <span className={active ? "text-white" : "text-slate-400"}>
                       {link.icon}
                     </span>
                     <span className="shrink-0">{link.label}</span>
@@ -208,7 +208,7 @@ export default function Navbar() {
             {isWorkspaceAdmin && (
               <Link
                 href="/dashboard/settings"
-                className="hidden sm:inline-flex p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition shrink-0"
+                className="hidden sm:inline-flex p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition shrink-0"
                 title="Store & Integration Settings"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,7 +224,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="btn-tactile flex items-center gap-1.5 sm:gap-2 rounded-lg border border-[#1e293b] bg-[#131d31] hover:bg-slate-800 p-1 sm:px-2.5 sm:py-1.5 shadow-2xs transition focus:outline-none"
+                  className="btn-tactile flex items-center gap-1.5 sm:gap-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 p-1 sm:px-2.5 sm:py-1.5 shadow-2xs transition focus:outline-none"
                   aria-expanded={profileOpen}
                 >
                   <div className="h-6 w-6 rounded-md bg-orange-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs shrink-0">
@@ -237,23 +237,23 @@ export default function Navbar() {
                     {role || "Admin"}
                   </span>
 
-                  <span className="text-slate-500 text-xs hidden sm:inline-block">
+                  <span className="text-slate-400 text-xs hidden sm:inline-block">
                     ▾
                   </span>
                 </button>
 
                 {/* Dropdown Menu Panel */}
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-[#131d31] border border-[#1e293b] p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 p-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150">
                     {/* User Identity Details */}
-                    <div className="p-3 border-b border-[#1e293b] space-y-1">
-                      <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                    <div className="p-3 border-b border-slate-100 bg-slate-50/50 rounded-lg space-y-1">
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
                         Signed in as
                       </div>
-                      <div className="text-xs font-bold text-slate-100 truncate" title={userEmail}>
+                      <div className="text-xs font-bold text-slate-900 truncate" title={userEmail}>
                         {userEmail}
                       </div>
-                      <div className="text-[11px] text-orange-400 font-medium truncate pt-0.5 flex items-center gap-1">
+                      <div className="text-[11px] text-orange-600 font-medium truncate pt-0.5 flex items-center gap-1">
                         <span>Workspace:</span>
                         <span className="font-bold">{workspaceDisplayName}</span>
                       </div>
@@ -266,7 +266,7 @@ export default function Navbar() {
                           <Link
                             href="/dashboard/products/add"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-orange-400 hover:bg-[#1e293b] hover:text-orange-300 font-semibold transition"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-orange-600 hover:bg-orange-50 font-semibold transition"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -277,7 +277,7 @@ export default function Navbar() {
                           <Link
                             href="/dashboard/settings?tab=couriers"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-[#1e293b] hover:text-slate-100 transition"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
                           >
                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -288,7 +288,7 @@ export default function Navbar() {
                           <Link
                             href="/dashboard/settings?tab=team"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-[#1e293b] hover:text-slate-100 transition"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
                           >
                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -299,7 +299,7 @@ export default function Navbar() {
                           <Link
                             href="/dashboard/billing"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-[#1e293b] hover:text-slate-100 transition"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
                           >
                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -310,7 +310,7 @@ export default function Navbar() {
                           <Link
                             href="/dashboard/footprints"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-[#1e293b] hover:text-slate-100 transition"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
                           >
                             <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -322,13 +322,13 @@ export default function Navbar() {
                     </div>
 
                     {/* Sign Out Option */}
-                    <div className="pt-1.5 border-t border-[#1e293b]">
+                    <div className="pt-1.5 border-t border-slate-100">
                       <button
                         onClick={() => {
                           setProfileOpen(false);
                           handleLogout();
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-400 hover:bg-rose-950/40 transition text-left cursor-pointer"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left cursor-pointer"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -355,7 +355,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-[#131d31] hover:text-slate-100 border border-[#1e293b] transition"
+                className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 transition"
                 aria-label="Toggle Navigation Menu"
               >
                 <svg
@@ -387,14 +387,14 @@ export default function Navbar() {
 
       {/* ── Mobile Drawer ────────────────────────────────────────── */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#1e293b] bg-[#0b1120] px-4 py-3 space-y-3 shadow-2xl animate-in slide-in-from-top-2 duration-150">
+        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-3 shadow-xl animate-in slide-in-from-top-2 duration-150">
           {userEmail && (
-            <div className="pb-2 border-b border-[#1e293b] flex items-center justify-between">
+            <div className="pb-2 border-b border-slate-100 flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-xs font-mono text-slate-300 truncate max-w-[200px]">
+                <span className="text-xs font-mono text-slate-800 font-bold truncate max-w-[200px]">
                   {userEmail}
                 </span>
-                <span className="text-[10px] text-orange-400 font-medium truncate max-w-[200px]">
+                <span className="text-[10px] text-orange-600 font-medium truncate max-w-[200px]">
                   Workspace: {workspaceDisplayName}
                 </span>
               </div>
@@ -408,7 +408,7 @@ export default function Navbar() {
 
           {/* Core Navigation Links */}
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block px-2 pt-1">
+            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-2 pt-1">
               Main Menu
             </span>
             {visibleCoreLinks.map((link) => {
@@ -421,10 +421,10 @@ export default function Navbar() {
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition ${
                     active
                       ? "bg-orange-600 text-white font-semibold shadow-xs"
-                      : "text-slate-400 hover:bg-[#131d31] hover:text-slate-100"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
-                  <span className={active ? "text-white" : "text-slate-500"}>
+                  <span className={active ? "text-white" : "text-slate-400"}>
                     {link.icon}
                   </span>
                   <span>{link.label}</span>
@@ -435,28 +435,28 @@ export default function Navbar() {
 
           {/* Mobile Admin Quick Shortcuts */}
           {isWorkspaceAdmin && (
-            <div className="pt-2 border-t border-[#1e293b] space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block px-2">
+            <div className="pt-2 border-t border-slate-100 space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-2">
                 Administration
               </span>
               <Link
                 href="/dashboard/products/add"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-orange-400 hover:bg-[#131d31]"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-orange-600 hover:bg-orange-50"
               >
                 <span>+</span> Add Product Intake
               </Link>
               <Link
                 href="/dashboard/settings"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#131d31] hover:text-slate-100"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               >
                 Settings &amp; Couriers
               </Link>
               <Link
                 href="/dashboard/billing"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#131d31] hover:text-slate-100"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               >
                 Billing &amp; Subscription
               </Link>
@@ -464,13 +464,13 @@ export default function Navbar() {
           )}
 
           {/* Mobile Logout */}
-          <div className="pt-2 border-t border-[#1e293b]">
+          <div className="pt-2 border-t border-slate-100">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 handleLogout();
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-400 hover:bg-rose-950/40"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50"
             >
               Sign Out
             </button>

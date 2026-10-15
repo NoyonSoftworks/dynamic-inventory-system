@@ -98,99 +98,86 @@ export default function InventoryRunwayReport() {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - selectedDays);
 
-    const recentTx = transactions.filter(
-      (t) =>
-        new Date(t.created_at) >= cutoffDate &&
-        (t.transaction_type || "").toUpperCase() === "OUT"
-    );
+    // Map out transactions per product in timeframe
+    const productSoldUnits = {};
+    transactions.forEach((tx) => {
+      const txDate = new Date(tx.created_at);
+      if (
+        txDate >= cutoffDate &&
+        (tx.transaction_type || "").toUpperCase() === "OUT"
+      ) {
+        const pId = tx.product_id;
+        const qty = Number(tx.quantity) || 1;
+        productSoldUnits[pId] = (productSoldUnits[pId] || 0) + qty;
+      }
+    });
 
     return products.map((product) => {
-      const variants = product.variants || [];
-      const totalStock = variants.reduce(
+      const variantsList = product.variants || [];
+      const totalStock = variantsList.reduce(
         (sum, v) => sum + (Number(v.stock_quantity) || 0),
         0
       );
 
-      const unitsSold = recentTx
-        .filter((t) => t.product_id === product.id)
-        .reduce((sum, t) => sum + (Number(t.quantity) || 1), 0);
-
-      const dailyVelocity = parseFloat(
-        (unitsSold / Math.max(1, selectedDays)).toFixed(2)
-      );
+      const unitsSold = productSoldUnits[product.id] || 0;
+      const dailyVelocity = unitsSold > 0 ? unitsSold / selectedDays : 0;
 
       let daysUntilStockout = 999;
-      let riskLevel = "OPTIMAL";
-
-      if (totalStock <= 0) {
-        daysUntilStockout = 0;
-        riskLevel = "OUT_OF_STOCK";
-      } else if (dailyVelocity > 0) {
+      if (dailyVelocity > 0) {
         daysUntilStockout = Math.round(totalStock / dailyVelocity);
-        if (daysUntilStockout <= 5) {
-          riskLevel = "CRITICAL";
-        } else if (daysUntilStockout <= 14) {
-          riskLevel = "WARNING";
-        } else {
-          riskLevel = "HEALTHY";
-        }
-      } else {
-        riskLevel = totalStock > 0 ? "DEADSTOCK" : "OUT_OF_STOCK";
+      } else if (totalStock === 0) {
+        daysUntilStockout = 0;
       }
 
-      // 30-day recommended restock buffer
-      const target30DayBuffer = Math.ceil(dailyVelocity * 30);
-      const recommendedRestock = Math.max(
-        0,
-        target30DayBuffer > 0 ? target30DayBuffer - totalStock : 0
-      );
+      // Risk Categorization
+      let riskLevel = "HEALTHY";
+      let recommendedRestock = 0;
+
+      if (totalStock === 0) {
+        riskLevel = "OUT_OF_STOCK";
+        recommendedRestock = Math.max(20, Math.round(dailyVelocity * 30));
+      } else if (daysUntilStockout <= 5) {
+        riskLevel = "CRITICAL";
+        recommendedRestock = Math.round(dailyVelocity * 30 - totalStock);
+      } else if (daysUntilStockout <= 12) {
+        riskLevel = "WARNING";
+        recommendedRestock = Math.round(dailyVelocity * 21 - totalStock);
+      } else if (unitsSold === 0 && totalStock > 0) {
+        riskLevel = "DEADSTOCK";
+      } else {
+        riskLevel = "OPTIMAL";
+      }
 
       return {
         id: product.id,
-        name: product.name || "Unnamed SKU",
+        name: product.name,
         category: product.category || "General",
         totalStock,
         unitsSold,
-        dailyVelocity,
+        dailyVelocity: Number(dailyVelocity.toFixed(1)),
         daysUntilStockout,
         riskLevel,
-        recommendedRestock,
+        recommendedRestock: Math.max(0, recommendedRestock),
       };
     });
   }, [products, transactions, selectedDays]);
 
-  // ── Restock Recommendations ──────────────────────────────────
+  // ── Restock Advisories ───────────────────────────────────────
   const restockAdvisories = useMemo(() => {
     const advisories = [];
 
     const criticalItems = forecastItems.filter(
-      (item) => item.riskLevel === "CRITICAL"
+      (item) => item.riskLevel === "CRITICAL" || item.riskLevel === "OUT_OF_STOCK"
     );
-    criticalItems.slice(0, 2).forEach((item) => {
+    if (criticalItems.length > 0) {
       advisories.push({
         level: "critical",
-        badge: "Stockout Imminent",
+        badge: "Urgent Replenishment Required",
         dotColor: "bg-rose-500",
-        borderColor: "border-rose-900/60 bg-rose-950/30",
-        textColor: "text-rose-300 font-semibold",
-        headline: `${item.name} · ~${item.daysUntilStockout} days remaining`,
-        detail: `Depleting at ${item.dailyVelocity} units/day with ${item.totalStock} units left. Reorder ${item.recommendedRestock} units immediately to sustain a 30-day buffer.`,
-      });
-    });
-
-    const warningItems = forecastItems.filter(
-      (item) => item.riskLevel === "WARNING"
-    );
-    if (warningItems.length > 0) {
-      const top = warningItems[0];
-      advisories.push({
-        level: "warning",
-        badge: "Low Runway Buffer",
-        dotColor: "bg-amber-500",
-        borderColor: "border-amber-900/60 bg-amber-950/30",
-        textColor: "text-amber-300 font-semibold",
-        headline: `${top.name} · ~${top.daysUntilStockout} days remaining`,
-        detail: `Runway is below target safety threshold. Current inventory will sustain fulfillment for approximately two weeks at current sales velocity.`,
+        borderColor: "border-rose-200 bg-rose-50/70",
+        textColor: "text-rose-900 font-bold",
+        headline: `${criticalItems.length} SKU${criticalItems.length > 1 ? "s" : ""} approaching imminent stockout`,
+        detail: `Items including "${criticalItems[0]?.name}" will exhaust available inventory within 5 days based on recent velocity. Immediate supplier reorder recommended.`,
       });
     }
 
@@ -202,9 +189,9 @@ export default function InventoryRunwayReport() {
       advisories.push({
         level: "stagnant",
         badge: "Capital Optimization",
-        dotColor: "bg-slate-500",
-        borderColor: "border-slate-800 bg-slate-900/60",
-        textColor: "text-slate-200 font-semibold",
+        dotColor: "bg-slate-400",
+        borderColor: "border-slate-200 bg-slate-50/80",
+        textColor: "text-slate-800 font-bold",
         headline: `${sample.name} · 0 dispatches in ${selectedDays} days`,
         detail: `${sample.totalStock} units idle in warehouse. Consider discount promotions or bundle placement to release working capital.`,
       });
@@ -215,8 +202,8 @@ export default function InventoryRunwayReport() {
         level: "healthy",
         badge: "Optimal Equilibrium",
         dotColor: "bg-emerald-500",
-        borderColor: "border-emerald-900/60 bg-emerald-950/30",
-        textColor: "text-emerald-300 font-semibold",
+        borderColor: "border-emerald-200 bg-emerald-50/70",
+        textColor: "text-emerald-900 font-bold",
         headline: "Inventory runways are balanced across active catalog SKUs",
         detail: "Current stock quantities maintain safe coverage buffers based on rolling fulfillment trends.",
       });
@@ -278,10 +265,10 @@ export default function InventoryRunwayReport() {
 
   if (ctxLoading || loading) {
     return (
-      <main className="min-h-screen bg-[#0b1120] text-[#fafafa] flex items-center justify-center p-6">
+      <main className="min-h-screen bg-[#f8fafc] text-slate-900 flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-          <p className="text-xs font-mono text-slate-400">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
+          <p className="text-xs font-mono text-slate-500">
             Calculating stock velocity and runway projections…
           </p>
         </div>
@@ -301,36 +288,36 @@ export default function InventoryRunwayReport() {
       : 100;
 
   return (
-    <main className="min-h-screen bg-[#0b1120] text-[#fafafa] pb-20">
+    <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         {/* ── TOP HEADER SECTION ───────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#1e293b]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-1">
-              <span className="font-semibold text-slate-200">{businessName || "Workspace"}</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-orange-500 font-semibold">Demand Forecasting &amp; Runway</span>
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
+              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
+              <span className="text-slate-400">/</span>
+              <span className="text-orange-600 font-semibold">Demand Forecasting &amp; Runway</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#fafafa]">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Inventory Intelligence &amp; Forecasting
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Real-time sales velocity, runway depletion projections, and restock advisories.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Timeframe Selector */}
-            <div className="flex items-center p-1 rounded-xl bg-[#131d31] border border-[#1e293b]">
+            <div className="flex items-center p-1 rounded-xl bg-white border border-slate-200 shadow-2xs">
               {TIMEFRAMES.map(({ id, label }) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => setSelectedDays(id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold btn-tactile transition ${
+                  className={`px-3 py-1 rounded-lg text-xs font-bold btn-tactile transition ${
                     selectedDays === id
-                      ? "bg-orange-600 text-white shadow-xs"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-orange-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                   }`}
                 >
                   {label}
@@ -341,10 +328,10 @@ export default function InventoryRunwayReport() {
             <button
               type="button"
               onClick={handleExportCsv}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#1e293b] bg-[#131d31] px-3.5 py-2 text-xs font-semibold text-slate-300 shadow-xs hover:bg-[#1e293b] hover:text-[#fafafa] btn-tactile transition"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 btn-tactile transition"
               title="Export report as CSV"
             >
-              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span>Export CSV</span>
@@ -354,11 +341,11 @@ export default function InventoryRunwayReport() {
               type="button"
               onClick={loadData}
               disabled={refreshing}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-[#1e293b] bg-[#131d31] text-slate-400 hover:text-slate-200 hover:bg-[#1e293b] btn-tactile transition shadow-xs disabled:opacity-50"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 btn-tactile transition shadow-2xs disabled:opacity-50"
               title="Refresh dataset"
             >
               <svg
-                className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-orange-400" : ""}`}
+                className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-orange-600" : ""}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -371,18 +358,18 @@ export default function InventoryRunwayReport() {
 
         {/* ── METRIC CARDS ─── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs card-lift">
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
                 Gross Merchandise Value
               </span>
-              <span className="p-1.5 rounded-lg bg-orange-950/60 border border-orange-800/80 text-orange-400">
+              <span className="p-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-bold text-orange-400 tracking-tight font-mono">
+            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
               ৳{Math.round(executiveMetrics.totalGmv).toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -390,18 +377,18 @@ export default function InventoryRunwayReport() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs card-lift">
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
                 Dispatched Units
               </span>
-              <span className="p-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/80 text-emerald-400">
+              <span className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-bold text-emerald-400 tracking-tight font-mono">
+            <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight font-mono">
               {executiveMetrics.unitsShipped.toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -409,18 +396,18 @@ export default function InventoryRunwayReport() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs card-lift">
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
                 Average Order Value
               </span>
-              <span className="p-1.5 rounded-lg bg-teal-950/60 border border-teal-800/80 text-teal-400">
+              <span className="p-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-bold text-teal-400 tracking-tight font-mono">
+            <div className="mt-3 text-2xl sm:text-3xl font-black text-teal-700 tracking-tight font-mono">
               ৳{Math.round(executiveMetrics.aov).toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -428,18 +415,18 @@ export default function InventoryRunwayReport() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs card-lift">
+          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
                 Safe Buffer Coverage
               </span>
-              <span className="p-1.5 rounded-lg bg-teal-950/60 border border-teal-800/80 text-teal-400">
+              <span className="p-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight font-mono">
+            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
               {catalogHealthPercent}%
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -449,11 +436,11 @@ export default function InventoryRunwayReport() {
         </div>
 
         {/* ── RESTOCK ADVISORIES (Clean Pro Panel) ─────────────── */}
-        <div className="rounded-2xl border border-[#1e293b] bg-[#131d31] p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#1e293b] pb-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-orange-500" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200 font-mono">
+              <span className="h-2 w-2 rounded-full bg-orange-600" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
                 Inventory Replenishment Advisories
               </h2>
             </div>
@@ -471,7 +458,7 @@ export default function InventoryRunwayReport() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`h-2 w-2 rounded-full ${adv.dotColor}`} />
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600">
                       {adv.badge}
                     </span>
                   </div>
@@ -479,7 +466,7 @@ export default function InventoryRunwayReport() {
                 <div className={`text-xs ${adv.textColor}`}>
                   {adv.headline}
                 </div>
-                <p className="text-[12px] text-slate-400 leading-relaxed">
+                <p className="text-[12px] text-slate-600 leading-relaxed">
                   {adv.detail}
                 </p>
               </div>
@@ -488,7 +475,7 @@ export default function InventoryRunwayReport() {
         </div>
 
         {/* ── FILTER & SEARCH TOOLBAR ────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200 bg-white shadow-2xs">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
               { id: "ALL", label: "All SKUs" },
@@ -501,10 +488,10 @@ export default function InventoryRunwayReport() {
                 key={id}
                 type="button"
                 onClick={() => setRiskFilter(id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold btn-tactile transition ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold btn-tactile transition ${
                   riskFilter === id
-                    ? "bg-orange-600 text-white shadow-xs"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                    ? "bg-orange-600 text-white shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
                 {label}
@@ -518,10 +505,10 @@ export default function InventoryRunwayReport() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter by product or category…"
-              className="w-full sm:w-64 rounded-xl border border-[#1e293b] bg-[#0b1120] px-3 py-1.5 pl-8 text-xs text-[#fafafa] placeholder-slate-500 font-mono focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
+              className="w-full sm:w-64 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 pl-8 text-xs text-slate-900 placeholder-slate-400 font-mono focus:border-orange-500 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
             />
             <svg
-              className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5 pointer-events-none"
+              className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -532,17 +519,17 @@ export default function InventoryRunwayReport() {
         </div>
 
         {/* ── PREDICTIVE MATRIX TABLE ───────────────────────────── */}
-        <div className="rounded-2xl border border-[#1e293b] bg-[#131d31] shadow-xs overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-[#1e293b] flex items-center justify-between text-xs font-mono text-slate-400 bg-[#0b1120]/80">
-            <span className="font-bold text-slate-200">RUNWAY MATRIX ({filteredForecast.length} SKUs)</span>
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between text-xs font-mono text-slate-600 bg-slate-50">
+            <span className="font-bold text-slate-900">RUNWAY MATRIX ({filteredForecast.length} SKUs)</span>
             <span className="text-[11px] text-slate-500">
               Runway = Available Stock ÷ Rolling Daily Velocity
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-[#1e293b] text-left text-xs">
-              <thead className="bg-[#0b1120] text-slate-400 uppercase text-[10px] font-mono tracking-wider font-bold">
+            <table className="w-full divide-y divide-slate-200 text-left text-xs">
+              <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-mono tracking-wider font-bold">
                 <tr>
                   <th className="px-5 py-3 font-bold">SKU / Product</th>
                   <th className="px-5 py-3 font-bold">Category</th>
@@ -553,7 +540,7 @@ export default function InventoryRunwayReport() {
                   <th className="px-5 py-3 font-bold text-right font-mono">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1e293b] bg-[#131d31]">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {filteredForecast.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="px-5 py-12 text-center text-slate-500 font-mono">
@@ -567,45 +554,45 @@ export default function InventoryRunwayReport() {
                     const isHealthy = item.riskLevel === "HEALTHY" || item.riskLevel === "OPTIMAL";
 
                     return (
-                      <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="px-5 py-3.5 text-[#fafafa] font-semibold">
+                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-5 py-3.5 text-slate-900 font-semibold">
                           {item.name}
                         </td>
 
-                        <td className="px-5 py-3.5 text-slate-400">
-                          <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[11px] font-mono font-medium border border-slate-700">
+                        <td className="px-5 py-3.5 text-slate-500">
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-mono font-medium border border-slate-200">
                             {item.category}
                           </span>
                         </td>
 
-                        <td className="px-5 py-3.5 text-slate-100 font-mono font-bold">
-                          {item.totalStock} <span className="text-[10px] text-slate-500 font-normal">units</span>
+                        <td className="px-5 py-3.5 text-slate-900 font-mono font-bold">
+                          {item.totalStock} <span className="text-[10px] text-slate-400 font-normal">units</span>
                         </td>
 
-                        <td className="px-5 py-3.5 text-slate-300 font-mono">
+                        <td className="px-5 py-3.5 text-slate-700 font-mono">
                           {item.dailyVelocity}{" "}
-                          <span className="text-[10px] text-slate-500 font-normal">/ day</span>
+                          <span className="text-[10px] text-slate-400 font-normal">/ day</span>
                         </td>
 
                         <td className="px-5 py-3.5">
                           {item.daysUntilStockout === 999 ? (
-                            <span className="text-slate-500 font-mono text-[11px]">No burn rate</span>
+                            <span className="text-slate-400 font-mono text-[11px]">No burn rate</span>
                           ) : (
                             <div className="space-y-1 w-28">
                               <div className="flex items-center justify-between text-[11px] font-mono">
                                 <span
                                   className={
                                     isCritical
-                                      ? "text-rose-400 font-bold"
+                                      ? "text-rose-600 font-bold"
                                       : isWarning
-                                      ? "text-amber-400 font-bold"
-                                      : "text-emerald-400 font-bold"
+                                      ? "text-amber-600 font-bold"
+                                      : "text-emerald-600 font-bold"
                                   }
                                 >
                                   {item.daysUntilStockout} days
                                 </span>
                               </div>
-                              <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
                                 <div
                                   className={`h-full ${
                                     isCritical
@@ -625,11 +612,11 @@ export default function InventoryRunwayReport() {
 
                         <td className="px-5 py-3.5 font-mono">
                           {item.recommendedRestock > 0 ? (
-                            <span className="text-rose-300 font-bold bg-rose-950/50 px-2 py-0.5 rounded-md border border-rose-800/80 text-[11px]">
+                            <span className="text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 text-[11px]">
                               +{item.recommendedRestock} units
                             </span>
                           ) : (
-                            <span className="text-slate-500 text-[11px]">Adequate</span>
+                            <span className="text-slate-400 text-[11px]">Adequate</span>
                           )}
                         </td>
 
@@ -637,23 +624,23 @@ export default function InventoryRunwayReport() {
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                               isCritical
-                                ? "bg-rose-950/40 text-rose-300 border border-rose-800/80"
+                                ? "bg-rose-50 text-rose-700 border border-rose-200"
                                 : isWarning
-                                ? "bg-amber-950/40 text-amber-300 border border-amber-800/80"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200"
                                 : isHealthy
-                                ? "bg-emerald-950/40 text-emerald-300 border border-emerald-800/80"
-                                : "bg-slate-800 text-slate-300 border border-slate-700"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-slate-100 text-slate-700 border border-slate-200"
                             }`}
                           >
                             <span
                               className={`h-1.5 w-1.5 rounded-full ${
                                 isCritical
-                                  ? "bg-rose-400"
+                                  ? "bg-rose-500"
                                   : isWarning
-                                  ? "bg-amber-400"
+                                  ? "bg-amber-500"
                                   : isHealthy
-                                  ? "bg-emerald-400"
-                                  : "bg-slate-500"
+                                  ? "bg-emerald-500"
+                                  : "bg-slate-400"
                               }`}
                             />
                             {item.riskLevel.replace(/_/g, " ")}
