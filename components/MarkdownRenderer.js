@@ -33,7 +33,7 @@ function renderInline(text) {
       tokens.push(
         <code
           key={key++}
-          className="font-mono text-xs px-1.5 py-0.5 rounded bg-slate-800/90 text-orange-400 border border-slate-700/60 font-medium"
+          className="font-mono text-xs px-1.5 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 font-semibold"
         >
           {codeMatch[1]}
         </code>
@@ -46,7 +46,7 @@ function renderInline(text) {
     const boldMatch = remaining.match(/^(\*\*|__)(.*?)\1/);
     if (boldMatch) {
       tokens.push(
-        <strong key={key++} className="font-bold text-slate-100">
+        <strong key={key++} className="font-bold text-slate-900">
           {renderInline(boldMatch[2])}
         </strong>
       );
@@ -58,7 +58,7 @@ function renderInline(text) {
     const italicMatch = remaining.match(/^(\*|_)(.*?)\1/);
     if (italicMatch && italicMatch[2]) {
       tokens.push(
-        <em key={key++} className="italic text-slate-200">
+        <em key={key++} className="italic text-slate-700">
           {renderInline(italicMatch[2])}
         </em>
       );
@@ -75,7 +75,7 @@ function renderInline(text) {
           href={linkMatch[2]}
           target={linkMatch[2].startsWith("http") ? "_blank" : undefined}
           rel={linkMatch[2].startsWith("http") ? "noopener noreferrer" : undefined}
-          className="text-orange-400 hover:text-orange-300 underline underline-offset-4 font-medium transition-colors"
+          className="text-orange-600 hover:text-orange-500 underline underline-offset-4 font-semibold transition-colors"
         >
           {linkMatch[1]}
         </a>
@@ -123,7 +123,7 @@ export default function MarkdownRenderer({ content }) {
     // Horizontal Rule: --- or ***
     if (/^(\-{3,}|\*{3,})$/.test(trimmed)) {
       elements.push(
-        <hr key={elementKey++} className="my-10 border-slate-800" />
+        <hr key={elementKey++} className="my-10 border-slate-200" />
       );
       i++;
       continue;
@@ -143,14 +143,14 @@ export default function MarkdownRenderer({ content }) {
       elements.push(
         <div
           key={elementKey++}
-          className="my-6 rounded-xl border border-slate-800 bg-[#070b14] p-4 font-mono text-xs text-slate-200 shadow-xl overflow-x-auto relative group"
+          className="my-6 rounded-2xl border border-slate-800 bg-[#070b14] p-4 sm:p-5 font-mono text-xs text-slate-100 shadow-xl overflow-x-auto relative group"
         >
           {lang && (
-            <div className="absolute top-2.5 right-3 text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold">
+            <div className="absolute top-2.5 right-3 text-[10px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
               {lang}
             </div>
           )}
-          <pre className="overflow-x-auto pr-8">
+          <pre className="overflow-x-auto pr-8 leading-relaxed">
             <code>{codeLines.join("\n")}</code>
           </pre>
         </div>
@@ -166,7 +166,7 @@ export default function MarkdownRenderer({ content }) {
         <h2
           key={elementKey++}
           id={id}
-          className="text-xl sm:text-2xl font-bold text-slate-100 mt-10 mb-4 pb-2 border-b border-slate-800 flex items-center gap-2 group scroll-mt-24"
+          className="text-xl sm:text-2xl font-black text-slate-900 mt-10 mb-4 pb-2.5 border-b border-slate-200 flex items-center gap-2 group scroll-mt-24"
         >
           <a
             href={`#${id}`}
@@ -190,11 +190,11 @@ export default function MarkdownRenderer({ content }) {
         <h3
           key={elementKey++}
           id={id}
-          className="text-lg sm:text-xl font-bold text-slate-200 mt-8 mb-3 flex items-center gap-2 group scroll-mt-24"
+          className="text-lg sm:text-xl font-bold text-slate-800 mt-8 mb-3 flex items-center gap-2 group scroll-mt-24"
         >
           <a
             href={`#${id}`}
-            className="text-teal-400 opacity-60 group-hover:opacity-100 transition-opacity font-mono text-sm font-bold"
+            className="text-teal-600 opacity-60 group-hover:opacity-100 transition-opacity font-mono text-sm font-bold"
             aria-label={`Link to subsection: ${headingText}`}
           >
             ##
@@ -212,7 +212,7 @@ export default function MarkdownRenderer({ content }) {
       elements.push(
         <h4
           key={elementKey++}
-          className="text-base font-bold text-slate-200 mt-6 mb-2"
+          className="text-base font-bold text-slate-800 mt-6 mb-2"
         >
           {renderInline(headingText)}
         </h4>
@@ -231,7 +231,7 @@ export default function MarkdownRenderer({ content }) {
       elements.push(
         <blockquote
           key={elementKey++}
-          className="border-l-4 border-orange-500 bg-orange-950/20 px-5 py-3.5 rounded-r-xl my-6 text-slate-200 italic leading-relaxed text-sm shadow-xs"
+          className="border-l-4 border-orange-500 bg-orange-50/70 border-y border-r border-orange-200/60 px-5 py-3.5 rounded-r-2xl my-6 text-slate-800 italic leading-relaxed text-sm shadow-xs"
         >
           {quoteLines.map((ql, qIdx) => (
             <p key={qIdx} className={qIdx > 0 ? "mt-2" : ""}>
@@ -265,26 +265,26 @@ export default function MarkdownRenderer({ content }) {
         elements.push(
           <div
             key={elementKey++}
-            className="overflow-x-auto my-6 rounded-xl border border-slate-800 bg-slate-900/60 shadow-md"
+            className="overflow-x-auto my-6 rounded-2xl border border-slate-200 bg-white shadow-xs"
           >
-            <table className="min-w-full divide-y divide-slate-800 text-xs text-left">
-              <thead className="bg-slate-800/80 font-mono uppercase text-slate-300 tracking-wider font-semibold">
+            <table className="min-w-full divide-y divide-slate-200 text-xs text-left">
+              <thead className="bg-slate-50 font-mono uppercase text-slate-700 tracking-wider font-semibold">
                 <tr>
                   {headers.map((h, hIdx) => (
-                    <th key={hIdx} className="px-5 py-3 font-semibold">
+                    <th key={hIdx} className="px-5 py-3.5 font-bold">
                       {renderInline(h)}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/70 bg-slate-900/40">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {rows.map((row, rIdx) => (
                   <tr
                     key={rIdx}
-                    className="hover:bg-slate-800/40 transition-colors"
+                    className="hover:bg-slate-50/70 transition-colors"
                   >
                     {row.map((cell, cIdx) => (
-                      <td key={cIdx} className="px-5 py-3 text-slate-300">
+                      <td key={cIdx} className="px-5 py-3 text-slate-700">
                         {renderInline(cell)}
                       </td>
                     ))}
@@ -310,7 +310,7 @@ export default function MarkdownRenderer({ content }) {
           {listItems.map((item, lIdx) => (
             <li
               key={lIdx}
-              className="flex items-start gap-2.5 text-sm sm:text-base text-slate-300 leading-relaxed"
+              className="flex items-start gap-2.5 text-sm sm:text-base text-slate-700 leading-relaxed"
             >
               <span className="mt-2 h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0" />
               <span className="flex-1">{renderInline(item)}</span>
@@ -335,9 +335,9 @@ export default function MarkdownRenderer({ content }) {
           {listItems.map(({ number, text }, oIdx) => (
             <li
               key={oIdx}
-              className="flex items-start gap-2.5 text-sm sm:text-base text-slate-300 leading-relaxed"
+              className="flex items-start gap-2.5 text-sm sm:text-base text-slate-700 leading-relaxed"
             >
-              <span className="mt-0.5 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700/80 font-mono text-[11px] text-orange-400 font-bold shrink-0">
+              <span className="mt-0.5 px-2 py-0.5 rounded-md bg-orange-50 border border-orange-200 font-mono text-[11px] text-orange-700 font-bold shrink-0">
                 {number}
               </span>
               <span className="flex-1">{renderInline(text)}</span>
@@ -352,7 +352,7 @@ export default function MarkdownRenderer({ content }) {
     elements.push(
       <p
         key={elementKey++}
-        className="text-slate-300 text-sm sm:text-base leading-relaxed my-4"
+        className="text-slate-700 text-sm sm:text-base leading-relaxed my-4"
       >
         {renderInline(trimmed)}
       </p>

@@ -53,38 +53,38 @@ export default function BlogIndexPage() {
   const remainingPosts = filteredPosts.slice(1);
 
   return (
-    <div className="min-h-screen bg-[#0b1120] text-[#f8fafc] flex flex-col font-sans selection:bg-orange-500/30 selection:text-orange-200">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] flex flex-col font-sans selection:bg-orange-500 selection:text-white">
       {/* ── TOP HEADER (Swiss Minimalist Bar) ───────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-[#1e293b] bg-[#0b1120]/90 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-8 h-16">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white font-bold text-xs shadow-xs transition-transform group-hover:scale-105">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-600 text-white font-bold text-xs shadow-xs transition-transform group-hover:scale-105">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-sm font-bold tracking-tight text-slate-100">
+              <span className="text-sm font-bold tracking-tight text-slate-900">
                 SmartInventory
               </span>
-              <span className="text-[11px] font-mono text-orange-400 font-semibold">
+              <span className="text-[11px] font-mono text-orange-600 font-semibold">
                 /blog
               </span>
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-400">
-            <Link href="/" className="hover:text-slate-200 transition">
+          <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600">
+            <Link href="/" className="hover:text-slate-900 transition">
               Overview
             </Link>
-            <Link href="/demo" className="hover:text-slate-200 transition flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <Link href="/demo" className="hover:text-slate-900 transition flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>Interactive Sandbox</span>
             </Link>
-            <Link href="/#pricing" className="hover:text-slate-200 transition">
+            <Link href="/#pricing" className="hover:text-slate-900 transition">
               Pricing
             </Link>
-            <Link href="/#faq" className="hover:text-slate-200 transition">
+            <Link href="/#faq" className="hover:text-slate-900 transition">
               FAQ
             </Link>
           </nav>
@@ -92,13 +92,13 @@ export default function BlogIndexPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition"
+              className="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition"
             >
               Sign In
             </Link>
             <Link
               href="/login"
-              className="btn-tactile inline-flex items-center rounded-lg bg-orange-600 hover:bg-orange-500 px-3.5 py-1.5 text-xs font-bold text-white transition shadow-sm shadow-orange-600/30"
+              className="btn-tactile inline-flex items-center rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2 text-xs font-bold text-white transition shadow-sm shadow-orange-600/20"
             >
               Get Started →
             </Link>
@@ -107,18 +107,18 @@ export default function BlogIndexPage() {
       </header>
 
       {/* ── HERO BANNER ─────────────────────────────────────────── */}
-      <section className="relative z-10 pt-16 pb-12 border-b border-[#1e293b] bg-[#131d31]/50">
+      <section className="relative z-10 pt-16 pb-12 border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-8 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3.5 py-1 text-xs font-mono text-orange-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3.5 py-1 text-xs font-mono text-orange-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
             <span>KNOWLEDGE BASE &amp; OPERATIONAL BLUEPRINTS</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-50 leading-[1.15]">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.15]">
             Engineering &amp; Logistics Guides
           </h1>
 
-          <p className="mx-auto max-w-2xl text-xs sm:text-sm text-slate-400 leading-relaxed">
+          <p className="mx-auto max-w-2xl text-xs sm:text-sm text-slate-600 leading-relaxed">
             In-depth architectural guides on courier API automation, in-browser camera barcode decoding, RTO reduction, and high-concurrency multi-tenant security.
           </p>
 
@@ -130,13 +130,13 @@ export default function BlogIndexPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search guides by keyword, topic, or courier…"
-                className="w-full rounded-xl border border-[#1e293b] bg-[#131d31] px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-orange-500 transition shadow-inner"
+                className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 font-mono focus:outline-none focus:border-orange-500 focus:bg-white transition shadow-2xs"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-2.5 text-xs text-zinc-500 hover:text-zinc-300"
+                  className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600"
                 >
                   ✕
                 </button>
@@ -147,17 +147,17 @@ export default function BlogIndexPage() {
       </section>
 
       {/* ── CATEGORY FILTER TABS ────────────────────────────────── */}
-      <section className="border-b border-[#1e293b] bg-[#0b1120] sticky top-16 z-40">
+      <section className="border-b border-slate-200 bg-[#f8fafc]/95 backdrop-blur-md sticky top-16 z-40">
         <div className="mx-auto max-w-7xl px-4 sm:px-8 flex items-center gap-2 overflow-x-auto py-3 no-scrollbar">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`btn-tactile px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition cursor-pointer ${
+              className={`btn-tactile px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer ${
                 selectedCategory === cat
-                  ? "bg-orange-600 text-white font-semibold shadow-xs shadow-orange-600/30"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent hover:border-slate-700/50"
+                  ? "bg-orange-600 text-white font-semibold shadow-xs shadow-orange-600/20"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 border border-transparent"
               }`}
             >
               {cat}
@@ -170,42 +170,42 @@ export default function BlogIndexPage() {
       <main className="mx-auto max-w-7xl px-4 sm:px-8 py-12 flex-1 space-y-12">
         {/* Featured Flagship Article */}
         {featuredPost && !searchQuery && (
-          <article className="card-lift rounded-2xl border border-[#1e293b] bg-[#131d31] p-6 sm:p-10 hover:border-orange-500/40 transition group shadow-xl">
+          <article className="card-lift rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 hover:border-orange-500/40 transition group shadow-xl shadow-slate-200/50">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="space-y-3 max-w-3xl">
                 <div className="flex flex-wrap items-center gap-2.5 text-[11px] font-mono">
-                  <span className="px-2.5 py-0.5 rounded-md bg-orange-500/10 text-orange-300 border border-orange-500/20 font-semibold">
+                  <span className="px-2.5 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 font-semibold">
                     {featuredPost.category}
                   </span>
-                  <span className="text-slate-500">·</span>
-                  <span className="text-slate-400 font-medium">
+                  <span className="text-slate-300">·</span>
+                  <span className="text-slate-500 font-medium">
                     {featuredPost.reading_time || "6 min read"}
                   </span>
-                  <span className="text-slate-500">·</span>
-                  <span className="text-teal-400 font-medium flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-teal-400" />
+                  <span className="text-slate-300">·</span>
+                  <span className="text-teal-700 font-medium flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
                     Flagship Guide
                   </span>
                 </div>
 
                 <Link href={`/blog/${featuredPost.slug}`}>
-                  <h2 className="text-xl sm:text-3xl font-black text-slate-50 group-hover:text-orange-400 transition leading-snug">
+                  <h2 className="text-xl sm:text-3xl font-black text-slate-900 group-hover:text-orange-600 transition leading-snug">
                     {featuredPost.title}
                   </h2>
                 </Link>
 
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   {featuredPost.excerpt}
                 </p>
 
-                <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400">
-                  <span className="font-semibold text-slate-200 flex items-center gap-2">
-                    <span className="h-5 w-5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/40 flex items-center justify-center text-[10px] font-bold">
+                <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-500">
+                  <span className="font-semibold text-slate-800 flex items-center gap-2">
+                    <span className="h-5 w-5 rounded-full bg-orange-100 text-orange-700 border border-orange-200 flex items-center justify-center text-[10px] font-bold">
                       N
                     </span>
                     By {featuredPost.author_name}
                   </span>
-                  <span className="text-slate-600">|</span>
+                  <span className="text-slate-300">|</span>
                   <span>{new Date(featuredPost.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export default function BlogIndexPage() {
               <div className="shrink-0">
                 <Link
                   href={`/blog/${featuredPost.slug}`}
-                  className="btn-tactile inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-3 text-xs font-bold text-white transition shadow-md shadow-orange-600/30 group/btn"
+                  className="btn-tactile inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-3 text-xs font-bold text-white transition shadow-md shadow-orange-600/20 group/btn"
                 >
                   <span>Read Article</span>
                   <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
@@ -225,12 +225,12 @@ export default function BlogIndexPage() {
 
         {/* Article Grid */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-[#1e293b] pb-3">
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-teal-400" />
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-700 font-bold flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-teal-500" />
               Published Operational Blueprints ({filteredPosts.length})
             </span>
-            <span className="text-xs font-mono text-slate-500">
+            <span className="text-xs font-mono text-slate-400">
               Updated for 2026 E-Commerce
             </span>
           </div>
@@ -239,34 +239,34 @@ export default function BlogIndexPage() {
             {filteredPosts.map((post) => (
               <article
                 key={post.id || post.slug}
-                className="card-lift rounded-2xl border border-[#1e293b] bg-[#131d31] p-6 flex flex-col justify-between space-y-4 hover:border-orange-500/40 transition group shadow-sm"
+                className="card-lift rounded-2xl border border-slate-200 bg-white p-6 flex flex-col justify-between space-y-4 hover:border-orange-500/40 transition group shadow-sm shadow-slate-200/50"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-[11px] font-mono">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700/80">
+                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                       {post.category}
                     </span>
-                    <span className="text-slate-500">
+                    <span className="text-slate-400">
                       {post.reading_time || "5 min read"}
                     </span>
                   </div>
 
                   <Link href={`/blog/${post.slug}`}>
-                    <h3 className="text-base font-bold text-slate-100 group-hover:text-orange-400 transition line-clamp-2 leading-snug">
+                    <h3 className="text-base font-bold text-slate-900 group-hover:text-orange-600 transition line-clamp-2 leading-snug">
                       {post.title}
                     </h3>
                   </Link>
 
-                  <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed">
+                  <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">
                     {post.excerpt}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#1e293b] flex items-center justify-between text-[11px] font-mono text-slate-500">
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-500">
                   <span>{new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                   <Link
                     href={`/blog/${post.slug}`}
-                    className="font-bold text-orange-400 hover:text-orange-300 flex items-center gap-1 group/link"
+                    className="font-bold text-orange-600 hover:text-orange-500 flex items-center gap-1 group/link"
                   >
                     <span>Read Guide</span>
                     <span className="group-hover/link:translate-x-1 transition-transform">→</span>
@@ -278,25 +278,25 @@ export default function BlogIndexPage() {
         </div>
 
         {/* Inbound Conversion Box */}
-        <section className="rounded-2xl border border-orange-500/30 bg-gradient-to-r from-orange-950/25 via-[#131d31] to-[#131d31] p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
+        <section className="rounded-3xl border border-orange-200 bg-gradient-to-r from-orange-50 via-white to-orange-50/50 p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-slate-200/50">
           <div className="space-y-2 max-w-xl text-center sm:text-left">
-            <h3 className="text-xl sm:text-2xl font-black text-slate-50 tracking-tight">
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               Automate your warehouse fulfillment today.
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               Start with 100 free orders per month. Connect your private Steadfast keys and scan barcodes using mobile cameras.
             </p>
           </div>
           <div className="shrink-0 flex items-center gap-3">
             <Link
               href="/demo"
-              className="btn-tactile rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:text-white transition"
+              className="btn-tactile rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-700 transition"
             >
               Interactive Sandbox
             </Link>
             <Link
               href="/login"
-              className="btn-tactile rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm shadow-orange-600/30"
+              className="btn-tactile rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm shadow-orange-600/20"
             >
               Start Free Trial →
             </Link>
@@ -305,25 +305,25 @@ export default function BlogIndexPage() {
       </main>
 
       {/* ── FOOTER ───────────────────────────────────────────────── */}
-      <footer className="border-t border-[#1e293b] bg-[#0b1120] py-10 text-xs text-slate-500">
+      <footer className="border-t border-slate-200 bg-white py-10 text-xs text-slate-500">
         <div className="mx-auto max-w-7xl px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-slate-200">SmartInventory</span>
-            <span className="text-slate-700">·</span>
-            <span className="flex items-center gap-1.5 text-emerald-400 font-mono text-[11px]">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="font-bold text-slate-800">SmartInventory</span>
+            <span className="text-slate-300">·</span>
+            <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px]">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               All Systems Operational
             </span>
           </div>
 
-          <div className="flex items-center gap-6 text-slate-400">
-            <Link href="/" className="hover:text-slate-200 transition">Home</Link>
-            <Link href="/demo" className="hover:text-slate-200 transition">Sandbox</Link>
-            <Link href="/login" className="hover:text-slate-200 transition">Sign In</Link>
-            <Link href="/#pricing" className="hover:text-slate-200 transition">Pricing</Link>
+          <div className="flex items-center gap-6 text-slate-600">
+            <Link href="/" className="hover:text-slate-900 transition">Home</Link>
+            <Link href="/demo" className="hover:text-slate-900 transition">Sandbox</Link>
+            <Link href="/login" className="hover:text-slate-900 transition">Sign In</Link>
+            <Link href="/#pricing" className="hover:text-slate-900 transition">Pricing</Link>
           </div>
 
-          <div className="text-[11px] text-slate-600 font-mono">
+          <div className="text-[11px] text-slate-400 font-mono">
             © 2026 SmartInventory SaaS. 256-Bit SSL Encrypted.
           </div>
         </div>

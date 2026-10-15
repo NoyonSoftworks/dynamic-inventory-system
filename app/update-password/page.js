@@ -44,10 +44,10 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-[#0b1120] text-slate-100 font-sans antialiased px-4 py-12 selection:bg-orange-500 selection:text-white">
+    <main className="relative flex min-h-screen items-center justify-center bg-slate-50 text-slate-900 font-sans antialiased px-4 py-12 selection:bg-orange-500 selection:text-white">
       {/* ── Subtle Geometric Background Dot Grid ───────────── */}
       <div
-        className="absolute inset-0 -z-10 opacity-[0.03]"
+        className="absolute inset-0 -z-10 opacity-[0.04]"
         style={{
           backgroundImage: "radial-gradient(#ea580c 1px, transparent 1px)",
           backgroundSize: "24px 24px",
@@ -56,32 +56,32 @@ export default function UpdatePasswordPage() {
 
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-600/10 border border-orange-500/20 text-orange-400 shadow-sm">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-600 text-white shadow-md shadow-orange-600/20">
             <span className="text-2xl">🔐</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Update Password
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Secure your SmartInventory account with a new password
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-3xl border border-[#1e293b] bg-[#131d31] p-7 sm:p-8 shadow-xl space-y-5"
+          className="rounded-3xl border border-slate-200/80 bg-white p-7 sm:p-8 shadow-xl shadow-slate-200/50 space-y-5"
         >
           {error && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-300">
-              <span className="mt-0.5 shrink-0 text-rose-400">
+            <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-800">
+              <span className="mt-0.5 shrink-0 text-rose-500">
                 <ErrorIcon />
               </span>
               <p className="leading-relaxed font-medium">{error}</p>
             </div>
           )}
           {message && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-300">
-              <span className="mt-0.5 shrink-0 text-emerald-400">
+            <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-800">
+              <span className="mt-0.5 shrink-0 text-emerald-600">
                 <CheckIcon />
               </span>
               <p className="leading-relaxed font-medium">{message}</p>
@@ -89,11 +89,11 @@ export default function UpdatePasswordPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
               New Password
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <LockIcon />
               </span>
               <input
@@ -104,12 +104,12 @@ export default function UpdatePasswordPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="block w-full rounded-xl border border-[#1e293b] bg-[#0b1120] py-2.5 pl-11 pr-12 text-sm text-slate-100 placeholder:text-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
+                className="block w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-11 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-slate-300 transition"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:text-slate-600 transition"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -118,11 +118,11 @@ export default function UpdatePasswordPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
               Confirm New Password
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
                 <LockIcon />
               </span>
               <input
@@ -133,7 +133,7 @@ export default function UpdatePasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="block w-full rounded-xl border border-[#1e293b] bg-[#0b1120] py-2.5 pl-11 pr-12 text-sm text-slate-100 placeholder:text-slate-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
+                className="block w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-11 pr-12 text-sm text-slate-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition"
               />
             </div>
           </div>

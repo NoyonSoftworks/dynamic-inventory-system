@@ -42,7 +42,7 @@ export default function BlogLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b1120] text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-white antialiased">
+    <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] flex flex-col font-sans selection:bg-orange-500 selection:text-white antialiased">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

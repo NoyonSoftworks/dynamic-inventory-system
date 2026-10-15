@@ -343,11 +343,11 @@ export default function SuperAdminDashboard() {
   // ── 1. LOADING SCREEN ──────────────────────────────────────
   if (authChecking) {
     return (
-      <main className="min-h-screen bg-[#0b1120] flex flex-col items-center justify-center p-4 text-slate-300 font-sans">
+      <main className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4 text-slate-700 font-sans">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
           <div className="text-center space-y-1">
-            <p className="text-sm font-bold text-white tracking-wide">
+            <p className="text-sm font-bold text-slate-900 tracking-wide">
               Authenticating Super Admin Clearance…
             </p>
             <p className="text-xs text-slate-500 font-mono">
@@ -362,45 +362,45 @@ export default function SuperAdminDashboard() {
   // ── 2. ACCESS DENIED SCREEN (403 FORBIDDEN) ────────────────
   if (!isAuthorized) {
     return (
-      <main className="min-h-screen bg-[#0b1120] flex items-center justify-center p-4 sm:p-6 font-sans">
-        <div className="max-w-md w-full rounded-3xl bg-[#131d31] border border-slate-800 p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
+      <main className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 sm:p-6 font-sans">
+        <div className="max-w-md w-full rounded-3xl bg-white border border-slate-200 p-8 shadow-xl text-center space-y-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-orange-500 to-rose-600" />
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 shadow-inner">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 shadow-inner">
             <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-rose-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-ping" />
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-rose-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
               403 Access Denied
             </div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               Platform Owner Restricted
             </h1>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               This master control plane is reserved strictly for the SaaS platform owner.
               Your current account does not have super admin authorization.
             </p>
           </div>
-          <div className="rounded-xl bg-[#0b1120] border border-slate-800 p-3.5 text-left text-xs font-mono space-y-1">
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 text-left text-xs font-mono space-y-1">
             <div className="text-[10px] text-slate-500 uppercase tracking-wider">
               Signed in account:
             </div>
-            <div className="text-slate-300 font-bold truncate">
+            <div className="text-slate-800 font-bold truncate">
               {currentUserEmail || "Anonymous"}
             </div>
           </div>
           <div className="pt-2 flex flex-col gap-2.5">
             <Link
               href="/dashboard/products"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition"
             >
               <span>← Return to Merchant Dashboard</span>
             </Link>
             <Link
               href="/login"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition"
             >
               <span>Sign In as Platform Owner</span>
             </Link>
@@ -428,18 +428,18 @@ export default function SuperAdminDashboard() {
     (summary.totalOrders || 0) > 0 ? summary.totalOrders : 1;
 
   return (
-    <main className="min-h-screen bg-[#0b1120] text-slate-100 py-8 px-4 sm:px-6 lg:px-8 selection:bg-orange-500 selection:text-white font-sans">
+    <main className="min-h-screen bg-[#f8fafc] text-[#0f172a] py-8 px-4 sm:px-6 lg:px-8 selection:bg-orange-500 selection:text-white font-sans">
       {/* ── Toast Notification ─────────────────────────────────── */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-900/95 px-5 py-3.5 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-5 py-3.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
           <span
             className={`h-2.5 w-2.5 rounded-full ${
               toastMessage.type === "success"
-                ? "bg-emerald-400 shadow-sm shadow-emerald-400"
+                ? "bg-emerald-500 shadow-sm shadow-emerald-500"
                 : "bg-rose-500 shadow-sm shadow-rose-500"
             }`}
           />
-          <p className="text-sm font-medium text-slate-100">
+          <p className="text-sm font-medium text-slate-800">
             {toastMessage.text}
           </p>
         </div>
@@ -447,25 +447,25 @@ export default function SuperAdminDashboard() {
 
       <div className="mx-auto max-w-7xl space-y-8">
         {/* ── TOP EXECUTIVE HEADER ───────────────────────────────── */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800/80 pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-6">
           <div>
             <div className="flex items-center gap-2.5 mb-1.5">
               <span className="flex h-2.5 w-2.5 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500" />
               </span>
-              <span className="text-[11px] font-mono uppercase tracking-widest text-orange-400 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-orange-700 font-bold bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full">
                 Platform Control Plane · Super Administrator
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-              <svg className="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
+              <svg className="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               <span>{process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory"} Admin Console</span>
             </h1>
-            <p className="mt-1 text-xs text-slate-400">
-              Authenticated session: <code className="text-orange-400 font-mono">{currentUserEmail}</code>
+            <p className="mt-1 text-xs text-slate-500">
+              Authenticated session: <code className="text-orange-700 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded font-mono font-semibold">{currentUserEmail}</code>
             </p>
           </div>
 
@@ -479,9 +479,9 @@ export default function SuperAdminDashboard() {
             <button
               onClick={handleManualRefresh}
               disabled={refreshing || loading}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition disabled:opacity-50"
             >
-              <svg className={`w-3.5 h-3.5 text-slate-400 ${refreshing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={`w-3.5 h-3.5 text-slate-500 ${refreshing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               <span>{refreshing ? "Syncing…" : "Sync"}</span>
@@ -489,7 +489,7 @@ export default function SuperAdminDashboard() {
 
             <Link
               href="/dashboard/billing"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 px-3 py-1.5 text-xs font-semibold btn-tactile transition"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 hover:bg-orange-100 px-3 py-1.5 text-xs font-semibold btn-tactile transition"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -499,7 +499,7 @@ export default function SuperAdminDashboard() {
 
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-rose-950/60 hover:text-rose-400 hover:border-rose-800/60 border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition"
               title="Log out of Super Admin"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -511,14 +511,14 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* ── TIER-1 TAB NAVIGATION ──────────────────────────────── */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-slate-900/90 border border-slate-800 w-fit backdrop-blur-xl">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-slate-200/70 border border-slate-200/80 w-fit">
           <button
             type="button"
             onClick={() => setActiveTab("overview")}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "overview"
                 ? "bg-orange-600 text-white shadow-xs btn-tactile"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -533,7 +533,7 @@ export default function SuperAdminDashboard() {
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "pricing"
                 ? "bg-orange-600 text-white shadow-xs btn-tactile"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -548,7 +548,7 @@ export default function SuperAdminDashboard() {
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "payments"
                 ? "bg-orange-600 text-white shadow-xs btn-tactile"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -556,7 +556,7 @@ export default function SuperAdminDashboard() {
             </svg>
             <span>Payment Gateways</span>
             {(saasSettings.sslcommerz_store_id || saasSettings.stripe_public_key) && (
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             )}
           </button>
 
@@ -566,7 +566,7 @@ export default function SuperAdminDashboard() {
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "integrations"
                 ? "bg-orange-600 text-white shadow-xs btn-tactile"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -581,7 +581,7 @@ export default function SuperAdminDashboard() {
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "footprints"
                 ? "bg-orange-600 text-white shadow-xs btn-tactile"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -589,7 +589,7 @@ export default function SuperAdminDashboard() {
             </svg>
             <span>Activity Logs</span>
             {activityLogs.length > 0 && (
-              <span className="rounded-full bg-orange-500/20 px-1.5 py-0.2 text-[10px] font-mono text-orange-300">
+              <span className="rounded-full bg-orange-100 px-1.5 py-0.2 text-[10px] font-mono text-orange-700 font-bold border border-orange-200">
                 {activityLogs.length}
               </span>
             )}
@@ -601,7 +601,7 @@ export default function SuperAdminDashboard() {
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "tasks"
                 ? "bg-orange-600 text-white shadow-xs btn-tactile"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -616,7 +616,7 @@ export default function SuperAdminDashboard() {
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "blog"
                 ? "bg-orange-600 text-white shadow-xs btn-tactile"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -628,14 +628,14 @@ export default function SuperAdminDashboard() {
 
         {/* ── ERROR BANNER ───────────────────────────────────────── */}
         {error && (
-          <div className="rounded-xl border border-rose-900/60 bg-rose-950/40 p-4 text-xs text-rose-300 flex items-center justify-between">
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span>⚠️</span>
               <span>{error}</span>
             </div>
             <button
               onClick={handleManualRefresh}
-              className="font-bold underline hover:text-rose-200"
+              className="font-bold underline hover:text-rose-900"
             >
               Retry
             </button>
@@ -649,99 +649,99 @@ export default function SuperAdminDashboard() {
           <div className="space-y-8 animate-in fade-in duration-300">
             {/* Top Metric Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="rounded-2xl bg-[#131d31] border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 card-lift transition">
+              <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs relative overflow-hidden group hover:border-slate-300 card-lift transition">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Active Tenants
                   </span>
-                  <span className="rounded-lg bg-orange-500/10 border border-orange-500/20 p-2 text-orange-400 text-sm">
+                  <span className="rounded-lg bg-orange-50 border border-orange-200 p-2 text-orange-600 text-sm">
                     🏢
                   </span>
                 </div>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-white font-mono">
+                  <div className="text-3xl font-black text-slate-900 font-mono">
                     {loading ? "…" : summary.totalTenants}
                   </div>
-                  <span className="text-[11px] text-slate-400">client stores</span>
+                  <span className="text-[11px] text-slate-500">client stores</span>
                 </div>
-                <p className="mt-2 text-[11px] text-slate-400">
+                <p className="mt-2 text-[11px] text-slate-500">
                   Isolated multi-tenant SaaS accounts
                 </p>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-orange-700 opacity-60" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-500 opacity-80" />
               </div>
 
-              <div className="rounded-2xl bg-[#131d31] border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 card-lift transition">
+              <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs relative overflow-hidden group hover:border-slate-300 card-lift transition">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Global Catalog SKUs
                   </span>
-                  <span className="rounded-lg bg-teal-500/10 border border-teal-500/20 p-2 text-teal-400 text-sm">
+                  <span className="rounded-lg bg-teal-50 border border-teal-200 p-2 text-teal-600 text-sm">
                     📦
                   </span>
                 </div>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-white font-mono">
+                  <div className="text-3xl font-black text-slate-900 font-mono">
                     {loading ? "…" : summary.totalSkus.toLocaleString()}
                   </div>
-                  <span className="text-[11px] text-slate-400">products</span>
+                  <span className="text-[11px] text-slate-500">products</span>
                 </div>
-                <p className="mt-2 text-[11px] text-slate-400">
+                <p className="mt-2 text-[11px] text-slate-500">
                   Serialized unique barcodes across stores
                 </p>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-teal-700 opacity-60" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-teal-700 opacity-80" />
               </div>
 
-              <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+              <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs relative overflow-hidden group hover:border-slate-300 card-lift transition">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Processed Orders
                   </span>
-                  <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2 text-emerald-400 text-sm">
+                  <span className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-emerald-600 text-sm">
                     🚚
                   </span>
                 </div>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-emerald-400 font-mono">
+                  <div className="text-3xl font-black text-emerald-600 font-mono">
                     {loading ? "…" : summary.totalOrders.toLocaleString()}
                   </div>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-slate-500">
                     ({summary.totalDispatched} Dispatched)
                   </span>
                 </div>
-                <p className="mt-2 text-[11px] text-slate-400">
+                <p className="mt-2 text-[11px] text-slate-500">
                   Total GMV: ৳{summary.totalRevenue.toLocaleString()}
                 </p>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-60" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-80" />
               </div>
 
-              <div className="rounded-2xl bg-slate-900/90 border border-emerald-500/30 p-5 shadow-xl relative overflow-hidden group hover:border-emerald-500/50 transition">
+              <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs relative overflow-hidden group hover:border-slate-300 card-lift transition">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Inbound Webhook Streams
                   </span>
-                  <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2 text-emerald-400 text-sm">
+                  <span className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-emerald-600 text-sm">
                     ⚡
                   </span>
                 </div>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-white font-mono">
+                  <div className="text-3xl font-black text-slate-900 font-mono">
                     {loading ? "…" : summary.totalWebhookHits}
                   </div>
-                  <span className="text-[11px] text-emerald-400 font-mono font-bold">
+                  <span className="text-[11px] text-emerald-700 font-mono font-bold">
                     Calls Routed
                   </span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-300">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-600">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>Operational Uptime (99.98% SLA)</span>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
               </div>
             </div>
 
             {/* Courier Distribution Breakdown */}
-            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 shadow-xl space-y-4">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+            <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs space-y-4">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
                 🚚 Multi-Courier Delivery Distribution
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -750,15 +750,15 @@ export default function SuperAdminDashboard() {
                   return (
                     <div
                       key={courier}
-                      className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-1"
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-1"
                     >
-                      <div className="text-xs font-bold text-slate-300">
+                      <div className="text-xs font-bold text-slate-700">
                         {courier}
                       </div>
-                      <div className="text-xl font-black text-white font-mono">
+                      <div className="text-xl font-black text-slate-900 font-mono">
                         {count}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-slate-500">
                         {pct}% share
                       </div>
                     </div>
@@ -768,21 +768,21 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Active Tenants Management Table */}
-            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl overflow-hidden">
-              <div className="p-6 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
+              <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <span>🏢</span> Client Workspaces ({tenants.length})
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Isolated databases, merchant credentials, and active subscription status.
                   </p>
                 </div>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-800 text-left text-xs font-mono">
-                  <thead className="bg-slate-950 text-slate-400 uppercase">
+                <table className="min-w-full divide-y divide-slate-200 text-left text-xs font-mono">
+                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 text-[11px]">
                     <tr>
                       <th className="px-6 py-3.5 font-bold">Store Name</th>
                       <th className="px-6 py-3.5 font-bold">Owner Email</th>
@@ -792,32 +792,32 @@ export default function SuperAdminDashboard() {
                       <th className="px-6 py-3.5 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
-                    <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
+                  <tbody className="divide-y divide-slate-100 bg-white">
                     {tenants.map((t) => (
-                      <tr key={t.id} className="hover:bg-slate-800/40 transition">
-                        <td className="px-6 py-4 font-bold text-white font-sans">
+                      <tr key={t.id} className="hover:bg-slate-50/70 transition">
+                        <td className="px-6 py-4 font-bold text-slate-900 font-sans">
                           {t.name}
                         </td>
-                        <td className="px-6 py-4 text-slate-300">{t.ownerEmail}</td>
-                        <td className="px-6 py-4 text-orange-400 font-bold font-mono">
+                        <td className="px-6 py-4 text-slate-600">{t.ownerEmail}</td>
+                        <td className="px-6 py-4 text-orange-700 font-bold font-mono">
                           {t.skuCount}
                         </td>
-                        <td className="px-6 py-4 text-emerald-400 font-bold font-mono">
+                        <td className="px-6 py-4 text-emerald-700 font-bold font-mono">
                           {t.orderCount}
                         </td>
                         <td className="px-6 py-4 font-sans">
                           <span
                             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                               t.status === "Active"
-                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                                : "bg-rose-500/10 text-rose-400 border border-rose-500/30"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-rose-50 text-rose-700 border border-rose-200"
                             }`}
                           >
                             <span
                               className={`h-1.5 w-1.5 rounded-full ${
                                 t.status === "Active"
-                                  ? "bg-emerald-400"
-                                  : "bg-rose-400"
+                                  ? "bg-emerald-500"
+                                  : "bg-rose-500"
                               }`}
                             />
                             {t.status}
@@ -828,14 +828,14 @@ export default function SuperAdminDashboard() {
                             <button
                               type="button"
                               onClick={() => toggleTenantStatus(t.id)}
-                              className="rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition"
+                              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition"
                             >
                               {t.status === "Active" ? "Suspend" : "Activate"}
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteTenant(t.id, t.name)}
-                              className="rounded-lg border border-rose-900/60 bg-rose-950/40 px-2.5 py-1 text-[11px] font-semibold text-rose-300 hover:bg-rose-900/80 transition"
+                              className="rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 transition"
                             >
                               Purge
                             </button>
@@ -849,13 +849,13 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Live Order Telemetry Feed */}
-            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 shadow-xl space-y-4">
+            <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     <span>📡</span> Live Order Stream
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     Real-time cross-tenant order activity and courier dispatch status.
                   </p>
                 </div>
@@ -864,45 +864,45 @@ export default function SuperAdminDashboard() {
                   value={filterQuery}
                   onChange={(e) => setFilterQuery(e.target.value)}
                   placeholder="Filter customer, phone, courier…"
-                  className="rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none w-full sm:w-64 transition"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none w-full sm:w-64 transition"
                 />
               </div>
 
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-800 text-left text-xs font-mono">
-                  <thead className="bg-slate-950 text-slate-400 uppercase">
+                <table className="min-w-full divide-y divide-slate-200 text-left text-xs font-mono">
+                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 text-[11px]">
                     <tr>
-                      <th className="px-4 py-3">Order</th>
-                      <th className="px-4 py-3">Store</th>
-                      <th className="px-4 py-3">Customer</th>
-                      <th className="px-4 py-3">Courier</th>
-                      <th className="px-4 py-3">Amount</th>
-                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 font-bold">Order</th>
+                      <th className="px-4 py-3 font-bold">Store</th>
+                      <th className="px-4 py-3 font-bold">Customer</th>
+                      <th className="px-4 py-3 font-bold">Courier</th>
+                      <th className="px-4 py-3 font-bold">Amount</th>
+                      <th className="px-4 py-3 font-bold">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-sans">
+                  <tbody className="divide-y divide-slate-100 font-sans">
                     {filteredOrders.slice(0, 10).map((ord) => (
-                      <tr key={ord.id} className="hover:bg-slate-800/30">
-                        <td className="px-4 py-3 font-mono text-teal-400 font-bold">
+                      <tr key={ord.id} className="hover:bg-slate-50/70">
+                        <td className="px-4 py-3 font-mono text-teal-700 font-bold">
                           #{ord.id}
                         </td>
-                        <td className="px-4 py-3 text-slate-300 font-medium">
+                        <td className="px-4 py-3 text-slate-700 font-medium">
                           {ord.storeName}
                         </td>
-                        <td className="px-4 py-3 text-white">
-                          <div>{ord.customer_name}</div>
-                          <div className="text-[10px] text-slate-400 font-mono">
+                        <td className="px-4 py-3 text-slate-900">
+                          <div className="font-medium">{ord.customer_name}</div>
+                          <div className="text-[10px] text-slate-500 font-mono">
                             {ord.customer_phone}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-slate-300">
+                        <td className="px-4 py-3 text-slate-600">
                           {ord.courier || "—"}
                         </td>
-                        <td className="px-4 py-3 font-mono text-emerald-400 font-bold">
+                        <td className="px-4 py-3 font-mono text-emerald-700 font-bold">
                           ৳{Number(ord.total_amount || 0).toLocaleString()}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex rounded-full bg-slate-800 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
+                          <span className="inline-flex rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
                             {ord.status || "PENDING"}
                           </span>
                         </td>
@@ -922,15 +922,15 @@ export default function SuperAdminDashboard() {
           <div className="space-y-8 animate-in fade-in duration-300">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Form Card */}
-              <div className="lg:col-span-7 rounded-3xl border border-slate-800 bg-[#131d31] p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+              <div className="lg:col-span-7 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-400">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
                     💎 Dynamic Pricing Engine
                   </span>
-                  <h2 className="mt-2 text-2xl font-black text-white tracking-tight">
+                  <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
                     SaaS Subscription &amp; Tier Controls
                   </h2>
-                  <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                  <p className="mt-1 text-xs text-slate-500 leading-relaxed">
                     Update subscription pricing and free monthly order allowances in real-time.
                     Changes take effect across the dynamic client billing page instantly without server redeployment.
                   </p>
@@ -939,7 +939,7 @@ export default function SuperAdminDashboard() {
                 <div className="space-y-5 pt-2">
                   {/* Pro Plan Monthly Price */}
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       Pro Plan Monthly Price (USD $)
                     </label>
                     <div className="relative">
@@ -957,18 +957,18 @@ export default function SuperAdminDashboard() {
                             pro_plan_price: parseFloat(e.target.value) || 0,
                           }))
                         }
-                        className="block w-full rounded-2xl border border-slate-800 bg-[#0b1120] pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition"
+                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 pl-8 pr-4 py-3 text-sm text-slate-900 font-mono font-bold focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
                         placeholder="49.00"
                       />
                     </div>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-500">
                       The monthly recurring fee billed to upgraded merchant stores.
                     </p>
                   </div>
 
                   {/* Free Monthly Order Quota */}
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       Free Tier Monthly Order Allowance
                     </label>
                     <div className="relative">
@@ -982,18 +982,18 @@ export default function SuperAdminDashboard() {
                             free_order_limit: parseInt(e.target.value, 10) || 1,
                           }))
                         }
-                        className="block w-full rounded-2xl border border-slate-800 bg-[#0b1120] px-4 py-3 text-sm text-white font-mono font-bold focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition"
+                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 font-mono font-bold focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
                         placeholder="100"
                       />
                     </div>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-500">
                       Number of dispatched orders allowed per calendar month before upgrade warning.
                     </p>
                   </div>
 
                   {/* Multi-Currency Mode Controller */}
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       Platform Currency Mode
                     </label>
                     <div className="grid grid-cols-3 gap-2.5">
@@ -1013,8 +1013,8 @@ export default function SuperAdminDashboard() {
                           }
                           className={`rounded-2xl border p-3 text-left transition ${
                             saasSettings.currency_mode === item.id
-                              ? "border-orange-500 bg-orange-950/40 text-white shadow-md shadow-orange-500/20"
-                              : "border-slate-800 bg-[#0b1120] text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                              ? "border-orange-500 bg-orange-50 text-orange-950 font-bold shadow-xs"
+                              : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white"
                           }`}
                         >
                           <div className="text-xs font-bold">{item.label}</div>
@@ -1026,7 +1026,7 @@ export default function SuperAdminDashboard() {
 
                   {/* BDT Exchange Rate */}
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       USD to BDT Exchange Rate (৳ per $1 USD)
                     </label>
                     <div className="relative">
@@ -1044,25 +1044,25 @@ export default function SuperAdminDashboard() {
                             bdt_exchange_rate: parseFloat(e.target.value) || 122.0,
                           }))
                         }
-                        className="block w-full rounded-2xl border border-slate-800 bg-[#0b1120] pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition"
+                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 pl-8 pr-4 py-3 text-sm text-slate-900 font-mono font-bold focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
                         placeholder="122.00"
                       />
                     </div>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-500">
                       Used for real-time conversion across the landing page and SSLCommerz BDT checkouts.
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400">
-                    Saved dynamically in <code className="text-slate-300">saas_settings</code>
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-500">
+                    Saved dynamically in <code className="text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded font-mono">saas_settings</code>
                   </span>
                   <button
                     type="button"
                     onClick={() => handleSaveSettings("Pricing & Currency")}
                     disabled={savingSettings || settingsLoading}
-                    className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50"
                   >
                     {savingSettings ? "Saving…" : "Save Pricing & Currency"}
                   </button>
@@ -1070,63 +1070,63 @@ export default function SuperAdminDashboard() {
               </div>
 
               {/* Live Preview Card */}
-              <div className="lg:col-span-5 rounded-3xl border border-slate-800 bg-[#131d31] p-6 sm:p-7 shadow-2xl space-y-6 relative overflow-hidden">
+              <div className="lg:col-span-5 rounded-3xl border border-slate-200 bg-slate-50/80 p-6 sm:p-7 shadow-xs space-y-6 relative overflow-hidden">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-orange-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-orange-700 bg-orange-100/70 border border-orange-200 px-2.5 py-0.5 rounded-md font-mono">
                     Live Client View Preview
                   </span>
-                  <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
+                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
                     Mode: {saasSettings.currency_mode || "AUTO"}
                   </span>
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-xl font-black text-white">Pro Enterprise Plan</h3>
+                  <h3 className="text-xl font-black text-slate-900">Pro Enterprise Plan</h3>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl font-black text-white font-mono">
+                      <span className="text-4xl font-black text-slate-900 font-mono">
                         ${Number(saasSettings.pro_plan_price).toFixed(2)}
                       </span>
-                      <span className="text-xs text-slate-400 font-medium">/ month (USD)</span>
+                      <span className="text-xs text-slate-500 font-medium">/ month (USD)</span>
                     </div>
-                    <div className="flex items-baseline gap-1.5 text-emerald-400 font-mono font-bold text-lg">
+                    <div className="flex items-baseline gap-1.5 text-emerald-700 font-mono font-bold text-lg">
                       <span>৳{Math.round(Number(saasSettings.pro_plan_price || 0) * Number(saasSettings.bdt_exchange_rate || 122)).toLocaleString()}</span>
-                      <span className="text-xs text-slate-400 font-normal">/ month (BDT)</span>
+                      <span className="text-xs text-slate-500 font-normal">/ month (BDT)</span>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     Full warehouse automation, unlimited orders, and automated multi-carrier dispatch.
                   </p>
                 </div>
 
                 {/* Quota Indicator Preview */}
-                <div className="rounded-2xl border border-slate-800 bg-[#0b1120] p-4 space-y-2.5">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5 shadow-2xs">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Free Monthly Quota:</span>
-                    <span className="font-mono font-bold text-white">
+                    <span className="text-slate-600 font-medium">Free Monthly Quota:</span>
+                    <span className="font-mono font-bold text-slate-900">
                       {saasSettings.free_order_limit} Orders / mo
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-slate-150 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-orange-500 to-teal-400"
+                      className="h-full bg-gradient-to-r from-orange-500 to-teal-500"
                       style={{ width: "45%" }}
                     />
                   </div>
-                  <div className="text-[10px] text-slate-400 text-right">
+                  <div className="text-[10px] text-slate-500 text-right">
                     Clients will see this usage gauge on /dashboard/billing
                   </div>
                 </div>
 
-                <div className="space-y-2 text-xs text-slate-300">
+                <div className="space-y-2 text-xs text-slate-700">
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-400">✓</span> Unlimited order volume past {saasSettings.free_order_limit}
+                    <span className="text-emerald-600 font-bold">✓</span> Unlimited order volume past {saasSettings.free_order_limit}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-400">✓</span> Automated WhatsApp &amp; SMS tracking alerts
+                    <span className="text-emerald-600 font-bold">✓</span> Automated WhatsApp &amp; SMS tracking alerts
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-400">✓</span> Multi-user warehouse role permissions
+                    <span className="text-emerald-600 font-bold">✓</span> Multi-user warehouse role permissions
                   </div>
                 </div>
               </div>
@@ -1139,16 +1139,16 @@ export default function SuperAdminDashboard() {
         {/* ========================================================= */}
         {activeTab === "payments" && (
           <div className="space-y-8 animate-in fade-in duration-300">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
                     💳 Multi-Gateway Payment Rails
                   </span>
-                  <h2 className="mt-2 text-2xl font-black text-white tracking-tight">
+                  <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
                     Payment Gateway Configurations
                   </h2>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-500">
                     Manage SSLCommerz (bKash, Nagad, Rocket, Bangladeshi Cards) and Stripe (Global &amp; International Cards).
                   </p>
                 </div>
@@ -1157,20 +1157,20 @@ export default function SuperAdminDashboard() {
                   type="button"
                   onClick={() => handleSaveSettings("Payment Gateways")}
                   disabled={savingSettings || settingsLoading}
-                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 transition disabled:opacity-50 self-start sm:self-auto"
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 btn-tactile transition disabled:opacity-50 self-start sm:self-auto"
                 >
                   {savingSettings ? "Saving…" : "Save Gateway Credentials"}
                 </button>
               </div>
 
               {/* Currency Rails Selector */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <span className="text-base">💱</span>
-                    <h3 className="text-sm font-bold text-white">Default Currency Mode</h3>
+                    <h3 className="text-sm font-bold text-slate-900">Default Currency Mode</h3>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     Controls whether clients checkout in BDT (SSLCommerz) or USD (Stripe).
                   </p>
                 </div>
@@ -1192,8 +1192,8 @@ export default function SuperAdminDashboard() {
                       }
                       className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition ${
                         (saasSettings.currency_mode || "AUTO").toUpperCase() === mode
-                          ? "bg-orange-600 text-white shadow-md shadow-orange-600/20 btn-tactile"
-                          : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                          ? "bg-orange-600 text-white shadow-xs btn-tactile"
+                          : "bg-white text-slate-700 hover:text-slate-900 border border-slate-200"
                       }`}
                     >
                       {label}
@@ -1204,15 +1204,15 @@ export default function SuperAdminDashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-2">
                 {/* SSLCommerz Card */}
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-6 space-y-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-lg">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-lg">
                         🇧🇩
                       </span>
                       <div>
-                        <h3 className="text-base font-bold text-white">SSLCommerz Gateway</h3>
-                        <p className="text-[11px] text-slate-400">Local MFS &amp; Bangladesh Cards</p>
+                        <h3 className="text-base font-bold text-slate-900">SSLCommerz Gateway</h3>
+                        <p className="text-[11px] text-slate-500">Local MFS &amp; Bangladesh Cards</p>
                       </div>
                     </div>
 
@@ -1220,9 +1220,9 @@ export default function SuperAdminDashboard() {
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
                         saasSettings.sslcommerz_store_id
                           ? saasSettings.sslcommerz_is_live
-                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                            : "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                          : "bg-slate-800 text-slate-400 border-slate-700"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
+                          : "bg-slate-100 text-slate-600 border-slate-200"
                       }`}
                     >
                       {saasSettings.sslcommerz_store_id
@@ -1234,10 +1234,10 @@ export default function SuperAdminDashboard() {
                   </div>
 
                   {/* Mode Toggle */}
-                  <div className="flex items-center justify-between rounded-xl bg-slate-900 border border-slate-800 p-3">
+                  <div className="flex items-center justify-between rounded-xl bg-white border border-slate-200 p-3 shadow-2xs">
                     <div>
-                      <div className="text-xs font-bold text-white">Environment Mode</div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-xs font-bold text-slate-900">Environment Mode</div>
+                      <div className="text-[10px] text-slate-500">
                         {saasSettings.sslcommerz_is_live
                           ? "Using securepay.sslcommerz.com"
                           : "Using sandbox.sslcommerz.com"}
@@ -1251,7 +1251,7 @@ export default function SuperAdminDashboard() {
                           sslcommerz_is_live: !prev.sslcommerz_is_live,
                         }))
                       }
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold btn-tactile transition ${
                         saasSettings.sslcommerz_is_live
                           ? "bg-emerald-600 text-white"
                           : "bg-amber-600 text-white"
@@ -1263,7 +1263,7 @@ export default function SuperAdminDashboard() {
 
                   {/* Store ID */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       SSLCommerz Store ID
                     </label>
                     <input
@@ -1276,20 +1276,20 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. lavan64a938c..."
-                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 font-mono focus:border-orange-500 focus:outline-none transition shadow-2xs"
                     />
                   </div>
 
                   {/* Store Password */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                         Store Password / Secret Key
                       </label>
                       <button
                         type="button"
                         onClick={() => setShowSslPasswd(!showSslPasswd)}
-                        className="text-[10px] text-orange-400 hover:text-orange-300 font-mono"
+                        className="text-[10px] text-orange-600 hover:text-orange-700 font-mono font-semibold"
                       >
                         {showSslPasswd ? "Hide" : "Show"}
                       </button>
@@ -1304,14 +1304,14 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="Store password from SSLCommerz"
-                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 font-mono focus:border-orange-500 focus:outline-none transition shadow-2xs"
                     />
                   </div>
 
                   {/* IPN URL Guide */}
-                  <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-3 text-[11px] space-y-1 text-slate-400">
-                    <div className="font-bold text-slate-300">Instant Payment Notification (IPN) URL:</div>
-                    <code className="text-emerald-400 font-mono text-[10px] block break-all">
+                  <div className="rounded-xl border border-slate-200 bg-white p-3 text-[11px] space-y-1 text-slate-600 shadow-2xs">
+                    <div className="font-bold text-slate-800">Instant Payment Notification (IPN) URL:</div>
+                    <code className="text-emerald-700 font-mono text-[10px] block break-all font-semibold">
                       https://your-domain.com/api/payment/sslcommerz/ipn
                     </code>
                     <p className="text-[10px] text-slate-500 pt-0.5">
@@ -1321,23 +1321,23 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {/* Stripe Card */}
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 space-y-5">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-6 space-y-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 text-lg">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 border border-teal-200 text-teal-600 text-lg">
                         🌐
                       </span>
                       <div>
-                        <h3 className="text-base font-bold text-white">Stripe Payments</h3>
-                        <p className="text-[11px] text-slate-400">Global Credit &amp; Debit Cards</p>
+                        <h3 className="text-base font-bold text-slate-900">Stripe Payments</h3>
+                        <p className="text-[11px] text-slate-500">Global Credit &amp; Debit Cards</p>
                       </div>
                     </div>
 
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
                         saasSettings.stripe_public_key
-                          ? "bg-teal-500/10 text-teal-400 border-teal-500/30"
-                          : "bg-slate-800 text-slate-400 border-slate-700"
+                          ? "bg-teal-50 text-teal-700 border-teal-200"
+                          : "bg-slate-100 text-slate-600 border-slate-200"
                       }`}
                     >
                       {saasSettings.stripe_public_key ? "● Ready" : "Not Configured"}
@@ -1346,7 +1346,7 @@ export default function SuperAdminDashboard() {
 
                   {/* Stripe Public Key */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       Stripe Publishable Key
                     </label>
                     <input
@@ -1359,20 +1359,20 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="pk_live_... or pk_test_..."
-                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 font-mono focus:border-orange-500 focus:outline-none transition shadow-2xs"
                     />
                   </div>
 
                   {/* Stripe Secret Key */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                         Stripe Secret Key
                       </label>
                       <button
                         type="button"
                         onClick={() => setShowStripeSecret(!showStripeSecret)}
-                        className="text-[10px] text-orange-400 hover:text-orange-300 font-mono"
+                        className="text-[10px] text-orange-600 hover:text-orange-700 font-mono font-semibold"
                       >
                         {showStripeSecret ? "Hide" : "Show"}
                       </button>
@@ -1387,18 +1387,18 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="sk_live_... or sk_test_..."
-                      className="block w-full rounded-xl border border-slate-800 bg-slate-900 px-3.5 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 font-mono focus:border-orange-500 focus:outline-none transition shadow-2xs"
                     />
                   </div>
 
                   {/* Webhook Guide */}
-                  <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-3 text-[11px] space-y-1 text-slate-400">
-                    <div className="font-bold text-slate-300">Stripe Webhook Endpoint:</div>
-                    <code className="text-teal-400 font-mono text-[10px] block break-all">
+                  <div className="rounded-xl border border-slate-200 bg-white p-3 text-[11px] space-y-1 text-slate-600 shadow-2xs">
+                    <div className="font-bold text-slate-800">Stripe Webhook Endpoint:</div>
+                    <code className="text-teal-700 font-mono text-[10px] block break-all font-semibold">
                       https://your-domain.com/api/payment/stripe/webhook
                     </code>
                     <p className="text-[10px] text-slate-500 pt-0.5">
-                      Listens for <span className="font-mono text-slate-400">checkout.session.completed</span> with cryptographic signature verification.
+                      Listens for <span className="font-mono text-slate-700">checkout.session.completed</span> with cryptographic signature verification.
                     </p>
                   </div>
                 </div>
@@ -1414,17 +1414,17 @@ export default function SuperAdminDashboard() {
           <div className="space-y-8 animate-in fade-in duration-300">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* WhatsApp Gateway Settings */}
-              <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xl">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-xl">
                       💬
                     </span>
                     <div>
-                      <h3 className="text-lg font-bold text-white">
+                      <h3 className="text-lg font-bold text-slate-900">
                         WhatsApp Gateway Configuration
                       </h3>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-500">
                         Supports GreenAPI, UltraMsg, Twilio, or generic webhook.
                       </p>
                     </div>
@@ -1434,7 +1434,7 @@ export default function SuperAdminDashboard() {
                 <div className="space-y-4 pt-1">
                   {/* WhatsApp API URL */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       WhatsApp Gateway Base URL
                     </label>
                     <input
@@ -1447,17 +1447,17 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="https://api.green-api.com"
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
-                    <p className="text-[10px] text-slate-400">
-                      e.g., <code className="text-slate-300">https://api.green-api.com</code> or{" "}
-                      <code className="text-slate-300">https://api.ultramsg.com</code>
+                    <p className="text-[10px] text-slate-500">
+                      e.g., <code className="text-slate-700">https://api.green-api.com</code> or{" "}
+                      <code className="text-slate-700">https://api.ultramsg.com</code>
                     </p>
                   </div>
 
                   {/* Instance ID */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       Instance ID / Account ID
                     </label>
                     <input
@@ -1470,20 +1470,20 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. 7103859201"
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
                   {/* WhatsApp Token */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                         API Token / Secret Key
                       </label>
                       <button
                         type="button"
                         onClick={() => setShowWhatsappToken(!showWhatsappToken)}
-                        className="text-[10px] text-orange-400 hover:text-orange-300 font-mono"
+                        className="text-[10px] text-orange-600 hover:text-orange-700 font-mono font-semibold"
                       >
                         {showWhatsappToken ? "Hide" : "Show"}
                       </button>
@@ -1498,17 +1498,17 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. 9b8c2d1e4f..."
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-800 flex items-center justify-end">
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
                   <button
                     type="button"
                     onClick={() => handleSaveSettings("WhatsApp credentials")}
                     disabled={savingSettings}
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 btn-tactile transition disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 btn-tactile transition disabled:opacity-50"
                   >
                     <span>💾</span>
                     <span>Save WhatsApp Config</span>
@@ -1517,17 +1517,17 @@ export default function SuperAdminDashboard() {
               </div>
 
               {/* Local SMS Gateway (BulkSMSBD) */}
-              <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xl">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 text-xl">
                       📱
                     </span>
                     <div>
-                      <h3 className="text-lg font-bold text-white">
+                      <h3 className="text-lg font-bold text-slate-900">
                         Local SMS Gateway (BulkSMSBD)
                       </h3>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-500">
                         Fast delivery across Grameenphone, Banglalink, Robi, Teletalk.
                       </p>
                     </div>
@@ -1538,13 +1538,13 @@ export default function SuperAdminDashboard() {
                   {/* SMS API Key */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                         BulkSMSBD API Key
                       </label>
                       <button
                         type="button"
                         onClick={() => setShowSmsApiKey(!showSmsApiKey)}
-                        className="text-[10px] text-orange-400 hover:text-orange-300 font-mono"
+                        className="text-[10px] text-orange-600 hover:text-orange-700 font-mono font-semibold"
                       >
                         {showSmsApiKey ? "Hide" : "Show"}
                       </button>
@@ -1559,13 +1559,13 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. 5x81n49..."
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
                   {/* Sender ID */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       Approved Sender ID (Mask)
                     </label>
                     <input
@@ -1578,13 +1578,13 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="e.g. 8809612345678 or SMARTINV"
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
 
                   {/* SMS Endpoint URL */}
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       SMS Gateway URL
                     </label>
                     <input
@@ -1597,17 +1597,17 @@ export default function SuperAdminDashboard() {
                         }))
                       }
                       placeholder="http://bulksmsbd.net/api/smsapi"
-                      className="block w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-xs text-white font-mono focus:border-orange-500 focus:outline-none transition"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-800 flex items-center justify-end">
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
                   <button
                     type="button"
                     onClick={() => handleSaveSettings("SMS credentials")}
                     disabled={savingSettings}
-                    className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50"
                   >
                     <span>💾</span>
                     <span>Save SMS Gateway Config</span>
@@ -1623,16 +1623,16 @@ export default function SuperAdminDashboard() {
         {/* ========================================================= */}
         {activeTab === "footprints" && (
           <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-xs font-semibold text-teal-400">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
                     🐾 Immutable Ledger
                   </span>
-                  <h2 className="mt-2 text-2xl font-black text-white tracking-tight">
+                  <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
                     Activity Footprints &amp; Audit Trail
                   </h2>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-500">
                     Tamper-evident logs of order dispatches, stock intake, configuration mutations, and staff interactions.
                   </p>
                 </div>
@@ -1642,7 +1642,7 @@ export default function SuperAdminDashboard() {
                     type="button"
                     onClick={fetchActivityLogs}
                     disabled={logsLoading}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition disabled:opacity-50"
                   >
                     <span className={logsLoading ? "animate-spin" : ""}>🔄</span>
                     <span>{logsLoading ? "Syncing Logs…" : "Refresh Footprints"}</span>
@@ -1668,8 +1668,8 @@ export default function SuperAdminDashboard() {
                       onClick={() => setLogFilterAction(pill.id)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                         logFilterAction === pill.id
-                          ? "bg-orange-600 text-white shadow-md shadow-orange-600/20 btn-tactile"
-                          : "bg-slate-950/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800"
+                          ? "bg-orange-600 text-white shadow-xs btn-tactile"
+                          : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 border border-slate-200"
                       }`}
                     >
                       {pill.label}
@@ -1679,7 +1679,7 @@ export default function SuperAdminDashboard() {
 
                 {/* Search Box */}
                 <div className="relative w-full md:w-72">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 text-xs">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs">
                     🔍
                   </span>
                   <input
@@ -1687,13 +1687,13 @@ export default function SuperAdminDashboard() {
                     value={logSearchQuery}
                     onChange={(e) => setLogSearchQuery(e.target.value)}
                     placeholder="Search logs, email, IP..."
-                    className="block w-full rounded-xl border border-slate-800 bg-slate-950 pl-8 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none transition"
+                    className="block w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:outline-none transition"
                   />
                   {logSearchQuery && (
                     <button
                       type="button"
                       onClick={() => setLogSearchQuery("")}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 text-xs"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 text-xs"
                     >
                       ✕
                     </button>
@@ -1702,10 +1702,10 @@ export default function SuperAdminDashboard() {
               </div>
 
               {/* Logs Table */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+              <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-300">
-                    <thead className="bg-slate-900/90 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800 font-mono">
+                  <table className="w-full text-left text-xs text-slate-700">
+                    <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200 font-mono font-bold">
                       <tr>
                         <th className="px-4 py-3">Timestamp</th>
                         <th className="px-4 py-3">Action Type</th>
@@ -1715,7 +1715,7 @@ export default function SuperAdminDashboard() {
                         <th className="px-4 py-3 text-right">Context</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60 font-sans">
+                    <tbody className="divide-y divide-slate-100 font-sans">
                       {activityLogs
                         .filter((log) => {
                           const matchesAction =
@@ -1739,30 +1739,30 @@ export default function SuperAdminDashboard() {
                             Object.keys(log.metadata).length > 0;
 
                           let badgeClass =
-                            "bg-slate-800 text-slate-300 border-slate-700";
+                            "bg-slate-100 text-slate-700 border-slate-200";
                           if (log.action_type === "ORDER_DISPATCHED") {
                             badgeClass =
-                              "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+                              "bg-emerald-50 text-emerald-700 border-emerald-200";
                           } else if (log.action_type === "SETTINGS_UPDATED") {
                             badgeClass =
-                              "bg-orange-500/10 text-orange-400 border-orange-500/30";
+                              "bg-orange-50 text-orange-700 border-orange-200";
                           } else if (log.action_type === "PRODUCT_CREATED") {
                             badgeClass =
-                              "bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
+                              "bg-cyan-50 text-cyan-700 border-cyan-200";
                           } else if (log.action_type === "BULK_IMPORT") {
                             badgeClass =
-                              "bg-purple-500/10 text-purple-400 border-purple-500/30";
+                              "bg-purple-50 text-purple-700 border-purple-200";
                           } else if (log.action_type === "COURIER_CONFIGURED") {
                             badgeClass =
-                              "bg-sky-500/10 text-sky-400 border-sky-500/30";
+                              "bg-sky-50 text-sky-700 border-sky-200";
                           }
 
                           return (
                             <tr
                               key={log.id}
-                              className="hover:bg-slate-900/50 transition group"
+                              className="hover:bg-slate-50/70 transition group"
                             >
-                              <td className="px-4 py-3 whitespace-nowrap font-mono text-[11px] text-slate-400">
+                              <td className="px-4 py-3 whitespace-nowrap font-mono text-[11px] text-slate-500">
                                 {new Date(log.created_at).toLocaleDateString([], {
                                   month: "short",
                                   day: "numeric",
@@ -1781,7 +1781,7 @@ export default function SuperAdminDashboard() {
                                 </span>
                               </td>
 
-                              <td className="px-4 py-3 font-medium text-slate-200 max-w-xs md:max-w-md truncate">
+                              <td className="px-4 py-3 font-medium text-slate-900 max-w-xs md:max-w-md truncate">
                                 <div>{log.details}</div>
                                 {isExpanded && hasMetadata && (
                                   <pre className="mt-2 rounded-xl bg-slate-900 p-2.5 font-mono text-[10px] text-emerald-400 overflow-x-auto border border-slate-800">
@@ -1791,7 +1791,7 @@ export default function SuperAdminDashboard() {
                               </td>
 
                               <td className="px-4 py-3 whitespace-nowrap">
-                                <div className="text-slate-200 font-medium">
+                                <div className="text-slate-900 font-medium">
                                   {log.user_email || "System Service"}
                                 </div>
                                 <div className="text-[10px] text-slate-500 font-mono">
@@ -1799,7 +1799,7 @@ export default function SuperAdminDashboard() {
                                 </div>
                               </td>
 
-                              <td className="px-4 py-3 whitespace-nowrap font-mono text-[10px] text-slate-400">
+                              <td className="px-4 py-3 whitespace-nowrap font-mono text-[10px] text-slate-500">
                                 {log.business_id ===
                                 "00000000-0000-0000-0000-000000000001"
                                   ? "Platform Master"
@@ -1817,12 +1817,12 @@ export default function SuperAdminDashboard() {
                                         isExpanded ? null : log.id
                                       )
                                     }
-                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2 py-1 text-[10px] font-mono text-orange-400 hover:text-orange-300 hover:border-slate-700 transition"
+                                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-mono text-orange-600 hover:text-orange-700 hover:bg-orange-50 shadow-2xs transition"
                                   >
                                     <span>{isExpanded ? "▲ Hide" : "▼ Payload"}</span>
                                   </button>
                                 ) : (
-                                  <span className="text-[10px] text-slate-600 font-mono">
+                                  <span className="text-[10px] text-slate-400 font-mono">
                                     –
                                   </span>
                                 )}
@@ -1839,7 +1839,7 @@ export default function SuperAdminDashboard() {
                           >
                             <span className="text-2xl block mb-2">🐾</span>
                             No activity footprints found.
-                            <div className="mt-1 text-[11px] text-slate-600">
+                            <div className="mt-1 text-[11px] text-slate-400">
                               As actions (orders, dispatches, settings changes) take place, they will stream here live.
                             </div>
                           </td>

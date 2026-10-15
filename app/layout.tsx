@@ -13,17 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory SaaS",
-  description: "Enterprise multi-tenant inventory & logistics orchestration system",
+  title: process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory — Inventory & Automated Courier Fulfillment OS",
+  description: "Enterprise multi-tenant warehouse inventory & logistics orchestration system with smartphone barcode scanning, 1-click Steadfast courier dispatch, and automated WhatsApp delivery tracking.",
+  authors: [{ name: "Noyon Hossain", url: "https://smartinventory.io" }],
+  creator: "Noyon Hossain",
+  publisher: "SmartInventory",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#09090b] text-[#fafafa] selection:bg-indigo-600 selection:text-white font-sans">
+      <body className="min-h-full flex flex-col bg-[#f8fafc] text-[#0f172a] selection:bg-orange-500 selection:text-white font-sans">
         {children}
       </body>
     </html>
