@@ -20,34 +20,6 @@ export default function SuperAdminDashboard() {
   const [authChecking, setAuthChecking] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
-  const [adminLoginLoading, setAdminLoginLoading] = useState(false);
-
-  async function handleQuickAdminLogin() {
-    try {
-      setAdminLoginLoading(true);
-      const res = await fetch("/api/auth/quick-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: "admin" }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Admin authentication failed.");
-      }
-      if (json.session) {
-        await supabase.auth.setSession({
-          access_token: json.session.access_token,
-          refresh_token: json.session.refresh_token,
-        });
-        document.cookie = `sb-access-token=${json.session.access_token}; path=/; max-age=${json.session.expires_in}; SameSite=Lax`;
-        document.cookie = `sb-refresh-token=${json.session.refresh_token}; path=/; max-age=${json.session.expires_in}; SameSite=Lax`;
-      }
-      window.location.reload();
-    } catch (err) {
-      alert(err.message || "Admin login error.");
-      setAdminLoginLoading(false);
-    }
-  }
 
   // ── Active Navigation Tab: 'overview' | 'pricing' | 'integrations'
   const [activeTab, setActiveTab] = useState("overview");
@@ -420,26 +392,17 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
           <div className="pt-2 flex flex-col gap-2.5">
-            <button
-              type="button"
-              onClick={handleQuickAdminLogin}
-              disabled={adminLoginLoading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition cursor-pointer disabled:opacity-50"
-            >
-              {adminLoginLoading ? (
-                <>
-                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  <span>Authenticating Platform Owner…</span>
-                </>
-              ) : (
-                <>
-                  <span>⚡</span>
-                  <span>1-Click Authenticate as Platform Owner</span>
-                </>
-              )}
-            </button>
             <Link
-              href="/dashboard/products"
+              href="/login?redirect=/admin"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              <span>Sign in with Platform Owner Credentials</span>
+            </Link>
+            <Link
+              href="/dashboard"
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition"
             >
               <span>← Go to Merchant Dashboard</span>
@@ -840,10 +803,10 @@ export default function SuperAdminDashboard() {
                         </td>
                         <td className="px-6 py-4 text-slate-600">{t.ownerEmail}</td>
                         <td className="px-6 py-4 text-orange-700 font-bold font-mono">
-                          {t.skuCount}
+                          {t.skuCount ?? t.totalSkus ?? 0}
                         </td>
                         <td className="px-6 py-4 text-emerald-700 font-bold font-mono">
-                          {t.orderCount}
+                          {t.orderCount ?? t.totalOrders ?? 0}
                         </td>
                         <td className="px-6 py-4 font-sans">
                           <span

@@ -137,6 +137,8 @@ export async function GET(request) {
         status: "Active",
         totalSkus: bizProds.length,
         totalOrders: bizOrders.length,
+        skuCount: bizProds.length,
+        orderCount: bizOrders.length,
         dispatchedOrders: bizDispatched.length,
         pendingOrders: bizOrders.filter((o) => o.status === "PENDING_DISPATCH").length,
         connectedCouriers: uniqueCouriers.length > 0 ? uniqueCouriers : ["None"],

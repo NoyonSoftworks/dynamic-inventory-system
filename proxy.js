@@ -27,7 +27,7 @@ const PUBLIC_ROUTE_PREFIXES = [
   "/login",
   "/register",
   "/auth",
-  "/api/auth",
+  "/api/auth/business-context",
   "/api/admin/settings",
 ];
 
@@ -139,11 +139,6 @@ export async function proxy(request) {
 
   // 7. Enforce Redirect to Login for Unauthenticated Access to Protected Routes
   if (!currentUser) {
-    // If accessing /admin, allow pass-through to app/admin/page.js
-    // app/admin/page.js has its own strict client-side session guard and 403 access control
-    if (isAdminRoute) {
-      return NextResponse.next();
-    }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

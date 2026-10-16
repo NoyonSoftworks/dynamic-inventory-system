@@ -27,40 +27,6 @@ export default function LoginPage() {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [quickLoginRole, setQuickLoginRole] = useState(null);
-
-  async function handleQuickLogin(targetRole) {
-    try {
-      setQuickLoginRole(targetRole);
-      setError(null);
-      setMessage(null);
-
-      const res = await fetch("/api/auth/quick-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: targetRole }),
-      });
-
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Quick login failed.");
-      }
-
-      if (json.session) {
-        await supabase.auth.setSession({
-          access_token: json.session.access_token,
-          refresh_token: json.session.refresh_token,
-        });
-        setAuthCookies(json.session);
-      }
-
-      window.location.href = json.redirect || (targetRole === "admin" ? "/admin" : "/dashboard/products");
-    } catch (err) {
-      setError(err.message || "Failed to sign in. Please try again.");
-    } finally {
-      setQuickLoginRole(null);
-    }
-  }
 
   const ADMIN_EMAIL = (
     process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
@@ -394,59 +360,6 @@ export default function LoginPage() {
                 <CheckIcon />
               </span>
               <p className="leading-relaxed font-medium">{message}</p>
-            </div>
-          )}
-
-          {/* ── 1-CLICK INSTANT DEMO & ADMIN ACCESS ────────────────── */}
-          {view === VIEW.SIGN_IN && (
-            <div className="rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50/80 via-white to-orange-50/40 p-4 shadow-2xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-orange-800 flex items-center gap-1.5">
-                  <span>⚡</span> 1-Click Fast Access
-                </span>
-                <span className="text-[10px] font-mono text-slate-500">Zero Password Needed</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin("admin")}
-                  disabled={Boolean(quickLoginRole) || loading}
-                  className="btn-tactile flex flex-col items-start p-2.5 rounded-xl border border-orange-300 bg-white hover:bg-orange-600 hover:text-white text-slate-900 transition shadow-2xs group cursor-pointer disabled:opacity-50 text-left"
-                >
-                  <div className="flex items-center gap-1.5 w-full">
-                    <span className="h-2 w-2 rounded-full bg-orange-600 group-hover:bg-white" />
-                    <span className="text-xs font-bold font-sans">
-                      {quickLoginRole === "admin" ? "Authenticating…" : "Platform Owner"}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 group-hover:text-orange-100 font-mono truncate w-full mt-0.5">
-                    Noyon Hossain (/admin)
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin("merchant")}
-                  disabled={Boolean(quickLoginRole) || loading}
-                  className="btn-tactile flex flex-col items-start p-2.5 rounded-xl border border-teal-300 bg-white hover:bg-teal-600 hover:text-white text-slate-900 transition shadow-2xs group cursor-pointer disabled:opacity-50 text-left"
-                >
-                  <div className="flex items-center gap-1.5 w-full">
-                    <span className="h-2 w-2 rounded-full bg-teal-600 group-hover:bg-white" />
-                    <span className="text-xs font-bold font-sans">
-                      {quickLoginRole === "merchant" ? "Authenticating…" : "Merchant Store"}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 group-hover:text-teal-100 font-mono truncate w-full mt-0.5">
-                    Demo Store (/dashboard)
-                  </span>
-                </button>
-              </div>
-
-              <div className="pt-0.5 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                <span>Pass: <code className="text-slate-600 bg-white px-1 py-0.5 rounded border border-slate-200">Password@12345</code></span>
-                <span>Auto-Configured</span>
-              </div>
             </div>
           )}
 

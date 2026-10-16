@@ -3,10 +3,16 @@ import { createClient, createAdminClient } from "@/utils/supabase/server";
 
 export async function GET(request) {
   try {
-    const supabase = await createClient();
-    let {
-      data: { user },
-    } = await supabase.auth.getUser();
+    let supabase = null;
+    let user = null;
+
+    try {
+      supabase = await createClient();
+      const authRes = await supabase.auth.getUser();
+      user = authRes.data?.user || null;
+    } catch (e) {
+      // In static prerender pass or when cookies() is unavailable
+    }
 
     if (!user) {
       const authHeader = request.headers.get("authorization");
