@@ -100,88 +100,33 @@ export default function AddProductPage() {
     setLoading(true);
 
     try {
-      // 2. Insert product into 'products' table
-      const productPayload = {
-        name: trimmedName,
-        category: trimmedCategory,
-        base_sku: formattedSku,
-        price: parsedPrice,
-      };
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (businessId) {
-        productPayload.business_id = businessId;
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token
+            ? `Bearer ${session.access_token}`
+            : "",
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          category: trimmedCategory,
+          base_sku: formattedSku,
+          price: parsedPrice,
+          quantity: parsedQty,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to create product record.");
       }
 
-      let { data: product, error: productErr } = await supabase
-        .from("products")
-        .insert(productPayload)
-        .select()
-        .single();
-
-      // Fallback: If products table does not have business_id column, retry without it
-      if (productErr && productErr.message?.includes("business_id")) {
-        delete productPayload.business_id;
-        const retryRes = await supabase
-          .from("products")
-          .insert(productPayload)
-          .select()
-          .single();
-        product = retryRes.data;
-        productErr = retryRes.error;
-      }
-
-      if (productErr || !product) {
-        throw new Error(productErr?.message || "Failed to create product record.");
-      }
-
-      // 3. Generate unique barcodes in memory
-      const inventoryRows = [];
-      const usedBarcodes = new Set();
-
-      for (let i = 0; i < parsedQty; i++) {
-        let uniqueBarcode;
-        do {
-          uniqueBarcode = `${formattedSku}-${generateRandomCode(5)}`;
-        } while (usedBarcodes.has(uniqueBarcode));
-
-        usedBarcodes.add(uniqueBarcode);
-
-        const itemRow = {
-          product_id: product.id,
-          unique_barcode: uniqueBarcode,
-          status: "IN_STOCK",
-        };
-
-        if (businessId) {
-          itemRow.business_id = businessId;
-        }
-
-        inventoryRows.push(itemRow);
-      }
-
-      // 4. Bulk insert into 'inventory_items' table
-      let { error: itemsErr } = await supabase
-        .from("inventory_items")
-        .insert(inventoryRows);
-
-      // Fallback: If inventory_items table does not have business_id column, retry without it
-      if (itemsErr && itemsErr.message?.includes("business_id")) {
-        const strippedRows = inventoryRows.map((row) => ({
-          product_id: row.product_id,
-          unique_barcode: row.unique_barcode,
-          status: row.status,
-        }));
-        const retryItems = await supabase
-          .from("inventory_items")
-          .insert(strippedRows);
-        itemsErr = retryItems.error;
-      }
-
-      if (itemsErr) {
-        throw new Error(
-          `Product created (ID: ${product.id}), but failed to generate inventory barcodes: ${itemsErr.message}`
-        );
-      }
+      const product = json.product;
 
       // 5. Success State & Summary
       triggerToast(
@@ -194,7 +139,7 @@ export default function AddProductPage() {
         name: trimmedName,
         baseSku: formattedSku,
         quantity: parsedQty,
-        sampleBarcodes: Array.from(usedBarcodes).slice(0, 8),
+        sampleBarcodes: sampleBarcodes,
       });
 
       // Reset form fields

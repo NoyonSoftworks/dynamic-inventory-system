@@ -63,25 +63,7 @@ body {
   box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
 }
 
-/* 3D Perspective & Isometric Utilities */
-.perspective-1000 {
-  perspective: 1000px;
-}
-.perspective-1200 {
-  perspective: 1200px;
-}
-.preserve-3d {
-  transform-style: preserve-3d;
-}
-
-.rotate-3d-card {
-  transform: perspective(1200px) rotateX(4deg) rotateY(-2deg);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
-}
-.rotate-3d-card:hover {
-  transform: perspective(1200px) rotateX(0deg) rotateY(0deg) translateY(-4px);
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12);
-}
+/* Laser Scan Animation for Barcode Scanner Viewfinder */
 
 /* Laser Scan Animation for Barcode Scanner */
 @keyframes laserSweep {
@@ -125,4 +107,25 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Infinite Horizontal Marquee Animation for Courier & Partner Logos */
+@keyframes marqueeSlide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-infinite {
+  display: flex;
+  width: max-content;
+  animation: marqueeSlide 26s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-infinite:hover {
+  animation-play-state: paused;
 }

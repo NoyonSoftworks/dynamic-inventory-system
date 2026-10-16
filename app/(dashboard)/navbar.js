@@ -19,6 +19,17 @@ const CORE_NAV_LINKS = [
     ),
   },
   {
+    href: "/dashboard/ai-hub",
+    label: "Profit & Automation",
+    badge: "AUTO",
+    roles: ["viewer", "operator", "admin"],
+    icon: (
+      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+  },
+  {
     href: "/dashboard/products",
     label: "Catalog",
     roles: ["viewer", "operator", "admin"],
@@ -196,6 +207,17 @@ export default function Navbar() {
                       {link.icon}
                     </span>
                     <span className="shrink-0">{link.label}</span>
+                    {link.badge && (
+                      <span
+                        className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold uppercase shrink-0 ${
+                          active
+                            ? "bg-white/25 text-white"
+                            : "bg-orange-100 text-orange-700"
+                        }`}
+                      >
+                        {link.badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -428,6 +450,17 @@ export default function Navbar() {
                     {link.icon}
                   </span>
                   <span>{link.label}</span>
+                  {link.badge && (
+                    <span
+                      className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold uppercase ml-auto ${
+                        active
+                          ? "bg-white/25 text-white"
+                          : "bg-orange-100 text-orange-700"
+                      }`}
+                    >
+                      {link.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}

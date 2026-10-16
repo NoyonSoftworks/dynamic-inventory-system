@@ -74,6 +74,85 @@ export default function InteractiveDemoPage() {
   });
   const [showNotificationToast, setShowNotificationToast] = useState(false);
 
+  // ── AI Sandbox RTO State ────────────────────────────────────
+  const [simRtoPhone, setSimRtoPhone] = useState("01700000000");
+  const [simRtoAddress, setSimRtoAddress] = useState("Dhaka mor, near school");
+  const [simRtoAmount, setSimRtoAmount] = useState(5500);
+  const [simRtoResult, setSimRtoResult] = useState(null);
+  const [simRtoAnalyzing, setSimRtoAnalyzing] = useState(false);
+
+  async function handleSimAnalyzeRto() {
+    try {
+      setSimRtoAnalyzing(true);
+      const res = await fetch("/api/ai/copilot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "rto_risk_analysis",
+          payload: {
+            phone: simRtoPhone,
+            address: simRtoAddress,
+            codAmount: simRtoAmount,
+            courier: "Steadfast",
+          },
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setSimRtoResult(data);
+          return;
+        }
+      }
+
+      // Demo fallback calculation if user is not signed in to a tenant workspace
+      const cleanPhone = String(simRtoPhone).replace(/[^0-9]/g, "");
+      const cleanAddress = String(simRtoAddress).trim();
+      const numAmount = Number(simRtoAmount) || 0;
+      let riskScore = 15;
+      const flags = [];
+      if (cleanPhone.length !== 11) {
+        riskScore += 35;
+        flags.push("Invalid phone length (must be 11 digits in Bangladesh).");
+      }
+      if (/(\d)\1{5,}/.test(cleanPhone)) {
+        riskScore += 40;
+        flags.push("Suspicious repeating digits detected in phone number.");
+      }
+      if (cleanAddress.length < 15) {
+        riskScore += 25;
+        flags.push("Vague or incomplete address line.");
+      }
+      if (numAmount > 5000) {
+        riskScore += 20;
+        flags.push(`High COD consignment value (৳${numAmount.toLocaleString()}) increases refusal probability.`);
+      }
+      const finalScore = Math.min(95, Math.max(10, riskScore));
+      const riskLevel = finalScore >= 60 ? "HIGH" : finalScore >= 35 ? "MEDIUM" : "LOW";
+      setSimRtoResult({
+        success: true,
+        riskScore: finalScore,
+        riskLevel,
+        recommendation:
+          finalScore >= 60
+            ? "DO NOT dispatch as COD directly. Collect delivery fee (৳130-৳150) in advance via bKash/Nagad before shipment."
+            : finalScore >= 35
+            ? "Call customer to confirm active delivery address and availability before handing over to courier."
+            : "Safe to dispatch via automated courier booking.",
+        advanceFeeRequired: finalScore >= 60,
+        flags:
+          flags.length > 0
+            ? flags
+            : ["Verified mobile operator prefix.", "Complete street delivery address."],
+        lossPrevention: `৳${(Math.round(numAmount * 0.12) + 130).toLocaleString()}`,
+      });
+    } catch (e) {
+      console.warn("RTO test note:", e);
+    } finally {
+      setSimRtoAnalyzing(false);
+    }
+  }
+
   // Audio Beep Synthesizer
   function playBeepSound() {
     try {
@@ -263,6 +342,24 @@ export default function InteractiveDemoPage() {
               }`}
             >
               3. Courier &amp; WhatsApp Alert
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("ai-copilot");
+                if (!simRtoResult) handleSimAnalyzeRto();
+              }}
+              className={`btn-tactile px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                activeTab === "ai-copilot"
+                  ? "bg-orange-600 text-white shadow-xs shadow-orange-600/20"
+                  : "bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <span>4. AI Return &amp; Fraud Guard</span>
+              <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${activeTab === "ai-copilot" ? "bg-white/20 text-white" : "bg-orange-100 text-orange-700"}`}>
+                AI
+              </span>
             </button>
           </div>
         </div>
@@ -655,6 +752,167 @@ export default function InteractiveDemoPage() {
                   Cash on Delivery: {activeCustomer.amount}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================= */}
+        {/* TAB 4: AI ANTI-RETURN RTO FRAUD GUARD SIMULATOR          */}
+        {/* ======================================================= */}
+        {activeTab === "ai-copilot" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-200">
+            {/* Input Simulator Panel */}
+            <div className="card-lift lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-orange-600 animate-pulse" />
+                  <h3 className="text-sm font-bold text-slate-900 uppercase font-mono">
+                    Pre-Dispatch Risk Evaluation
+                  </h3>
+                </div>
+                <span className="text-[11px] font-mono text-slate-400">Sandbox Test</span>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase font-mono text-slate-600 block mb-1">
+                  Recipient Phone (11-Digit BD)
+                </label>
+                <input
+                  type="text"
+                  value={simRtoPhone}
+                  onChange={(e) => setSimRtoPhone(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-mono text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase font-mono text-slate-600 block mb-1">
+                  Delivery Destination Address
+                </label>
+                <textarea
+                  rows={2}
+                  value={simRtoAddress}
+                  onChange={(e) => setSimRtoAddress(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase font-mono text-slate-600 block mb-1">
+                  COD Consignment Amount (৳)
+                </label>
+                <input
+                  type="number"
+                  value={simRtoAmount}
+                  onChange={(e) => setSimRtoAmount(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-mono text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSimAnalyzeRto}
+                disabled={simRtoAnalyzing}
+                className="w-full btn-tactile flex items-center justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white py-2.5 text-xs font-bold shadow-xs transition disabled:opacity-50 cursor-pointer"
+              >
+                {simRtoAnalyzing ? "Running Anti-Fraud AI Model…" : "Evaluate Consignment Return Risk"}
+              </button>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSimRtoPhone("01700000000");
+                    setSimRtoAddress("Dhaka mor, near school");
+                    setSimRtoAmount(7800);
+                  }}
+                  className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  Load High-Risk Sample
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSimRtoPhone("01712345678");
+                    setSimRtoAddress("House 12, Road 4, Sector 3, Uttara, Dhaka");
+                    setSimRtoAmount(1450);
+                  }}
+                  className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  Load Safe Sample
+                </button>
+              </div>
+            </div>
+
+            {/* Simulated Live Output */}
+            <div className="card-lift lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <span className="text-[11px] font-mono font-bold uppercase text-slate-400">
+                  AI Risk Prediction Verdict
+                </span>
+                {simRtoResult && (
+                  <span className="text-xl font-black font-mono text-slate-900">
+                    {simRtoResult.riskScore}/100 Risk
+                  </span>
+                )}
+              </div>
+
+              {simRtoResult ? (
+                <div className="space-y-4">
+                  <div
+                    className={`p-3.5 rounded-xl border ${
+                      simRtoResult.riskLevel === "HIGH"
+                        ? "bg-rose-50 border-rose-200 text-rose-900"
+                        : simRtoResult.riskLevel === "MEDIUM"
+                        ? "bg-amber-50 border-amber-200 text-amber-900"
+                        : "bg-emerald-50 border-emerald-200 text-emerald-900"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          simRtoResult.riskLevel === "HIGH"
+                            ? "bg-rose-500"
+                            : simRtoResult.riskLevel === "MEDIUM"
+                            ? "bg-amber-500"
+                            : "bg-emerald-500"
+                        }`}
+                      />
+                      <span className="text-xs font-bold font-mono uppercase">
+                        Verdict: {simRtoResult.riskLevel} RISK CONSIGNMENT
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium mt-1 leading-relaxed">
+                      {simRtoResult.recommendation}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-[11px] font-mono font-bold text-slate-500 block mb-1">
+                      Signal Vectors Detected:
+                    </span>
+                    <div className="space-y-1.5">
+                      {simRtoResult.flags?.map((f, i) => (
+                        <div key={i} className="text-xs p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 flex items-center gap-2">
+                          <span className="text-amber-500 font-bold">•</span>
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-xs text-orange-950 flex items-center justify-between">
+                    <span>Potential Return Courier Loss Avoided:</span>
+                    <span className="font-mono font-black text-emerald-700 text-sm">
+                      ৳{simRtoResult.estimatedLossPrevented}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-12 text-center text-slate-400 font-mono text-xs">
+                  Click &quot;Evaluate Consignment Return Risk&quot; to test algorithm.
+                </div>
+              )}
             </div>
           </div>
         )}

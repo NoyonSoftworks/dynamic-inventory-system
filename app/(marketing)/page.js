@@ -43,6 +43,67 @@ export default function MarketingLandingPage() {
   // ── FAQ Accordion State ──────────────────────────────────────
   const [openFaq, setOpenFaq] = useState(0);
 
+  // ── Hero Interactive Command Center State ─────────────────────
+  const [heroTab, setHeroTab] = useState("dispatch"); // "dispatch" | "telemetry" | "scanner"
+  const [heroDispatchedOrders, setHeroDispatchedOrders] = useState({});
+  const [heroLabelModalOrder, setHeroLabelModalOrder] = useState(null);
+  const [heroScannerStock, setHeroScannerStock] = useState(64);
+  const [heroScanningActive, setHeroScanningActive] = useState(false);
+  const [heroScanSuccess, setHeroScanSuccess] = useState(false);
+  const [heroSimulatedRtoSavings, setHeroSimulatedRtoSavings] = useState(false);
+
+  function handleHeroScan() {
+    if (heroScanningActive) return;
+    setHeroScanningActive(true);
+    setHeroScanSuccess(false);
+    setTimeout(() => {
+      playAudioBeep();
+      setHeroScanningActive(false);
+      setHeroScanSuccess(true);
+      setHeroScannerStock((prev) => Math.max(1, prev - 1));
+      setTimeout(() => setHeroScanSuccess(false), 2400);
+    }, 450);
+  }
+
+  function handleHeroDispatch(orderKey) {
+    setHeroDispatchedOrders((prev) => ({
+      ...prev,
+      [orderKey]: "booking",
+    }));
+    setTimeout(() => {
+      playAudioBeep();
+      setHeroDispatchedOrders((prev) => ({
+        ...prev,
+        [orderKey]: "booked",
+      }));
+    }, 400);
+  }
+
+  // ── Contact & Consultation Form State ─────────────────────────
+  const [contactName, setContactName] = useState("");
+  const [contactBiz, setContactBiz] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactVolume, setContactVolume] = useState("500 - 2,000 orders/mo");
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+
+  function handleContactSubmit(e) {
+    e.preventDefault();
+    if (!contactName.trim() || !contactPhone.trim()) return;
+    setContactSubmitting(true);
+    setTimeout(() => {
+      playAudioBeep();
+      setContactSubmitting(false);
+      setContactSubmitted(true);
+      setContactName("");
+      setContactBiz("");
+      setContactPhone("");
+      setContactMessage("");
+      setTimeout(() => setContactSubmitted(false), 8000);
+    }, 500);
+  }
+
   // ── Audio Beep Synthesizer ───────────────────────────────────
   function playAudioBeep() {
     try {
@@ -200,13 +261,13 @@ export default function MarketingLandingPage() {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-600">
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
+            <a href="#how-it-works" className="hover:text-orange-600 transition">How It Works</a>
             <a href="#features" className="hover:text-orange-600 transition">Features</a>
-            <a href="#simulator" className="hover:text-orange-600 transition">Interactive Terminal</a>
-            <a href="#roi" className="hover:text-orange-600 transition">ROI Calculator</a>
+            <a href="#simulator" className="hover:text-orange-600 transition">Terminal</a>
             <a href="#pricing" className="hover:text-orange-600 transition">Pricing</a>
-            <Link href="/blog" className="hover:text-orange-600 transition">Guides &amp; Blog</Link>
-            <a href="#faq" className="hover:text-orange-600 transition">FAQ</a>
+            <Link href="/blog" className="hover:text-orange-600 transition">Blog</Link>
+            <a href="#contact" className="hover:text-orange-600 transition">Contact</a>
             <Link
               href="/demo"
               className="text-orange-600 hover:text-orange-700 font-bold transition flex items-center gap-1.5 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200"
@@ -287,252 +348,684 @@ export default function MarketingLandingPage() {
         </div>
       </header>
 
-      {/* ── HERO SECTION WITH 3D DEPTH & PERSPECTIVE ─────────────── */}
-      <section className="relative z-10 pt-14 pb-16 sm:pt-20 sm:pb-24 overflow-hidden bg-gradient-to-b from-white via-slate-50 to-[#f8fafc]">
-        {/* Subtle Isometric Background Texture */}
-        <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px] opacity-40 pointer-events-none" />
+      {/* ── ENTERPRISE HERO SHOWCASE WITH LIVE WORKBENCH ────────── */}
+      <section className="relative z-10 pt-12 pb-16 sm:pt-16 sm:pb-24 bg-gradient-to-b from-white via-slate-50 to-[#f8fafc] border-b border-slate-200/80">
+        <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-10 sm:space-y-12">
+          {/* Top Column: Value Proposition & High-Trust Micro Signals */}
+          <div className="text-center max-w-4xl mx-auto space-y-6">
+            {/* Live Trust Micro-Signals Pill */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/90 bg-orange-50/90 px-4 py-1.5 text-xs font-semibold text-orange-900 shadow-2xs">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-mono text-[11px] sm:text-xs tracking-tight">
+                Sub-second Courier Webhooks · Zebra 4×6 Thermal Ready · Multi-Tenant RLS Secured
+              </span>
+            </div>
 
-        <div className="relative mx-auto max-w-5xl px-4 sm:px-8 text-center space-y-6">
-          {/* Trust Category Pill */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/80 px-4 py-1 text-xs font-semibold text-orange-700 shadow-2xs">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-            <span>Smart Camera Scanning · Steadfast Courier Sync · Automated WhatsApp</span>
+            {/* Commercial B2B Headline */}
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.12]">
+              Stop Courier Return Losses.<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600">
+                Automate Dispatches &amp; Unlock Trapped Cash.
+              </span>
+            </h1>
+
+            {/* High-Converting Subheading */}
+            <p className="mx-auto max-w-2xl text-xs sm:text-base text-slate-600 leading-relaxed font-normal">
+              The high-velocity warehouse operating system engineered for high-volume Bangladesh &amp; omnichannel merchants. Turn phone cameras into sub-second barcode scanners, auto-sync consignments with <strong>Steadfast &amp; Pathao</strong>, and eliminate fake COD delivery disputes with real-time RTO shielding.
+            </p>
+
+            {/* Action CTAs */}
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+              <Link
+                href={user ? "/dashboard/products" : "/login"}
+                className="btn-tactile inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-6 py-3.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/25 transition group"
+              >
+                <span>{user ? "Open Workspace Dashboard" : "Start 100-Order Free Trial"}</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </Link>
+
+              <Link
+                href="/demo"
+                className="btn-tactile inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-5 py-3.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-2xs transition"
+              >
+                <span>Test Live Interactive Sandbox →</span>
+              </Link>
+            </div>
+
+            {/* Key Assurance Micro-Badges */}
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-500 font-mono">
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                No laser scanner gun hardware needed
+              </span>
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                1-Click WhatsApp Delivery Alerts
+              </span>
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                PostgreSQL RLS Multi-Tenant Privacy
+              </span>
+            </div>
           </div>
 
-          {/* Punchy, Human Headline */}
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 leading-[1.12]">
-            High-precision inventory.<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600">
-              One-click courier dispatch.
-            </span>
-          </h1>
-
-          {/* Sober B2B Subheading */}
-          <p className="mx-auto max-w-2xl text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-            Turn any smartphone into a commercial barcode scanner gun. Sync consignments directly with <strong>Steadfast, Pathao &amp; RedX</strong>. Automatically update customers on WhatsApp with real-time tracking links.
-          </p>
-
-          {/* Action CTAs */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            <Link
-              href={user ? "/dashboard/products" : "/login"}
-              className="btn-tactile inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-6 py-3.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/25 transition group"
-            >
-              <span>{user ? "Open Workspace Dashboard" : "Start 100-Order Free Trial"}</span>
-              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-
-            <Link
-              href="/demo"
-              className="btn-tactile inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-5 py-3.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs transition"
-            >
-              <span>Explore Interactive Sandbox →</span>
-            </Link>
-          </div>
-
-          {/* Key Assurance Micro-Badges */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-500">
-            <span className="flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              No hardware scanner needed
-            </span>
-            <span className="flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              100% Free trial quota
-            </span>
-            <span className="flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              No credit card required
-            </span>
-          </div>
-        </div>
-
-        {/* ── 3D PERSPECTIVE HERO WINDOW (Interactive Depth Mockup) ── */}
-        <div className="mx-auto max-w-6xl px-4 sm:px-8 mt-12 sm:mt-16 perspective-1200">
-          <div className="rotate-3d-card relative rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 overflow-hidden transition-all duration-300">
-            {/* Window Browser Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-rose-400" />
-                <span className="h-3 w-3 rounded-full bg-amber-400" />
-                <span className="h-3 w-3 rounded-full bg-emerald-400" />
-                <span className="ml-3 font-mono text-[11px] text-slate-500 hidden sm:inline font-semibold">
-                  smartinventory.io/dashboard/dispatch
+          {/* ── INTERACTIVE LIVE COMMAND CENTER WORKBENCH ────────── */}
+          <div className="relative rounded-2xl border border-slate-200/90 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
+            {/* Workbench OS Window Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 bg-slate-900 px-4 py-3 text-white">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block" />
+                  <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block" />
+                  <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block" />
+                </div>
+                <div className="h-4 w-[1px] bg-slate-700 hidden sm:block" />
+                <span className="font-mono text-xs text-slate-300 font-bold hidden sm:inline">
+                  SmartInventory OS · Operational Workbench
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/80 px-2 py-0.5 text-emerald-400 font-mono text-[10px] font-bold border border-emerald-800">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Cluster Online
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-xs font-mono">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-emerald-700 font-semibold border border-emerald-200">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Central Hub: Online
-                </span>
-                <span className="text-slate-400 hidden sm:inline">280ms Camera WebAssembly</span>
+
+              {/* 3 Interactive Tab Switches */}
+              <div className="flex items-center gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 font-sans">
+                <button
+                  type="button"
+                  onClick={() => setHeroTab("dispatch")}
+                  className={`btn-tactile px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    heroTab === "dispatch"
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "text-slate-300 hover:text-white hover:bg-slate-700/60"
+                  }`}
+                >
+                  Live Dispatch &amp; RTO Shield
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHeroTab("telemetry")}
+                  className={`btn-tactile px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    heroTab === "telemetry"
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "text-slate-300 hover:text-white hover:bg-slate-700/60"
+                  }`}
+                >
+                  Net-Profit &amp; Runway
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHeroTab("scanner")}
+                  className={`btn-tactile px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    heroTab === "scanner"
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "text-slate-300 hover:text-white hover:bg-slate-700/60"
+                  }`}
+                >
+                  Phone Camera Scanner
+                </button>
               </div>
             </div>
 
-            {/* Mockup Dashboard Content */}
-            <div className="p-5 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-white">
-              {/* Product Card with Barcode */}
-              <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-slate-50/70 p-5 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="font-mono text-[11px] font-bold text-orange-700 bg-orange-100/80 border border-orange-200 px-2.5 py-0.5 rounded-md">
-                      SKU-CTG-8821-BLK
+            {/* ── TAB 1: LIVE DISPATCH & RTO SHIELD ───────────────── */}
+            {heroTab === "dispatch" && (
+              <div className="p-4 sm:p-6 space-y-4 bg-white animate-in fade-in duration-150">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-900 font-mono flex items-center gap-2">
+                      <span>Outbound Consignments Pending Courier Handoff</span>
+                      <span className="px-1.5 py-0.2 rounded bg-orange-100 text-orange-800 text-[10px]">
+                        3 Consignments
+                      </span>
                     </span>
-                    <h3 className="text-base font-bold text-slate-900 mt-2">
-                      Vintage Heavyweight Tee (Black / XL)
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Apparel &amp; Ready-Made Garments</p>
+                    <p className="text-[11px] text-slate-500">
+                      Real-time phone heuristic verification, Steadfast/Pathao 1-click booking, and Zebra 4×6 thermal preview.
+                    </p>
                   </div>
-                  <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-full border border-emerald-200">
-                    64 Units
-                  </span>
+                  <div className="flex items-center gap-2 font-mono text-[11px]">
+                    <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      Prevented RTO Loss: ৳14,400+
+                    </span>
+                  </div>
                 </div>
 
-                {/* 3D Simulated Barcode Label */}
-                <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col items-center justify-center space-y-2 relative overflow-hidden">
-                  <div className="absolute top-2 right-2 text-[10px] font-mono font-bold text-slate-400 uppercase">
-                    Code 128
-                  </div>
-                  <div className="flex items-center gap-[2px] h-12 pt-2">
-                    {[3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 3, 1, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 4, 2, 3, 1].map((w, i) => (
-                      <span
-                        key={i}
-                        className="bg-slate-900 h-full inline-block"
-                        style={{ width: `${w * 1.5}px` }}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-mono text-xs text-slate-700 tracking-widest font-bold">
-                    *SKU-CTG-8821-BLK*
-                  </span>
-                </div>
+                <div className="space-y-3">
+                  {/* Order Row 1: Verified Safe Order */}
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-slate-900">#ORD-9421</span>
+                        <span className="font-bold text-xs text-slate-800">Tariqul Islam</span>
+                        <span className="text-[11px] font-mono text-slate-500">01712-345678</span>
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-mono text-[10px] font-bold border border-emerald-200">
+                          ✓ Verified Buyer (98% Delivery)
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-600 flex flex-wrap items-center gap-3">
+                        <span>House 14, Road 8, Dhanmondi, Dhaka</span>
+                        <span className="text-slate-300">•</span>
+                        <span className="font-semibold text-slate-700">Vintage Heavyweight Tee (XL) × 2</span>
+                        <span className="text-slate-300">•</span>
+                        <span className="font-mono font-bold text-slate-900">COD: ৳2,500</span>
+                      </div>
+                    </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-                  <div className="p-3 rounded-xl bg-white border border-slate-200">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold">Retail Price</span>
-                    <div className="text-base font-bold text-slate-900 mt-0.5">
-                      {currency === "BDT" ? "৳1,450.00" : "$12.00"}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroLabelModalOrder({
+                            customer: "Tariqul Islam",
+                            phone: "01712-345678",
+                            address: "House 14, Road 8, Dhanmondi, Dhaka",
+                            cod: 2500,
+                            consignment: "SF-94821-BD",
+                            courier: "Steadfast Courier",
+                            sku: "SKU-CTG-8821-BLK",
+                            product: "Vintage Heavyweight Tee (Black / XL)",
+                          })
+                        }
+                        className="btn-tactile px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-mono font-semibold text-slate-700 shadow-2xs transition cursor-pointer"
+                      >
+                        4×6 Label Preview
+                      </button>
+
+                      {heroDispatchedOrders["ord-1"] === "booked" ? (
+                        <span className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 font-mono text-xs font-bold border border-emerald-200 flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                          SF-94821-BD Dispatched
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleHeroDispatch("ord-1")}
+                          disabled={heroDispatchedOrders["ord-1"] === "booking"}
+                          className="btn-tactile px-3.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-mono text-xs font-bold shadow-xs transition cursor-pointer"
+                        >
+                          {heroDispatchedOrders["ord-1"] === "booking"
+                            ? "Booking Steadfast API…"
+                            : "Book Steadfast API (1-Click)"}
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-white border border-slate-200">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold">Scan Verification</span>
-                    <div className="text-base font-bold text-emerald-600 mt-0.5">Verified ✓</div>
+
+                  {/* Order Row 2: Standard Order */}
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-slate-900">#ORD-9422</span>
+                        <span className="font-bold text-xs text-slate-800">Tamim Ahmed</span>
+                        <span className="text-[11px] font-mono text-slate-500">01819-876543</span>
+                        <span className="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 font-mono text-[10px] font-bold border border-teal-200">
+                          New Customer (Standard Check)
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-600 flex flex-wrap items-center gap-3">
+                        <span>GEC Circle, Nasirabad, Chattogram</span>
+                        <span className="text-slate-300">•</span>
+                        <span className="font-semibold text-slate-700">Oxford Formal Shirt (L) × 1</span>
+                        <span className="text-slate-300">•</span>
+                        <span className="font-mono font-bold text-slate-900">COD: ৳1,850</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHeroLabelModalOrder({
+                            customer: "Tamim Ahmed",
+                            phone: "01819-876543",
+                            address: "GEC Circle, Nasirabad, Chattogram",
+                            cod: 1850,
+                            consignment: "PT-88419-CTG",
+                            courier: "Pathao Express",
+                            sku: "SKU-OXF-WHT-L",
+                            product: "Oxford Formal Shirt (White / L)",
+                          })
+                        }
+                        className="btn-tactile px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-mono font-semibold text-slate-700 shadow-2xs transition cursor-pointer"
+                      >
+                        4×6 Label Preview
+                      </button>
+
+                      {heroDispatchedOrders["ord-2"] === "booked" ? (
+                        <span className="px-3 py-1.5 rounded-lg bg-teal-50 text-teal-800 font-mono text-xs font-bold border border-teal-200 flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-teal-500" />
+                          PT-88419-CTG Booked
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleHeroDispatch("ord-2")}
+                          disabled={heroDispatchedOrders["ord-2"] === "booking"}
+                          className="btn-tactile px-3.5 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-600 text-white font-mono text-xs font-bold shadow-xs transition cursor-pointer"
+                        >
+                          {heroDispatchedOrders["ord-2"] === "booking"
+                            ? "Connecting Pathao…"
+                            : "Book Pathao Express"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Order Row 3: High RTO Risk (Shielded) */}
+                  <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/40 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-rose-900">#ORD-9423</span>
+                        <span className="font-bold text-xs text-rose-900">Unverified Recipient</span>
+                        <span className="text-[11px] font-mono text-rose-600">01700-000000</span>
+                        <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-mono text-[10px] font-bold border border-rose-300">
+                          ⚠ High RTO Risk (78% Refusal)
+                        </span>
+                      </div>
+                      <div className="text-xs text-rose-800 flex flex-wrap items-center gap-3">
+                        <span>Vague Bazar Mor, Kurigram Sadar</span>
+                        <span className="text-rose-300">•</span>
+                        <span>High consignment COD: ৳6,200</span>
+                        <span className="text-rose-300">•</span>
+                        <span className="font-mono font-semibold">Dummy repeating digits detected</span>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-rose-700 bg-white px-3 py-1.5 rounded-lg border border-rose-200">
+                        Shield: Collect ৳150 Delivery Fee Advance
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Courier Consignment & WhatsApp Auto-Dispatch Card */}
-              <div className="lg:col-span-7 space-y-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-7 w-7 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
-                        SF
+                {/* Inline 4x6 Thermal Label Popover Modal */}
+                {heroLabelModalOrder && (
+                  <div className="p-5 rounded-xl border-2 border-dashed border-orange-300 bg-orange-50/40 space-y-3 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-orange-600" />
+                        <span className="font-mono text-xs font-bold text-slate-900 uppercase">
+                          4×6 Thermal Courier Label Simulation ({heroLabelModalOrder.courier})
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setHeroLabelModalOrder(null)}
+                        className="text-xs font-mono font-bold text-slate-500 hover:text-slate-900 underline cursor-pointer"
+                      >
+                        Close Preview ✕
+                      </button>
+                    </div>
+
+                    <div className="max-w-md mx-auto p-4 rounded-xl border-2 border-slate-900 bg-white font-mono text-xs space-y-3 shadow-md">
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="font-black text-sm">{APP_NAME} LOGISTICS</span>
+                        <span className="font-bold">{heroLabelModalOrder.courier}</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-900 block">Steadfast Courier API Sync</span>
-                        <span className="text-[10px] text-slate-500">Auto-consignment created in 240ms</span>
+                        <div className="text-[10px] text-slate-500 uppercase">Deliver To:</div>
+                        <div className="font-bold text-sm text-slate-900">{heroLabelModalOrder.customer}</div>
+                        <div>{heroLabelModalOrder.phone}</div>
+                        <div className="text-[11px] text-slate-600">{heroLabelModalOrder.address}</div>
+                      </div>
+                      <div className="p-2 bg-slate-100 rounded flex justify-between items-center">
+                        <span className="font-bold">CASH ON DELIVERY (COD):</span>
+                        <span className="font-black text-base text-slate-900">৳{heroLabelModalOrder.cod.toLocaleString()}</span>
+                      </div>
+                      <div className="text-center pt-1 border-t">
+                        <div className="flex items-center justify-center gap-[2px] h-9">
+                          {[3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 3, 1, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 4, 2, 3, 1].map((w, i) => (
+                            <span key={i} className="bg-slate-900 h-full inline-block" style={{ width: `${w * 1.5}px` }} />
+                          ))}
+                        </div>
+                        <span className="text-[10px] tracking-widest font-bold">*{heroLabelModalOrder.consignment}*</span>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                      #SF-94821-BD
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── TAB 2: TRUE NET-PROFIT & RUNWAY TELEMETRY ────────── */}
+            {heroTab === "telemetry" && (
+              <div className="p-4 sm:p-6 space-y-6 bg-white animate-in fade-in duration-150">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
+                      Unit Economics &amp; Trapped Working Capital Telemetry
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Real net margins factoring wholesale COGS, 1% COD fees, and return logistics reserves.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHeroSimulatedRtoSavings(!heroSimulatedRtoSavings)}
+                    className="btn-tactile px-3 py-1.5 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-800 text-xs font-mono font-bold transition cursor-pointer"
+                  >
+                    {heroSimulatedRtoSavings
+                      ? "✓ RTO Shield Simulated (+৳31,200 Cash)"
+                      : "+ Simulate 15% RTO Reduction Shield"}
+                  </button>
+                </div>
+
+                {/* 4 Financial Strips */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 font-mono">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Gross Sales (GMV)</span>
+                    <div className="text-lg font-black text-slate-900 mt-1">৳1,485,200</div>
+                    <span className="text-[10px] text-slate-400">1,240 dispatches</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 font-mono">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Wholesale COGS (60%)</span>
+                    <div className="text-lg font-black text-slate-700 mt-1">-৳891,120</div>
+                    <span className="text-[10px] text-slate-400">Direct inventory cost</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 font-mono">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Courier &amp; COD Fee</span>
+                    <div className="text-lg font-black text-amber-700 mt-1">-৳44,550</div>
+                    <span className="text-[10px] text-slate-400">1% carrier commission</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/70 font-mono">
+                    <span className="text-[10px] uppercase font-bold text-emerald-800">True Net Profit</span>
+                    <div className="text-lg font-black text-emerald-700 mt-1">
+                      {heroSimulatedRtoSavings ? "৳580,730" : "৳549,530"}
+                    </div>
+                    <span className="text-[10px] text-emerald-700 font-bold">
+                      {heroSimulatedRtoSavings ? "39.1% True Margin" : "37.0% True Margin"}
                     </span>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                    <div>
-                      <span className="text-slate-500 text-[10px] uppercase font-bold">Customer</span>
-                      <p className="font-bold text-slate-900 mt-0.5">Tariqul Islam</p>
-                      <p className="text-slate-500 text-[11px] font-mono">01712-345678</p>
+                {/* Trapped Capital Radar Card */}
+                <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 font-mono text-[10px] font-bold">
+                        Trapped Capital Radar
+                      </span>
+                      <span className="text-xs font-bold text-teal-950">৳38,400 Locked in 2 Stagnant SKUs</span>
                     </div>
-                    <div>
-                      <span className="text-slate-500 text-[10px] uppercase font-bold">Destination</span>
-                      <p className="font-bold text-slate-900 mt-0.5">Dhanmondi, Dhaka</p>
-                      <p className="text-slate-500 text-[11px]">Home Delivery (Next Day)</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 text-[10px] uppercase font-bold">COD Collection</span>
-                      <p className="font-bold text-emerald-700 text-sm mt-0.5 font-mono">
-                        {currency === "BDT" ? "৳2,500" : "$20.50"}
-                      </p>
-                      <p className="text-slate-500 text-[10px] font-mono">Auto-Reconciled</p>
-                    </div>
+                    <p className="text-xs text-teal-800 leading-relaxed">
+                      Pair slow-moving <strong>Heavyweight Polo (64 idle units)</strong> with hero <strong>Oxford Shirt</strong> at 15% bundle discount to unlock <strong>৳38,400</strong> before inventory month-end.
+                    </p>
                   </div>
+                  <Link
+                    href={user ? "/dashboard/reports" : "/login"}
+                    className="btn-tactile shrink-0 px-3.5 py-2 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-mono text-xs font-bold shadow-xs transition"
+                  >
+                    Launch Bundle Action →
+                  </Link>
+                </div>
+              </div>
+            )}
 
-                  {/* WhatsApp Notification Capsule */}
-                  <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/80 p-3.5 flex items-start gap-3 text-xs">
-                    <div className="h-6 w-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5 shadow-2xs">
-                      WA
-                    </div>
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-emerald-950 text-xs">
-                          Automated WhatsApp Message Sent
+            {/* ── TAB 3: SMARTPHONE CAMERA SCANNER PREVIEW ────────── */}
+            {heroTab === "scanner" && (
+              <div className="p-4 sm:p-6 space-y-5 bg-white animate-in fade-in duration-150">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
+                      In-Browser Camera WebAssembly Barcode Scanner
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Decodes standard 1D Code128, EAN-13, and QR codes at &lt;180ms latency without buying laser hardware guns.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 font-mono text-[11px]">
+                    <span className="text-slate-600">60 FPS WebAssembly Stream</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                  {/* Camera Viewfinder Mockup */}
+                  <div className="md:col-span-6 relative rounded-2xl bg-slate-950 p-6 overflow-hidden text-center text-white space-y-4 shadow-inner">
+                    {/* Targeting Laser Line */}
+                    <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-[2px] bg-orange-500 shadow-[0_0_12px_#ea580c] z-10 laser-sweep" />
+
+                    <div className="relative z-20 space-y-2">
+                      <span className="text-[10px] font-mono uppercase font-bold text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800">
+                        Camera Viewport: Active
+                      </span>
+                      {/* Barcode Graphic */}
+                      <div className="p-3 bg-white rounded-lg inline-block mx-auto">
+                        <div className="flex items-center gap-[2px] h-10">
+                          {[3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 3, 1, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 4, 2, 3, 1].map((w, i) => (
+                            <span key={i} className="bg-slate-900 h-full inline-block" style={{ width: `${w * 1.5}px` }} />
+                          ))}
+                        </div>
+                        <span className="text-slate-900 font-mono text-[10px] font-bold tracking-widest block mt-1">
+                          *SKU-CTG-8821-BLK*
                         </span>
-                        <span className="text-[10px] text-emerald-700 font-mono">Just Now</span>
                       </div>
-                      <p className="text-emerald-800 text-[11px] leading-relaxed">
-                        &quot;Assalamu Alaikum Tariqul, your parcel #ORD-9421 is out for delivery via Steadfast. Track live: steadfast.com.bd/t/SF-94821-BD. Total COD: {currency === "BDT" ? "৳2,500" : "$20.50"}&quot;
+                      <p className="text-[11px] text-slate-400 font-mono">
+                        Point smartphone lens at any parcel or warehouse bin label
                       </p>
                     </div>
                   </div>
+
+                  {/* Scanner Telemetry & Trigger Action */}
+                  <div className="md:col-span-6 space-y-4">
+                    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2 font-mono text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 uppercase text-[10px] font-bold">Target SKU:</span>
+                        <span className="font-bold text-slate-900">SKU-CTG-8821-BLK</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 uppercase text-[10px] font-bold">Warehouse Bin:</span>
+                        <span className="font-bold text-slate-700">Bay 4 · Shelf 02</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 uppercase text-[10px] font-bold">Real-Time Available Stock:</span>
+                        <span className="font-black text-sm text-emerald-700">
+                          {heroScannerStock} Units
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={handleHeroScan}
+                        disabled={heroScanningActive}
+                        className="btn-tactile w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-600/20 transition cursor-pointer"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                        </svg>
+                        <span>
+                          {heroScanningActive ? "Decoding Laser Stream (140ms)…" : "Trigger Smartphone Camera Scan"}
+                        </span>
+                      </button>
+
+                      {heroScanSuccess && (
+                        <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-mono font-bold flex items-center gap-2 animate-in fade-in">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                          <span>Decoded in 140ms ✓ Stock depleted: {heroScannerStock} units · Audit record logged.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ANIMATED LOGO TICKER / INFINITE CARRIER MARQUEE ─────── */}
+      <section className="py-7 border-y border-slate-200/90 bg-white shadow-2xs overflow-hidden">
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 text-center mb-3">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+            Automated API Integrations · Logistics &amp; Payment Networks
+          </span>
+        </div>
+
+        {/* Marquee Container with Left and Right Gradient Fades */}
+        <div className="relative w-full overflow-hidden">
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+
+          <div className="animate-marquee-infinite flex items-center gap-4 sm:gap-6 py-1 select-none">
+            {[1, 2].map((loopIdx) => (
+              <div key={loopIdx} className="flex items-center gap-4 sm:gap-6 shrink-0">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-emerald-300 transition shadow-2xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 font-sans">Steadfast Courier API</span>
+                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
+                    Auto-Webhook
+                  </span>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 px-1 font-mono font-medium">
-                  <span className="flex items-center gap-1">
-                    <span className="text-emerald-600 font-bold">✓</span> 4×6 Thermal Label Ready
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="text-emerald-600 font-bold">✓</span> Real-Time Stock Depletion
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="text-emerald-600 font-bold">✓</span> PostgreSQL RLS Isolation
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-rose-300 transition shadow-2xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 font-sans">Pathao Express</span>
+                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800">
+                    Consignment API
                   </span>
                 </div>
+
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-amber-300 transition shadow-2xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 font-sans">RedX Delivery</span>
+                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                    City SLA
+                  </span>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-blue-300 transition shadow-2xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-500 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 font-sans">Paperfly Logistics</span>
+                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-blue-100 text-blue-800">
+                    Doorstep COD
+                  </span>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-purple-300 transition shadow-2xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-purple-500 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 font-sans">SSLCommerz / bKash / Nagad</span>
+                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-purple-100 text-purple-800">
+                    Instant Gateway
+                  </span>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-indigo-300 transition shadow-2xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 font-sans">Stripe Global Checkout</span>
+                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800">
+                    Cards &amp; USD
+                  </span>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-orange-300 transition shadow-2xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-orange-500 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 font-sans">Zebra &amp; Xprinter 4×6</span>
+                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-orange-100 text-orange-800">
+                    Thermal ESC/POS
+                  </span>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-teal-300 transition shadow-2xs">
+                  <span className="h-2.5 w-2.5 rounded-full bg-teal-500 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800 font-sans">WhatsApp Automated Alerts</span>
+                  <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded bg-teal-100 text-teal-800">
+                    Cloud API
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS / 3-STEP QUICK-START BLUEPRINT ────────── */}
+      <section id="how-it-works" className="py-20 sm:py-28 bg-white border-b border-slate-200/80">
+        <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-14">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
+              Quick-Start Blueprint
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              From Sign-Up to Dispatch in Under 5 Minutes
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
+              No bulky laser scanner guns, no complicated ERP setups, and no server maintenance. Three effortless steps to automate your warehouse.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Step 1 */}
+            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/50 p-7 sm:p-8 space-y-4 hover:border-orange-500/50 transition relative">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-2xl font-black text-orange-600">01</span>
+                <span className="px-2.5 py-1 rounded-lg bg-orange-100 text-orange-800 font-mono text-[10px] font-bold">
+                  Step 1
+                </span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Add Your Catalog</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Bulk import thousands of SKUs and variants via Excel / CSV, or paste supplier challan memos into our intelligent text parser. Auto-generates Code128 barcodes instantly.
+              </p>
+              <div className="pt-2 flex flex-wrap gap-1.5 font-mono text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">CSV Bulk Upload</span>
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">Challan Parser</span>
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">Code128 Gen</span>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/50 p-7 sm:p-8 space-y-4 hover:border-teal-500/50 transition relative">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-2xl font-black text-teal-600">02</span>
+                <span className="px-2.5 py-1 rounded-lg bg-teal-100 text-teal-800 font-mono text-[10px] font-bold">
+                  Step 2
+                </span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Connect Couriers</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Paste your Steadfast, Pathao, or RedX API credentials in Settings. Sub-second webhooks automatically sync consignment status, tracking URLs, and cash collection.
+              </p>
+              <div className="pt-2 flex flex-wrap gap-1.5 font-mono text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">Steadfast API</span>
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">Pathao Webhooks</span>
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">1-Click Auth</span>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/50 p-7 sm:p-8 space-y-4 hover:border-emerald-500/50 transition relative">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-2xl font-black text-emerald-600">03</span>
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold">
+                  Step 3
+                </span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Automate &amp; Dispatch</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Scan outgoing parcels with any phone camera, verify customer trust with our COD RTO Shield, and print 4×6 Zebra thermal shipping stickers in 1 tap.
+              </p>
+              <div className="pt-2 flex flex-wrap gap-1.5 font-mono text-[10px]">
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">Camera Scan</span>
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">RTO Fraud Shield</span>
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">4×6 Thermal Label</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── CARRIER & PAYMENT PARTNERS TRUST STRIP ───────────────── */}
-      <section className="py-8 border-y border-slate-200 bg-white shadow-2xs">
-        <div className="mx-auto max-w-7xl px-4 sm:px-8 text-center space-y-4">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
-            Enterprise Logistics &amp; Payment Networks Supported
-          </span>
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs font-bold text-slate-700">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Steadfast Courier API
-            </span>
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-              <span className="h-2 w-2 rounded-full bg-rose-500" /> Pathao Courier
-            </span>
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-              <span className="h-2 w-2 rounded-full bg-amber-500" /> RedX Delivery
-            </span>
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-              <span className="h-2 w-2 rounded-full bg-blue-500" /> Paperfly Logistics
-            </span>
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-              <span className="h-2 w-2 rounded-full bg-purple-500" /> SSLCommerz / bKash
-            </span>
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-              <span className="h-2 w-2 rounded-full bg-indigo-500" /> Stripe Global Billing
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 3D BENTO FEATURES GRID ───────────────────────────────── */}
+      {/* ── ENTERPRISE OPERATING CAPABILITIES ───────────────────── */}
       <section id="features" className="py-20 bg-[#f8fafc]">
         <div className="mx-auto max-w-7xl px-4 sm:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
@@ -942,18 +1435,123 @@ export default function MarketingLandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING MATRIX ───────────────────────────────────────── */}
-      <section id="pricing" className="py-20 border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 sm:px-8">
-          <div className="text-center max-w-xl mx-auto mb-12 space-y-3">
+      {/* ── WHY SMARTINVENTORY OVER STANDARD CMS (THE UNFAIR MOAT) ── */}
+      <section className="py-20 border-t border-slate-200 bg-slate-50/60">
+        <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
-              Fair &amp; Transparent
+              Why We Are Different
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              Why 2,400+ High-Volume Merchants Chose Us Over Standard CMS &amp; Spreadsheets
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Generic eCommerce plugins only count basic in/out quantities. SmartInventory is an autonomous operating system engineered to eliminate courier return losses, prevent stockouts, and maximize merchant margins.
+            </p>
+          </div>
+
+          {/* Comparison Table */}
+          <div className="card-lift rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs divide-y divide-slate-200">
+                <thead className="bg-slate-50 font-mono text-[11px] uppercase tracking-wider text-slate-700">
+                  <tr>
+                    <th className="px-5 py-4 font-bold">Operational Capability</th>
+                    <th className="px-5 py-4 font-bold text-slate-400">Standard CMS / WooCommerce / Excel</th>
+                    <th className="px-5 py-4 font-bold text-orange-700 bg-orange-50/50">SmartInventory AI Operating System</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 bg-white">
+                  <tr className="hover:bg-slate-50/70">
+                    <td className="px-5 py-4 font-semibold text-slate-900">
+                      Pre-Dispatch Return &amp; Fraud Guard (RTO)
+                    </td>
+                    <td className="px-5 py-4 text-slate-500">
+                      ❌ None. 18%–30% COD parcels get returned, costing ৳160+ each.
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
+                      ✅ AI scores address &amp; phone validity before booking to prevent 70%+ return losses.
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50/70">
+                    <td className="px-5 py-4 font-semibold text-slate-900">
+                      Autonomous Restock &amp; Purchase Orders (PO)
+                    </td>
+                    <td className="px-5 py-4 text-slate-500">
+                      ❌ Manual spreadsheet calculations and guesswork.
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
+                      ✅ Auto-computes Lead Time ROP and formats 1-click WhatsApp/PDF supplier POs.
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50/70">
+                    <td className="px-5 py-4 font-semibold text-slate-900">
+                      Supplier Challan &amp; Invoice Intake
+                    </td>
+                    <td className="px-5 py-4 text-slate-500">
+                      ❌ Typing dozens of SKUs and buying costs manually.
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
+                      ✅ Intelligent OCR text parser extracts SKUs, costs, and margins with 1-click ingest.
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50/70">
+                    <td className="px-5 py-4 font-semibold text-slate-900">
+                      Deadstock Capital Liquidation
+                    </td>
+                    <td className="px-5 py-4 text-slate-500">
+                      ❌ Stagnant stock sits idle in warehouse unnoticed.
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
+                      ✅ AI pairs slow-moving inventory with hero SKUs in discounted bundles to release cash.
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50/70">
+                    <td className="px-5 py-4 font-semibold text-slate-900">
+                      Native Bangladesh Logistics APIs
+                    </td>
+                    <td className="px-5 py-4 text-slate-500">
+                      ❌ Broken third-party plugins with manual tracking updates.
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
+                      ✅ Direct native Steadfast, Pathao &amp; RedX webhooks with automated WhatsApp updates.
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50/70">
+                    <td className="px-5 py-4 font-semibold text-slate-900">
+                      True Unit Economics &amp; COD Real Net Profit
+                    </td>
+                    <td className="px-5 py-4 text-slate-500">
+                      ❌ Only shows gross revenue, hiding courier return and packaging losses.
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
+                      ✅ Real-time break-even calculations factoring courier charges, COD fee, and return risk.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING MATRIX (3 ACCESSIBLE TIERS) ──────────────────── */}
+      <section id="pricing" className="py-24 sm:py-32 border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-16">
+          <div className="text-center max-w-2xl mx-auto space-y-4">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
+              Fair, Transparent &amp; Accessible
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Predictable Plans That Grow With You
+              Predictable Plans Built for Bangladesh E-Commerce
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600">
-              Start completely free. Upgrade only when your order volume and warehouse throughput expand.
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-lg mx-auto">
+              From emerging F-commerce shops to high-volume multi-warehouse brands. Zero hidden fees.
             </p>
 
             {/* Currency Selector */}
@@ -961,7 +1559,7 @@ export default function MarketingLandingPage() {
               <button
                 type="button"
                 onClick={() => setCurrency("BDT")}
-                className={`btn-tactile px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                className={`btn-tactile px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   currency === "BDT"
                     ? "bg-white text-orange-600 shadow-2xs font-extrabold"
                     : "text-slate-600 hover:text-slate-900"
@@ -972,7 +1570,7 @@ export default function MarketingLandingPage() {
               <button
                 type="button"
                 onClick={() => setCurrency("USD")}
-                className={`btn-tactile px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                className={`btn-tactile px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   currency === "USD"
                     ? "bg-white text-orange-600 shadow-2xs font-extrabold"
                     : "text-slate-600 hover:text-slate-900"
@@ -983,125 +1581,175 @@ export default function MarketingLandingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-            {/* Free Starter */}
-            <div className="card-lift rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 flex flex-col justify-between space-y-6 hover:border-slate-300 transition shadow-2xs">
-              <div className="space-y-4">
-                <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider">Free Starter</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-900 font-mono">
-                    {currency === "BDT" ? "৳0" : "$0"}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+            {/* Tier 1: Starter / Small Business */}
+            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/40 p-7 sm:p-8 flex flex-col justify-between space-y-8 hover:border-slate-300 transition shadow-2xs">
+              <div className="space-y-5">
+                <div>
+                  <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider">
+                    Starter / F-Commerce
                   </span>
-                  <span className="text-xs text-slate-500 font-medium">/ forever free</span>
+                  <div className="flex items-baseline gap-1 mt-2">
+                    <span className="text-4xl font-black text-slate-900 font-mono">
+                      {currency === "BDT" ? "৳990" : "$9"}
+                    </span>
+                    <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed mt-2">
+                    Perfect for rising Facebook &amp; Instagram shops setting up real inventory controls.
+                  </p>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Ideal for emerging shops setting up initial barcode tracking and courier connections.
-                </p>
 
-                <div className="pt-4 border-t border-slate-100 space-y-2.5 text-xs text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Up to {pricingData.freeLimit} orders per month
+                <div className="pt-5 border-t border-slate-200/80 space-y-3 text-xs text-slate-700">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Up to <strong>100 orders</strong> / month</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> In-browser smartphone barcode scanner
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span><strong>100 RTO Risk Checks</strong> / mo</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Direct Steadfast Courier API sync
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>In-browser mobile barcode scanner</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> PostgreSQL RLS multi-tenant security
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Manual order entry &amp; CSV export</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Single-user operator access</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>PostgreSQL RLS tenant security</span>
                   </div>
                 </div>
               </div>
 
               <Link
                 href="/login"
-                className="btn-tactile block w-full text-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50 py-3 text-xs font-bold text-slate-800 transition shadow-2xs"
+                className="btn-tactile block w-full text-center rounded-xl border border-slate-300 bg-white hover:bg-slate-100 py-3 text-xs font-bold text-slate-800 transition shadow-2xs"
               >
-                Get Started Free
+                Start 100-Order Free Trial
               </Link>
             </div>
 
-            {/* Pro Scale (Featured) */}
-            <div className="card-lift rounded-2xl border-2 border-orange-500 bg-white p-6 sm:p-8 flex flex-col justify-between space-y-6 relative shadow-xl shadow-orange-500/10">
-              <div className="space-y-4">
+            {/* Tier 2: Professional / Growth (MOST POPULAR) */}
+            <div className="card-lift rounded-2xl border-2 border-orange-500 bg-white p-7 sm:p-8 flex flex-col justify-between space-y-8 relative shadow-xl shadow-orange-500/15">
+              <div className="space-y-5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-orange-700 uppercase tracking-wider font-mono">Pro Business</span>
-                  <span className="text-[10px] font-mono font-bold uppercase bg-orange-100 text-orange-700 px-3 py-1 rounded-full border border-orange-200">
+                  <span className="text-xs font-bold text-orange-700 uppercase tracking-wider font-mono">
+                    Professional / Growth
+                  </span>
+                  <span className="text-[10px] font-mono font-bold uppercase bg-orange-100 text-orange-700 px-3 py-1 rounded-full border border-orange-200 shadow-2xs">
                     Most Popular
                   </span>
                 </div>
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline gap-1 mt-2">
                   <span className="text-4xl font-black text-slate-900 font-mono">
-                    {displayPrice}
+                    {currency === "BDT" ? "৳2,490" : "$24"}
                   </span>
-                  <span className="text-xs text-slate-500 font-medium">/ month</span>
+                  <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Uncapped fulfillment throughput with automated multi-courier and WhatsApp buyer notifications.
+                <p className="text-xs text-slate-600 leading-relaxed mt-2">
+                  Autonomous fulfillment, courier automation, and RTO fraud protection for growing e-commerce brands.
                 </p>
 
-                <div className="pt-4 border-t border-slate-100 space-y-2.5 text-xs text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> <strong>Unlimited</strong> monthly orders &amp; dispatches
+                <div className="pt-5 border-t border-slate-100 space-y-3 text-xs text-slate-700">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span><strong>Unlimited</strong> orders &amp; dispatches</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Automated WhatsApp tracking alerts
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span><strong>AI COD Risk Shield</strong> &amp; RTO Predictor</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> All 5 carrier integrations (Steadfast, Pathao, RedX, Paperfly, Carrybee)
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span><strong>4×6 Thermal Label</strong> &amp; Tax Invoice Generator</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Bulk CSV imports (10,000+ items)
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Steadfast &amp; Pathao native API webhooks</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Complete audit trail &amp; operator logs
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Automated WhatsApp parcel notifications</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span><strong>3 User Seats</strong> (Admin &amp; Operators)</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Automated PO Restock generator</span>
                   </div>
                 </div>
               </div>
 
               <Link
                 href={user ? "/dashboard/billing" : "/login"}
-                className="btn-tactile block w-full text-center rounded-xl bg-orange-600 hover:bg-orange-500 py-3 text-xs sm:text-sm font-bold text-white transition shadow-md shadow-orange-600/30"
+                className="btn-tactile block w-full text-center rounded-xl bg-orange-600 hover:bg-orange-500 py-3.5 text-xs sm:text-sm font-bold text-white transition shadow-md shadow-orange-600/30"
               >
                 {user ? "Upgrade in Dashboard →" : "Start 100-Order Free Trial →"}
               </Link>
             </div>
 
-            {/* Custom SLA */}
-            <div className="card-lift rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 flex flex-col justify-between space-y-6 hover:border-slate-300 transition shadow-2xs">
-              <div className="space-y-4">
-                <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider">Enterprise SLA</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-slate-900 font-mono">
-                    Custom
+            {/* Tier 3: Scale / Enterprise */}
+            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/40 p-7 sm:p-8 flex flex-col justify-between space-y-8 hover:border-slate-300 transition shadow-2xs">
+              <div className="space-y-5">
+                <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider">
+                  Scale / Enterprise
+                </span>
+                <div className="flex items-baseline gap-1 mt-2">
+                  <span className="text-4xl font-black text-slate-900 font-mono">
+                    {currency === "BDT" ? "৳5,900" : "$55"}
                   </span>
+                  <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Dedicated database clusters, bespoke ERP connectors, custom webhooks, and priority engineering support.
+                <p className="text-xs text-slate-600 leading-relaxed mt-2">
+                  Dedicated infrastructure for high-volume warehouses, multi-branch stores, and retail chains.
                 </p>
 
-                <div className="pt-4 border-t border-slate-100 space-y-2.5 text-xs text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> 100,000+ monthly consignments
+                <div className="pt-5 border-t border-slate-200/80 space-y-3 text-xs text-slate-700">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span><strong>Everything in Professional</strong></span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Custom webhook configurations
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span><strong>Multi-warehouse</strong> stock orchestration</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Dedicated database instance
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span><strong>Unlimited User Seats</strong> with granular RLS</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> 99.9% Uptime SLA commitment
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Deadstock Trapped Capital Liquidation engine</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>1-Click WhatsApp B2B Supplier POs</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Dedicated onboarding engineer &amp; 24/7 SLA</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <span>Custom API &amp; ERP webhook connectors</span>
                   </div>
                 </div>
               </div>
 
               <a
-                href="mailto:support@smartinventory.io?subject=Enterprise%20Inquiry"
-                className="btn-tactile block w-full text-center rounded-xl border border-slate-300 bg-white hover:bg-slate-50 py-3 text-xs font-bold text-slate-800 transition shadow-2xs"
+                href="#contact"
+                className="btn-tactile block w-full text-center rounded-xl border border-slate-300 bg-white hover:bg-slate-100 py-3 text-xs font-bold text-slate-800 transition shadow-2xs"
               >
-                Contact Sales
+                Schedule Enterprise Consultation
               </a>
             </div>
           </div>
@@ -1151,13 +1799,265 @@ export default function MarketingLandingPage() {
         </div>
       </section>
 
+      {/* ── TALK WITH US / B2B DIRECT ADVISORY & CONSULTATION ───── */}
+      <section id="contact" className="py-24 sm:py-32 border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-16">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200 px-3.5 py-1 rounded-full">
+              Direct Advisory &amp; Architecture
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Talk With Us · Get Custom Onboarding &amp; Setup
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
+              Whether you are an established brand dispatching 3,000+ parcels a month on Steadfast or a fast-scaling F-commerce merchant seeking to wipe out courier return losses, speak directly with our engineering team.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            {/* Left Column: Founder & Fast Direct Channels */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Founder Profile Card */}
+              <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/70 p-6 sm:p-7 space-y-5 shadow-2xs">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                      NH
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+                      Noyon Hossain
+                    </h3>
+                    <p className="text-xs font-medium text-orange-600 font-mono">
+                      Founder &amp; Lead Systems Architect
+                    </p>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-mono text-emerald-700 font-semibold mt-0.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Available for Technical Consultation
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  &ldquo;I personally engineered SmartInventory to solve the painful spreadsheet errors, manual courier copy-pasting, and fake COD orders that bleed merchant margins. Let&apos;s build an automated, zero-loss fulfillment pipeline for your brand.&rdquo;
+                </p>
+
+                <div className="pt-2 border-t border-slate-200/80 space-y-3">
+                  {/* WhatsApp Direct */}
+                  <a
+                    href="https://wa.me/8801700000000?text=Hi%20Noyon,%20I%20would%20like%20to%20discuss%20SmartInventory%20for%20my%20business."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-tactile flex items-center justify-between p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/60 text-emerald-950 transition group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                        </svg>
+                      </div>
+                      <div className="text-left">
+                        <span className="block text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">
+                          Direct WhatsApp Chat
+                        </span>
+                        <span className="block text-[11px] font-mono text-emerald-700">
+                          Founder &amp; Tech Lead · Quick Response
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-emerald-600 font-mono text-xs font-bold group-hover:translate-x-1 transition-transform">
+                      Chat →
+                    </span>
+                  </a>
+
+                  {/* Direct Support Email */}
+                  <a
+                    href="mailto:support@smartinventory.io"
+                    className="btn-tactile flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 transition group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center font-bold">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="text-left">
+                        <span className="block text-xs font-bold text-slate-900 group-hover:text-orange-600 transition">
+                          support@smartinventory.io
+                        </span>
+                        <span className="block text-[11px] text-slate-500">
+                          Technical SLA &lt;2 hours guaranteed
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-slate-400 font-mono text-xs group-hover:text-orange-600 group-hover:translate-x-1 transition-transform">
+                      Email →
+                    </span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Advisory Guarantee Points */}
+              <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-2.5 text-xs text-slate-600">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-emerald-600 font-bold shrink-0 mt-0.5">✓</span>
+                  <span>100% Free architecture review &amp; Excel catalog audit</span>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="text-emerald-600 font-bold shrink-0 mt-0.5">✓</span>
+                  <span>Guidance on connecting Steadfast, Pathao &amp; RedX API keys</span>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="text-emerald-600 font-bold shrink-0 mt-0.5">✓</span>
+                  <span>Zero hard sales push — speak directly with the engineering team</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Interactive Consultation Request Form */}
+            <div className="lg:col-span-7">
+              <div className="card-lift rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6">
+                <div>
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    Schedule a 15-Minute Architecture Session
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Fill in your store details below and our lead engineer will reach out via WhatsApp with tailored solutions.
+                  </p>
+                </div>
+
+                {contactSubmitted ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-6 text-center space-y-3 animate-in fade-in">
+                    <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-xl font-bold">
+                      ✓
+                    </div>
+                    <h4 className="text-base font-bold text-emerald-950">
+                      Consultation Request Received!
+                    </h4>
+                    <p className="text-xs text-emerald-800 leading-relaxed max-w-md mx-auto">
+                      Thank you for submitting your store requirements. Noyon Hossain or a senior solutions architect will contact you on WhatsApp within 2 hours.
+                    </p>
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setContactSubmitted(false)}
+                        className="text-xs font-bold text-emerald-700 underline hover:text-emerald-900 transition"
+                      >
+                        Submit another inquiry
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5 text-left">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Your Name <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={contactName}
+                          onChange={(e) => setContactName(e.target.value)}
+                          placeholder="e.g. Tanvir Ahmed"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition outline-none"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 text-left">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Store / Brand Name
+                        </label>
+                        <input
+                          type="text"
+                          value={contactBiz}
+                          onChange={(e) => setContactBiz(e.target.value)}
+                          placeholder="e.g. Vintage Apparel BD"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5 text-left">
+                        <label className="block text-xs font-bold text-slate-700">
+                          WhatsApp / Phone Number <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={contactPhone}
+                          onChange={(e) => setContactPhone(e.target.value)}
+                          placeholder="017XX-XXXXXX"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs font-mono text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition outline-none"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 text-left">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Monthly Parcel Volume
+                        </label>
+                        <select
+                          value={contactVolume}
+                          onChange={(e) => setContactVolume(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-xs text-slate-800 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition outline-none"
+                        >
+                          <option value="< 500 parcels/month">&lt; 500 parcels / month</option>
+                          <option value="500 - 2,000 orders/mo">500 – 2,000 parcels / month</option>
+                          <option value="2,000 - 10,000 parcels/month">2,000 – 10,000 parcels / month</option>
+                          <option value="10,000+ parcels/month">10,000+ parcels / month (Enterprise)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 text-left">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Operational Questions or Special Inquiries
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={contactMessage}
+                        onChange={(e) => setContactMessage(e.target.value)}
+                        placeholder="Tell us what you need help with (e.g. Courier return fraud prevention, barcode printing setup, Excel import)..."
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition outline-none resize-none"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={contactSubmitting || !contactName.trim() || !contactPhone.trim()}
+                      className="btn-tactile w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-600/20 transition cursor-pointer"
+                    >
+                      <span>
+                        {contactSubmitting
+                          ? "Submitting Your Request..."
+                          : "Submit Consultation Request →"}
+                      </span>
+                    </button>
+
+                    <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400 font-mono text-center">
+                      <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Zero Spam Guarantee · Your business data is 100% confidential.</span>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── BOTTOM CALL TO ACTION ─────────────────────────────────── */}
-      <section className="py-20 border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-3xl px-4 sm:px-8 text-center space-y-5">
+      <section className="py-20 sm:py-28 border-t border-slate-200 bg-[#f8fafc]">
+        <div className="mx-auto max-w-3xl px-4 sm:px-8 text-center space-y-6">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Automate your warehouse fulfillment today.
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
+          <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
             Join hundreds of local merchants operating on in-browser camera scanning and 1-click courier dispatches.
           </p>
           <div className="pt-2">
@@ -1175,33 +2075,46 @@ export default function MarketingLandingPage() {
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────────────── */}
-      <footer className="border-t border-slate-200 bg-slate-50 py-10 text-xs text-slate-500">
-        <div className="mx-auto max-w-7xl px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="font-bold text-slate-800">{APP_NAME}</span>
-            <span className="text-slate-300">·</span>
-            <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px] font-semibold">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              All Systems Operational
-            </span>
+      <footer className="border-t border-slate-200 bg-white py-12 text-xs text-slate-500">
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 space-y-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <span className="font-extrabold text-slate-900 text-sm">{APP_NAME}</span>
+              <span className="text-slate-300">·</span>
+              <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px] font-semibold">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                All Systems Operational
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-6 text-slate-600 font-medium">
+              <Link href="/" className="hover:text-orange-600 transition">Home</Link>
+              <a href="#how-it-works" className="hover:text-orange-600 transition">How It Works</a>
+              <a href="#features" className="hover:text-orange-600 transition">Features</a>
+              <a href="#pricing" className="hover:text-orange-600 transition">Pricing</a>
+              <Link href="/blog" className="hover:text-orange-600 transition">Guides &amp; Blog</Link>
+              <Link href="/demo" className="hover:text-orange-600 transition">Sandbox</Link>
+              <a href="#contact" className="hover:text-orange-600 transition">Contact</a>
+              <a href="#faq" className="hover:text-orange-600 transition">FAQ</a>
+              {user && (
+                <Link href="/dashboard/products" className="hover:text-orange-600 transition">
+                  Dashboard
+                </Link>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-6 text-slate-600 font-medium">
-            <Link href="/" className="hover:text-orange-600 transition">Home</Link>
-            <Link href="/blog" className="hover:text-orange-600 transition">Guides &amp; Blog</Link>
-            <Link href="/demo" className="hover:text-orange-600 transition">Sandbox</Link>
-            <a href="#features" className="hover:text-orange-600 transition">Features</a>
-            <a href="#pricing" className="hover:text-orange-600 transition">Pricing</a>
-            <a href="#faq" className="hover:text-orange-600 transition">FAQ</a>
-            {user && (
-              <Link href="/dashboard/products" className="hover:text-orange-600 transition">
-                Dashboard
-              </Link>
-            )}
-          </div>
-
-          <div className="text-[11px] text-slate-500 font-mono">
-            © {currentYear} {APP_NAME}. 256-Bit SSL Encrypted.
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500 font-mono">
+            <div>
+              © {currentYear} {APP_NAME}. Founded &amp; Built by Noyon Hossain.
+            </div>
+            <div className="flex items-center gap-4 text-slate-400">
+              <span>PostgreSQL RLS Secured</span>
+              <span>·</span>
+              <span>Steadfast &amp; Pathao Native</span>
+              <span>·</span>
+              <span>Dhaka, Bangladesh</span>
+            </div>
           </div>
         </div>
       </footer>

@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
+import PurchaseOrderModal from "@/components/PurchaseOrderModal";
 
 export default function ProductsListPage() {
   const { businessId, businessName, loading: ctxLoading } = useBusinessContext();
@@ -11,6 +12,10 @@ export default function ProductsListPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ── Purchase Order Modal State (Module 3) ───────────────────
+  const [poModalOpen, setPoModalOpen] = useState(false);
+  const [poSelectedItems, setPoSelectedItems] = useState([]);
 
   // ── Filter & Search States ───────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,46 +41,26 @@ export default function ProductsListPage() {
         setLoading(true);
         setError(null);
 
-        const { data: prods, error: pErr } = await supabase
-          .from("products")
-          .select("*")
-          .eq("business_id", businessId)
-          .order("created_at", { ascending: false });
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-        if (pErr) throw pErr;
+        // High-velocity server endpoint bypassing RLS recursion
+        const res = await fetch("/api/products", {
+          headers: {
+            Authorization: session?.access_token
+              ? `Bearer ${session.access_token}`
+              : "",
+          },
+        });
 
-        const prodList = prods || [];
-        const inStockCountMap = {};
-        const totalItemsMap = {};
-
-        const prodIds = prodList.map((p) => p.id);
-
-        if (prodIds.length > 0) {
-          const { data: items, error: iErr } = await supabase
-            .from("inventory_items")
-            .select("product_id, status")
-            .in("product_id", prodIds);
-
-          if (!iErr && items) {
-            items.forEach((item) => {
-              totalItemsMap[item.product_id] =
-                (totalItemsMap[item.product_id] || 0) + 1;
-              if (item.status === "IN_STOCK") {
-                inStockCountMap[item.product_id] =
-                  (inStockCountMap[item.product_id] || 0) + 1;
-              }
-            });
-          }
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.error || "Failed to load products.");
         }
 
-        const enriched = prodList.map((p) => ({
-          ...p,
-          inStockCount: inStockCountMap[p.id] ?? 0,
-          totalCount: totalItemsMap[p.id] ?? 0,
-        }));
-
         if (isMounted) {
-          setProducts(enriched);
+          setProducts(json.products || []);
         }
       } catch (err) {
         if (isMounted) {
@@ -448,6 +433,34 @@ export default function ProductsListPage() {
                               Labels
                             </Link>
 
+                            {/* Restock PO Button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPoSelectedItems([
+                                  {
+                                    id: p.id,
+                                    name: p.name,
+                                    sku: p.base_sku || `SKU-${String(p.id).slice(0, 6)}`,
+                                    category: p.category || "General",
+                                    currentStock: p.inStockCount || 0,
+                                    price: p.price || 950,
+                                    unitCost: Math.round((Number(p.price) || 950) * 0.6),
+                                    recommendedRestock: Math.max(15, 30 - (p.inStockCount || 0)),
+                                    dailyVelocity: 1.5,
+                                  },
+                                ]);
+                                setPoModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-lg border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-800 hover:bg-orange-100 btn-tactile transition shadow-2xs cursor-pointer"
+                              title="Generate Purchase Order & WhatsApp restock"
+                            >
+                              <svg className="w-3.5 h-3.5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                              </svg>
+                              Restock PO
+                            </button>
+
                             {/* Dispatch / Sell Button */}
                             <Link
                               href={`/dashboard/products/${p.id}/dispatch`}
@@ -469,6 +482,16 @@ export default function ProductsListPage() {
           )}
         </div>
       </div>
+
+      {/* ── Purchase Order Modal (Module 3) ────────────────────── */}
+      {poModalOpen && (
+        <PurchaseOrderModal
+          isOpen={poModalOpen}
+          onClose={() => setPoModalOpen(false)}
+          items={poSelectedItems}
+          businessName={businessName || "My Store"}
+        />
+      )}
     </main>
   );
 }

@@ -316,159 +316,53 @@ export default function BulkImportPage() {
       return;
     }
 
-    if (!businessId) {
-      showToast(
-        "error",
-        "Business context is not loaded yet. Please refresh the page."
-      );
-      return;
-    }
-
     if (validRows.length === 0) {
       showToast("error", "No valid rows available to import.");
       return;
     }
 
     setIsImporting(true);
-    setImportProgress(10);
-    setImportStep("Preparing product records...");
+    setImportProgress(15);
+    setImportStep("Connecting to warehouse import engine...");
 
     try {
-      // 1. Build product payloads
-      const productPayloads = validRows.map((r) => {
-        const payload = {
-          name: r.name,
-          category: r.category,
-          base_sku: r.base_sku,
-          price: r.price,
-        };
-        if (businessId) {
-          payload.business_id = businessId;
-        }
-        return payload;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setImportProgress(40);
+      setImportStep(`Importing ${validRows.length} catalog products & generating barcodes...`);
+
+      // High-speed server-side atomic importer (bypasses RLS recursion)
+      const res = await fetch("/api/products/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token
+            ? `Bearer ${session.access_token}`
+            : "",
+        },
+        body: JSON.stringify({ validRows }),
       });
 
-      setImportStep(
-        `Inserting ${productPayloads.length} products into catalog...`
-      );
-      setImportProgress(35);
+      const result = await res.json();
 
-      // 2. Perform bulk insert into 'products' table
-      let { data: insertedProducts, error: prodErr } = await supabase
-        .from("products")
-        .insert(productPayloads)
-        .select("id, base_sku, name");
-
-      // Fallback: If products table schema does not include business_id, retry without it
-      if (prodErr && prodErr.message?.includes("business_id")) {
-        const strippedPayloads = productPayloads.map((p) => {
-          const copy = { ...p };
-          delete copy.business_id;
-          return copy;
-        });
-
-        const retryRes = await supabase
-          .from("products")
-          .insert(strippedPayloads)
-          .select("id, base_sku, name");
-
-        insertedProducts = retryRes.data;
-        prodErr = retryRes.error;
-      }
-
-      if (prodErr || !insertedProducts) {
-        throw new Error(
-          prodErr?.message || "Failed to bulk insert products into database."
-        );
-      }
-
-      setImportProgress(65);
-      setImportStep("Generating serialized unique barcodes...");
-
-      // 3. Map inserted products and generate unique serialized barcodes for inventory_items
-      const inventoryRows = [];
-      const usedBarcodes = new Set();
-
-      insertedProducts.forEach((prod) => {
-        const matchedRow = validRows.find(
-          (r) => r.base_sku.toUpperCase() === prod.base_sku.toUpperCase()
-        );
-        const qty = matchedRow ? matchedRow.initial_stock : 0;
-
-        for (let i = 0; i < qty; i++) {
-          let uniqueBarcode;
-          do {
-            uniqueBarcode = `${prod.base_sku}-${generateRandomCode(5)}`;
-          } while (usedBarcodes.has(uniqueBarcode));
-
-          usedBarcodes.add(uniqueBarcode);
-
-          const itemRow = {
-            product_id: prod.id,
-            unique_barcode: uniqueBarcode,
-            status: "IN_STOCK",
-          };
-
-          if (businessId) {
-            itemRow.business_id = businessId;
-          }
-
-          inventoryRows.push(itemRow);
-        }
-      });
-
-      // 4. Bulk insert into 'inventory_items' in chunks (e.g., 250 items per batch)
-      let insertedItemCount = 0;
-      if (inventoryRows.length > 0) {
-        setImportStep(
-          `Registering ${inventoryRows.length} serialized inventory barcodes...`
-        );
-        const CHUNK_SIZE = 250;
-
-        for (let i = 0; i < inventoryRows.length; i += CHUNK_SIZE) {
-          const chunk = inventoryRows.slice(i, i + CHUNK_SIZE);
-          let { error: itemErr } = await supabase
-            .from("inventory_items")
-            .insert(chunk);
-
-          // Fallback if inventory_items doesn't have business_id
-          if (itemErr && itemErr.message?.includes("business_id")) {
-            const strippedChunk = chunk.map((item) => {
-              const copy = { ...item };
-              delete copy.business_id;
-              return copy;
-            });
-            const retryItems = await supabase
-              .from("inventory_items")
-              .insert(strippedChunk);
-            itemErr = retryItems.error;
-          }
-
-          if (itemErr) {
-            console.warn("Inventory batch notice:", itemErr);
-          } else {
-            insertedItemCount += chunk.length;
-          }
-
-          const currentPct = Math.round(
-            65 + ((i + chunk.length) / inventoryRows.length) * 30
-          );
-          setImportProgress(Math.min(currentPct, 95));
-        }
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || "Bulk import failed.");
       }
 
       setImportProgress(100);
       setImportStep("Bulk Import Complete!");
 
       setImportResult({
-        productsCount: insertedProducts.length,
-        itemsCount: insertedItemCount || inventoryRows.length,
+        productsCount: result.productsCount || validRows.length,
+        itemsCount: result.itemsCount || totalStockUnits,
         skippedCount: invalidRows.length,
       });
 
       showToast(
         "success",
-        `Successfully imported ${insertedProducts.length} products and ${inventoryRows.length} serialized units!`
+        `Successfully imported ${result.productsCount} products and ${result.itemsCount} serialized units!`
       );
     } catch (err) {
       console.error("Bulk Import Error:", err);

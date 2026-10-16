@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
+import ThermalAndInvoiceModal from "@/components/ThermalAndInvoiceModal";
 
 function OperationsPageContent() {
   // ── data state ──────────────────────────────────────
@@ -23,7 +24,9 @@ function OperationsPageContent() {
 
   // ── recent transactions ─────────────────────────────
   const [recent, setRecent] = useState([]);
-  const { businessId, loading: ctxLoading } = useBusinessContext();
+  const [printModalOpen, setPrintModalOpen] = useState(false);
+  const [selectedTxForPrint, setSelectedTxForPrint] = useState(null);
+  const { businessId, businessName, loading: ctxLoading } = useBusinessContext();
 
   const searchParams = useSearchParams();
   const urlSku = searchParams.get("sku");
@@ -438,7 +441,7 @@ function OperationsPageContent() {
               <table className="min-w-full divide-y divide-zinc-100 text-xs text-left">
                 <thead className="bg-zinc-50/60 font-mono text-zinc-500 uppercase tracking-wider">
                   <tr>
-                    {["Timestamp", "Product", "Variant", "Operation", "Units", "Reference Note"].map(
+                    {["Timestamp", "Product", "Variant", "Operation", "Units", "Reference Note", "Consignment Label"].map(
                       (h) => (
                         <th key={h} className="px-5 py-3 font-medium">
                           {h}
@@ -485,12 +488,54 @@ function OperationsPageContent() {
                       <td className="px-5 py-3 text-zinc-500 max-w-[200px] truncate">
                         {tx.reference_note || "—"}
                       </td>
+                      <td className="whitespace-nowrap px-5 py-3 text-right">
+                        {tx.transaction_type === "OUT" ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedTxForPrint({
+                                id: tx.id,
+                                customer_name: tx.reference_note ? tx.reference_note.split("-")[0].trim() : "Store Consignee",
+                                customer_phone: "017XXXXXXXX",
+                                customer_address: "Fulfillment Destination",
+                                total_amount: (tx.variants?.price || 1250) * (Number(tx.quantity) || 1),
+                                product_name: tx.products?.name,
+                                product_sku: `SKU-${String(tx.product_id).slice(0, 6)}`,
+                                quantity: tx.quantity,
+                                created_at: tx.created_at,
+                              });
+                              setPrintModalOpen(true);
+                            }}
+                            className="btn-tactile inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 shadow-2xs transition"
+                          >
+                            <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            <span>4×6 Label</span>
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 font-mono text-[10px]">Restock Intake</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
+        )}
+
+        {/* ── Thermal & Commercial Invoice Modal ─────────────────── */}
+        {printModalOpen && selectedTxForPrint && (
+          <ThermalAndInvoiceModal
+            isOpen={printModalOpen}
+            onClose={() => {
+              setPrintModalOpen(false);
+              setSelectedTxForPrint(null);
+            }}
+            order={selectedTxForPrint}
+            businessName={businessName || "My Store"}
+          />
         )}
       </div>
     </main>
