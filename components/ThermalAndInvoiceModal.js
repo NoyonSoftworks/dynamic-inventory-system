@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import Barcode from "react-barcode";
 
 /**
- * Enterprise 4x6 Thermal Courier Label & Commercial Invoice Modal
+ * Universal Zero-Hardware Courier Label & Invoice Modal
  * Supports:
- * - 4x6 Thermal Courier Label (Zebra/Xprinter 100mm x 150mm standard)
- * - A4 Commercial Tax/POS Invoice
+ * 1. 4x6 Thermal Courier Label (Zebra/Xprinter 100mm x 150mm standard)
+ * 2. Standard A4 Desktop/Home Printer (Inkjet/Laser with scissor cut-lines + packing slip)
+ * 3. A4 Commercial Tax/POS Invoice
  */
 export default function ThermalAndInvoiceModal({
   isOpen,
@@ -16,7 +17,7 @@ export default function ThermalAndInvoiceModal({
   businessName = "My Store",
   businessPhone = "01700-000000",
 }) {
-  const [activeMode, setActiveMode] = useState("thermal"); // 'thermal' | 'invoice'
+  const [activeMode, setActiveMode] = useState("standard-a4"); // 'standard-a4' | 'thermal' | 'invoice'
 
   // ESC key listener to close modal
   useEffect(() => {
@@ -30,13 +31,14 @@ export default function ThermalAndInvoiceModal({
 
   if (!isOpen || !order) return null;
 
-  // Format order parameters with fallbacks
-  const customerName = order.customer_name || "Valued Merchant Customer";
+  // Format order parameters with friendly fallbacks
+  const customerName = order.customer_name || "Valued Customer";
   const customerPhone = order.customer_phone || "017XXXXXXXX";
   const customerAddress =
     order.customer_address || "Standard Delivery Destination, Bangladesh";
   const consignmentId =
-    order.consignment_id || `SF-${String(order.id || "88410").replace(/[^0-9]/g, "").slice(0, 7) || "9482103"}`;
+    order.consignment_id ||
+    `SF-${String(order.id || "88410").replace(/[^0-9]/g, "").slice(0, 7) || "9482103"}`;
   const courierName = order.courier_name || order.courier || "Steadfast Courier";
   const codAmount = Number(order.total_amount) || 1650;
   const orderDate = order.created_at
@@ -65,7 +67,7 @@ export default function ThermalAndInvoiceModal({
       }}
       className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
     >
-      {/* ── Print Specific Stylesheet ───────────────────────── */}
+      {/* ── Dynamic Print Specific Stylesheet ───────────────── */}
       <style jsx global>{`
         @media print {
           body * {
@@ -91,71 +93,99 @@ export default function ThermalAndInvoiceModal({
         }
       `}</style>
 
-      <div className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden font-sans">
         {/* ── Modal Header & Mode Switcher ─────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-200 bg-slate-50/80 no-print">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-orange-600" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-                Print Documents: {order.customer_name || "Order #" + (order.id || "").slice(0, 6)}
-              </h3>
+        <div className="flex flex-col gap-3 px-5 py-4 border-b border-slate-200 bg-slate-50/90 no-print">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-orange-600 animate-pulse" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
+                  Print Documents: {order.customer_name || "Order #" + (order.id || "").slice(0, 6)}
+                </h3>
+              </div>
+              <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                Consignment: <strong className="text-slate-800">{consignmentId}</strong> · {courierName}
+              </p>
             </div>
-            <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-              Consignment: {consignmentId} · {courierName}
-            </p>
+
+            <div className="flex items-center gap-2">
+              {/* 3 Print Mode Toggles */}
+              <div className="flex p-0.5 rounded-xl bg-slate-200/80 border border-slate-300/60">
+                <button
+                  type="button"
+                  onClick={() => setActiveMode("standard-a4")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                    activeMode === "standard-a4"
+                      ? "bg-white text-orange-600 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <span>Standard A4</span>
+                  <span className="text-[9px] font-mono font-bold px-1 rounded bg-orange-100 text-orange-800">
+                    Home Inkjet
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveMode("thermal")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    activeMode === "thermal"
+                      ? "bg-white text-slate-900 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  4×6 Thermal Label
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveMode("invoice")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    activeMode === "invoice"
+                      ? "bg-white text-slate-900 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  A4 Tax Invoice
+                </button>
+              </div>
+
+              {/* Print Action */}
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="btn-tactile inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                <span>Print or Save PDF</span>
+              </button>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition"
+                aria-label="Close modal"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Mode Toggle */}
-            <div className="flex p-0.5 rounded-xl bg-slate-200/80 border border-slate-300/60">
-              <button
-                type="button"
-                onClick={() => setActiveMode("thermal")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-                  activeMode === "thermal"
-                    ? "bg-white text-slate-900 shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                4×6 Thermal Label
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveMode("invoice")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-                  activeMode === "invoice"
-                    ? "bg-white text-slate-900 shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                A4 Tax Invoice
-              </button>
-            </div>
-
-            {/* Print Action */}
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="btn-tactile inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-xs transition cursor-pointer"
-            >
-              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              <span>Print Now</span>
-            </button>
-
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition"
-              aria-label="Close modal"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+          {/* Friendly Guidance Bar for Zero-Hardware Merchants */}
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-orange-50 border border-orange-200/80 text-[11px] text-orange-950">
+            <span className="text-orange-600 font-bold shrink-0">💡 Printer-Less &amp; Home Printer Friendly:</span>
+            <span>
+              {activeMode === "standard-a4"
+                ? "No thermal hardware needed! Prints on regular A4 home/office paper. Simply cut along the dashed line and tape it onto your package."
+                : activeMode === "thermal"
+                ? "Formatted for standard 100mm × 150mm Zebra, Xprinter, and HPRT roll label printers."
+                : "Full formal A4 commercial invoice with itemized tax details and dispatch signature lines."}
+            </span>
           </div>
         </div>
 
@@ -165,11 +195,158 @@ export default function ThermalAndInvoiceModal({
             id="print-document-root"
             className="w-full bg-white text-black shadow-lg rounded-xl overflow-hidden"
             style={{
-              maxWidth: activeMode === "thermal" ? "400px" : "100%",
+              maxWidth: activeMode === "thermal" ? "400px" : "720px",
             }}
           >
             {/* =================================================== */}
-            {/* MODE 1: 4x6 THERMAL COURIER LABEL                   */}
+            {/* MODE 1: STANDARD A4 (HOME INKJET / LASER PRINTER)   */}
+            {/* =================================================== */}
+            {activeMode === "standard-a4" && (
+              <div className="p-6 sm:p-8 font-sans text-black space-y-6">
+                {/* TOP HALF: Cut-Out Courier Shipping Label */}
+                <div className="border-2 border-dashed border-slate-400 rounded-xl p-4 sm:p-5 relative bg-white space-y-3">
+                  <div className="absolute -top-3 left-6 bg-slate-900 text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded flex items-center gap-1.5 uppercase">
+                    <span>✂ Cut along dashed line and tape onto parcel</span>
+                  </div>
+
+                  {/* Header */}
+                  <div className="flex items-start justify-between border-b-2 border-black pb-2 pt-1">
+                    <div>
+                      <h2 className="text-base font-black uppercase tracking-tight text-black">
+                        {businessName}
+                      </h2>
+                      <p className="text-[10px] font-bold text-black/80 font-mono mt-0.5">
+                        Merchant Support: {businessPhone}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="px-2 py-0.5 border-2 border-black font-black text-xs uppercase font-mono">
+                        {courierName}
+                      </span>
+                      <p className="text-[9px] font-mono font-bold mt-0.5 text-black">STANDARD COD</p>
+                    </div>
+                  </div>
+
+                  {/* Barcode Strip */}
+                  <div className="flex flex-col items-center justify-center py-1 border-b border-black">
+                    <Barcode
+                      value={consignmentId}
+                      width={1.6}
+                      height={44}
+                      fontSize={12}
+                      font="monospace"
+                      margin={2}
+                      displayValue={true}
+                      lineColor="#000000"
+                      background="transparent"
+                    />
+                    <div className="flex justify-between w-full text-[10px] font-mono font-bold pt-1">
+                      <span>DATE: {orderDate}</span>
+                      <span>INVOICE: #{invoiceNumber}</span>
+                      <span>DESTINATION: BANGLADESH</span>
+                    </div>
+                  </div>
+
+                  {/* Consignee */}
+                  <div className="border-b-2 border-black pb-2 space-y-0.5">
+                    <span className="text-[9px] uppercase tracking-wider font-mono font-bold text-black/70 block">
+                      DELIVER TO (CONSIGNEE):
+                    </span>
+                    <div className="text-sm font-black text-black leading-tight">
+                      {customerName}
+                    </div>
+                    <div className="text-xs font-mono font-black text-black">
+                      TEL: {customerPhone}
+                    </div>
+                    <p className="text-[11px] font-medium leading-snug text-black">
+                      {customerAddress}
+                    </p>
+                  </div>
+
+                  {/* COD Cash Box */}
+                  <div className="p-2.5 border-2 border-black bg-white flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-mono font-black block leading-none">
+                        COLLECT FROM BUYER (COD):
+                      </span>
+                      <span className="text-2xl font-black font-mono leading-none mt-1 block">
+                        ৳{codAmount.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[9px] font-mono font-bold block">PAYMENT TERMS</span>
+                      <span className="text-xs font-black uppercase text-emerald-800">CASH ONLY</span>
+                    </div>
+                  </div>
+
+                  {/* Footer micro-instructions */}
+                  <div className="text-[8px] font-mono text-center pt-1 border-t border-black/40 text-black/80 font-bold uppercase">
+                    Fragile Goods · Please Check Parcel Upon Delivery · SmartInventory Verified
+                  </div>
+                </div>
+
+                {/* BOTTOM HALF: Dispatch Packing Slip & Warehouse Checklist */}
+                <div className="border border-slate-300 rounded-xl p-5 bg-slate-50/50 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <div>
+                      <span className="text-xs font-bold uppercase font-mono text-slate-800">
+                        Warehouse Packing Slip &amp; Order Summary
+                      </span>
+                      <p className="text-[11px] text-slate-500 font-mono">
+                        Keep this slip for merchant records or place inside package.
+                      </p>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-slate-700">
+                      {invoiceNumber}
+                    </span>
+                  </div>
+
+                  <table className="w-full text-left text-xs divide-y divide-slate-200">
+                    <thead className="text-[10px] uppercase font-mono text-slate-500 font-bold">
+                      <tr>
+                        <th className="py-1.5">SKU / Item</th>
+                        <th className="py-1.5 text-center">Qty</th>
+                        <th className="py-1.5 text-right">Unit Price</th>
+                        <th className="py-1.5 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-mono">
+                      {items.map((it, idx) => (
+                        <tr key={idx}>
+                          <td className="py-2 text-slate-900 font-sans font-bold">
+                            {it.name} <span className="text-slate-400 font-mono text-[10px]">({it.sku})</span>
+                          </td>
+                          <td className="py-2 text-center font-bold text-slate-800">
+                            {it.quantity || 1}
+                          </td>
+                          <td className="py-2 text-right text-slate-600">
+                            ৳{Number(it.price || codAmount).toLocaleString()}
+                          </td>
+                          <td className="py-2 text-right font-bold text-slate-900">
+                            ৳{(Number(it.price || codAmount) * Number(it.quantity || 1)).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Fulfillment Checklist */}
+                  <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 font-mono">
+                    <div className="flex items-center gap-4">
+                      <span>[  ] Packed &amp; Sealed</span>
+                      <span>[  ] Barcode Scanned</span>
+                      <span>[  ] Handed to Courier</span>
+                    </div>
+                    <div className="font-bold text-slate-900">
+                      Total COD Due: ৳{codAmount.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================== */}
+            {/* MODE 2: 4x6 THERMAL COURIER STICKER                 */}
             {/* =================================================== */}
             {activeMode === "thermal" && (
               <div
@@ -184,8 +361,8 @@ export default function ThermalAndInvoiceModal({
                     <h2 className="text-base font-black uppercase tracking-tight leading-none text-black">
                       {businessName}
                     </h2>
-                    <p className="text-[10px] font-bold text-black/80 mt-0.5">
-                      Merchant Support: {businessPhone}
+                    <p className="text-[10px] font-bold text-black/80 mt-0.5 font-mono">
+                      Support: {businessPhone}
                     </p>
                   </div>
                   <div className="text-right">
@@ -263,7 +440,7 @@ export default function ThermalAndInvoiceModal({
             )}
 
             {/* =================================================== */}
-            {/* MODE 2: A4 COMMERCIAL TAX/POS INVOICE               */}
+            {/* MODE 3: A4 COMMERCIAL TAX/POS INVOICE               */}
             {/* =================================================== */}
             {activeMode === "invoice" && (
               <div className="p-8 sm:p-10 font-sans text-black space-y-6">
@@ -368,54 +545,25 @@ export default function ThermalAndInvoiceModal({
                       <span>৳0</span>
                     </div>
                     <div className="flex justify-between text-sm font-black border-t-2 border-slate-900 pt-2 text-slate-900">
-                      <span>TOTAL PAYABLE (COD):</span>
-                      <span className="text-base">৳{codAmount.toLocaleString()}</span>
+                      <span>Total COD Due:</span>
+                      <span>৳{codAmount.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Signature & Seal Block */}
-                <div className="pt-12 flex justify-between items-end text-xs font-mono">
-                  <div className="text-[10px] text-slate-400">
-                    Generated by SmartInventory Cloud Operating System.<br />
-                    Computer generated document — No physical stamp required.
+                {/* Signatures & Seal */}
+                <div className="pt-8 border-t border-slate-200 flex justify-between items-end text-slate-500 text-[10px] font-mono">
+                  <div className="space-y-1">
+                    <p>Computer-generated tax document.</p>
+                    <p>SmartInventory Verified Dispatch Engine.</p>
                   </div>
-
                   <div className="text-center">
-                    <div className="w-40 border-b border-slate-400 mb-1" />
-                    <span className="text-[10px] font-bold text-slate-700 uppercase">
-                      Authorized Signatory
-                    </span>
+                    <div className="w-32 border-b border-slate-400 mb-1" />
+                    <span>Authorized Merchant Signature</span>
                   </div>
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* ── Modal Footer ─────────────────────────────────────── */}
-        <div className="px-5 py-3 border-t border-slate-200 bg-white flex items-center justify-between no-print">
-          <span className="text-xs text-slate-500 font-mono">
-            {activeMode === "thermal"
-              ? "Recommended: Set printer paper size to 4x6 in (100x150mm)"
-              : "Standard A4 layout ready for tax audit & billing"}
-          </span>
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-tactile px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="btn-tactile px-4 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-xs transition"
-            >
-              Print Document
-            </button>
           </div>
         </div>
       </div>

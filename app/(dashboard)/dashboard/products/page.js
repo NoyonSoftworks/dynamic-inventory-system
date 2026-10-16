@@ -21,6 +21,49 @@ export default function ProductsListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [stockFilter, setStockFilter] = useState("ALL"); // ALL | IN_STOCK | OUT_OF_STOCK
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  // ── 1-Click Frictionless Starter Seeder ──────────────────
+  async function handleSeedDemo() {
+    try {
+      setIsSeeding(true);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const res = await fetch("/api/demo/seed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token
+            ? `Bearer ${session.access_token}`
+            : "",
+        },
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to load sample products.");
+      }
+
+      // Reload products
+      const prodRes = await fetch("/api/products", {
+        headers: {
+          Authorization: session?.access_token
+            ? `Bearer ${session.access_token}`
+            : "",
+        },
+      });
+      const prodJson = await prodRes.json();
+      if (prodJson.success) {
+        setProducts(prodJson.products || []);
+      }
+    } catch (err) {
+      alert(err.message || "Failed to load sample products.");
+    } finally {
+      setIsSeeding(false);
+    }
+  }
 
   // ── Fetch Products & Live Inventory Count ────────────────
   useEffect(() => {
@@ -319,6 +362,24 @@ export default function ProductsListPage() {
                 </button>
               ) : (
                 <div className="flex flex-wrap items-center justify-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={handleSeedDemo}
+                    disabled={isSeeding}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-teal-500 btn-tactile transition cursor-pointer disabled:opacity-60"
+                  >
+                    {isSeeding ? (
+                      <>
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <span>Loading Sample Store…</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>✨</span>
+                        <span>Load 5 Sample Products</span>
+                      </>
+                    )}
+                  </button>
                   <Link
                     href="/dashboard/products/import"
                     className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 btn-tactile transition"

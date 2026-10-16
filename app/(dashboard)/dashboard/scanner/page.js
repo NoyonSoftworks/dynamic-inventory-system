@@ -93,43 +93,74 @@ export default function SmartScannerPage() {
       try {
         let product = null;
         let matchedItem = null;
+        let currentStock = 0;
 
-        // 1. Direct match on products.base_sku
-        let prodQuery = supabase
-          .from("products")
-          .select("id, name, category, base_sku, price, business_id")
-          .ilike("base_sku", code);
+        // 1. Primary: Server-side fast lookup (bypasses RLS recursion)
+        try {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
 
-        if (businessId) {
-          prodQuery = prodQuery.eq("business_id", businessId);
+          const res = await fetch(
+            `/api/products/lookup?code=${encodeURIComponent(code)}`,
+            {
+              headers: {
+                Authorization: session?.access_token
+                  ? `Bearer ${session.access_token}`
+                  : "",
+              },
+            }
+          );
+
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.found) {
+              product = json.product;
+              matchedItem = json.matchedItem;
+              currentStock = json.availableStock ?? 0;
+            }
+          }
+        } catch (apiErr) {
+          console.warn("Server barcode lookup note:", apiErr);
         }
 
-        const { data: prodData } = await prodQuery.maybeSingle();
-
-        if (prodData) {
-          product = prodData;
-        } else {
-          // 2. Match on serialized inventory_items.unique_barcode
-          let itemQuery = supabase
-            .from("inventory_items")
-            .select("id, product_id, unique_barcode, status, business_id")
-            .eq("unique_barcode", code);
+        // 2. Client fallback
+        if (!product) {
+          let prodQuery = supabase
+            .from("products")
+            .select("id, name, category, base_sku, price, business_id")
+            .ilike("base_sku", code);
 
           if (businessId) {
-            itemQuery = itemQuery.eq("business_id", businessId);
+            prodQuery = prodQuery.eq("business_id", businessId);
           }
 
-          const { data: itemData } = await itemQuery.maybeSingle();
+          const { data: prodData } = await prodQuery.maybeSingle();
 
-          if (itemData?.product_id) {
-            matchedItem = itemData;
-            const { data: pData } = await supabase
-              .from("products")
-              .select("id, name, category, base_sku, price, business_id")
-              .eq("id", itemData.product_id)
-              .maybeSingle();
-            if (pData) {
-              product = pData;
+          if (prodData) {
+            product = prodData;
+          } else {
+            let itemQuery = supabase
+              .from("inventory_items")
+              .select("id, product_id, unique_barcode, status, business_id")
+              .eq("unique_barcode", code);
+
+            if (businessId) {
+              itemQuery = itemQuery.eq("business_id", businessId);
+            }
+
+            const { data: itemData } = await itemQuery.maybeSingle();
+
+            if (itemData?.product_id) {
+              matchedItem = itemData;
+              const { data: pData } = await supabase
+                .from("products")
+                .select("id, name, category, base_sku, price, business_id")
+                .eq("id", itemData.product_id)
+                .maybeSingle();
+              if (pData) {
+                product = pData;
+              }
             }
           }
         }
@@ -138,20 +169,25 @@ export default function SmartScannerPage() {
           setMatchedProduct(product);
           setScannedInventoryItem(matchedItem);
 
-          // Calculate current available stock
-          let stockQuery = supabase
-            .from("inventory_items")
-            .select("id", { count: "exact", head: true })
-            .eq("product_id", product.id)
-            .eq("status", "IN_STOCK");
+          // Calculate current available stock if not provided
+          let finalStock = currentStock;
+          if (finalStock === 0) {
+            try {
+              let stockQuery = supabase
+                .from("inventory_items")
+                .select("id", { count: "exact", head: true })
+                .eq("product_id", product.id)
+                .eq("status", "IN_STOCK");
 
-          if (businessId) {
-            stockQuery = stockQuery.eq("business_id", businessId);
+              if (businessId) {
+                stockQuery = stockQuery.eq("business_id", businessId);
+              }
+
+              const { count } = await stockQuery;
+              if (count !== null && count !== undefined) finalStock = count;
+            } catch {}
           }
-
-          const { count } = await stockQuery;
-          const currentStock = count !== null ? count : 0;
-          setAvailableStock(currentStock);
+          setAvailableStock(finalStock);
 
           // Push to session history
           setScanHistory((prev) => [

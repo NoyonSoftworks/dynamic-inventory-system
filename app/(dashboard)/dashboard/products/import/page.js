@@ -95,6 +95,7 @@ export default function BulkImportPage() {
 
   // ── Parsed Rows State ──────────────────────────────────────
   const [parsedRows, setParsedRows] = useState([]);
+  const [detectedColumns, setDetectedColumns] = useState([]);
   const [parseError, setParseError] = useState(null);
 
   // ── Import Progress State ──────────────────────────────────
@@ -116,6 +117,7 @@ export default function BulkImportPage() {
   const handleReset = () => {
     setSelectedFile(null);
     setParsedRows([]);
+    setDetectedColumns([]);
     setParseError(null);
     setImportResult(null);
     setImportProgress(0);
@@ -125,7 +127,7 @@ export default function BulkImportPage() {
     }
   };
 
-  // ── CSV Row Parser & Normalizer ────────────────────────────
+  // ── CSV Row Parser & Fuzzy Column Normalizer ───────────────
   const processCSVFile = (file) => {
     if (!file) return;
 
@@ -150,47 +152,110 @@ export default function BulkImportPage() {
         if (!results.data || results.data.length === 0) {
           setParseError("The uploaded CSV file is empty.");
           setParsedRows([]);
+          setDetectedColumns([]);
           return;
         }
 
+        // Fuzzy Column Detection
+        const fields = (results.meta?.fields || []).map((f) => f.toLowerCase());
+        const detected = [];
+        if (fields.some((f) => f.includes("name") || f.includes("title") || f.includes("product") || f.includes("item") || f.includes("description"))) {
+          detected.push("Item Name");
+        }
+        if (fields.some((f) => f.includes("price") || f.includes("rate") || f.includes("mrp") || f.includes("cost") || f.includes("amount"))) {
+          detected.push("Rate / Price");
+        }
+        if (fields.some((f) => f.includes("stock") || f.includes("qty") || f.includes("quantity") || f.includes("balance") || f.includes("pieces") || f.includes("pcs"))) {
+          detected.push("Stock Balance");
+        }
+        if (fields.some((f) => f.includes("sku") || f.includes("barcode") || f.includes("code"))) {
+          detected.push("SKU");
+        } else {
+          detected.push("Auto-Generated SKU");
+        }
+        setDetectedColumns(detected);
+
         const skuSeen = new Set();
         const validated = results.data.map((rawRow, index) => {
-          // Normalize column headers flexibly
+          // 1. Fuzzy Name Mapping
           const name = (
             rawRow["Name"] ||
             rawRow["name"] ||
             rawRow["Product Name"] ||
             rawRow["product_name"] ||
+            rawRow["Item Name"] ||
+            rawRow["item_name"] ||
+            rawRow["Item"] ||
+            rawRow["item"] ||
             rawRow["Title"] ||
             rawRow["title"] ||
+            rawRow["Description"] ||
+            rawRow["description"] ||
             ""
           ).trim();
 
+          // 2. Fuzzy SKU Mapping with Auto-Generation
           const rawSku = (
             rawRow["Base SKU"] ||
             rawRow["base_sku"] ||
             rawRow["SKU"] ||
             rawRow["sku"] ||
+            rawRow["Item Code"] ||
+            rawRow["item_code"] ||
+            rawRow["Code"] ||
+            rawRow["code"] ||
             rawRow["Barcode"] ||
+            rawRow["barcode"] ||
+            rawRow["Model"] ||
             ""
           ).trim();
-          const baseSku = rawSku.toUpperCase().replace(/\s+/g, "-");
 
+          let baseSku = rawSku ? rawSku.toUpperCase().replace(/\s+/g, "-") : "";
+          let wasAutoSku = false;
+
+          // Auto-generate SKU if missing so merchant isn't blocked!
+          if (!baseSku && name) {
+            const cleanSlug = name
+              .replace(/[^a-zA-Z0-9]/g, "")
+              .toUpperCase()
+              .slice(0, 6) || "ITEM";
+            baseSku = `${cleanSlug}-${generateRandomCode(4)}`;
+            wasAutoSku = true;
+          }
+
+          // 3. Category Mapping
           const category = (
             rawRow["Category"] ||
             rawRow["category"] ||
             rawRow["Type"] ||
+            rawRow["type"] ||
+            rawRow["Group"] ||
+            rawRow["group"] ||
+            rawRow["Department"] ||
             "General"
           ).trim();
 
+          // 4. Fuzzy Price Normalization (strips ৳, $, Tk, BDT, commas)
           const rawPrice = (
             rawRow["Price"] ||
             rawRow["price"] ||
             rawRow["Unit Price"] ||
             rawRow["unit_price"] ||
-            ""
-          ).toString().replace(/[$,]/g, "").trim();
+            rawRow["Rate"] ||
+            rawRow["rate"] ||
+            rawRow["MRP"] ||
+            rawRow["mrp"] ||
+            rawRow["Cost"] ||
+            rawRow["cost"] ||
+            rawRow["Sell Price"] ||
+            rawRow["sell_price"] ||
+            rawRow["Retail Price"] ||
+            rawRow["Amount"] ||
+            rawRow["amount"] ||
+            "0"
+          ).toString().replace(/[৳$TkBDT,\s]/gi, "").trim();
 
+          // 5. Fuzzy Stock Normalization
           const rawStock = (
             rawRow["Initial Stock Quantity"] ||
             rawRow["Initial Stock"] ||
@@ -200,6 +265,16 @@ export default function BulkImportPage() {
             rawRow["Quantity"] ||
             rawRow["quantity"] ||
             rawRow["Qty"] ||
+            rawRow["qty"] ||
+            rawRow["Balance"] ||
+            rawRow["balance"] ||
+            rawRow["Pieces"] ||
+            rawRow["pieces"] ||
+            rawRow["Pcs"] ||
+            rawRow["pcs"] ||
+            rawRow["In Stock"] ||
+            rawRow["in_stock"] ||
+            rawRow["Count"] ||
             "0"
           ).toString().trim();
 
@@ -215,7 +290,16 @@ export default function BulkImportPage() {
           if (!baseSku) {
             errors.push("Missing Base SKU");
           } else if (skuSeen.has(baseSku)) {
-            errors.push(`Duplicate SKU (${baseSku}) in file`);
+            if (wasAutoSku) {
+              const cleanSlug = name
+                .replace(/[^a-zA-Z0-9]/g, "")
+                .toUpperCase()
+                .slice(0, 6) || "ITEM";
+              baseSku = `${cleanSlug}-${generateRandomCode(5)}`;
+              skuSeen.add(baseSku);
+            } else {
+              errors.push(`Duplicate SKU (${baseSku}) in file`);
+            }
           } else {
             skuSeen.add(baseSku);
           }
@@ -234,6 +318,7 @@ export default function BulkImportPage() {
             rowNumber: index + 1,
             name,
             base_sku: baseSku,
+            wasAutoSku,
             category: category || "General",
             price: isNaN(parsedPrice) ? 0 : parsedPrice,
             initial_stock: isNaN(parsedStock) ? 0 : parsedStock,
@@ -690,6 +775,30 @@ export default function BulkImportPage() {
           </div>
         )}
 
+        {/* ── Smart Auto-Detection Banner ─────────────────────────── */}
+        {parsedRows.length > 0 && !importResult && (
+          <div className="rounded-2xl border border-teal-200 bg-teal-50/70 p-4 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-600 text-white font-bold text-xs shrink-0">
+                ✨
+              </span>
+              <div>
+                <span className="font-bold text-slate-900 block">
+                  Smart Excel Column Auto-Detection Active
+                </span>
+                <span className="text-slate-600">
+                  {detectedColumns.length > 0
+                    ? `Auto-matched ${detectedColumns.length} fields: ${detectedColumns.join(" • ")}. Missing SKUs are auto-generated.`
+                    : "Intelligently mapped your CSV headers. Ready for 1-click import."}
+                </span>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-lg bg-teal-100 text-teal-800 font-mono text-[11px] font-bold shrink-0 self-start sm:self-auto">
+              Auto-Mapped
+            </span>
+          </div>
+        )}
+
         {/* ── Preview Table of the First 5 Rows ───────────────────── */}
         {parsedRows.length > 0 && !importResult && (
           <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden space-y-4">
@@ -773,7 +882,14 @@ export default function BulkImportPage() {
                         {/* 4. Base SKU */}
                         <td className="px-5 py-3.5 font-bold text-orange-600">
                           {row.base_sku ? (
-                            row.base_sku
+                            <div className="flex items-center gap-1.5">
+                              <span>{row.base_sku}</span>
+                              {row.wasAutoSku && (
+                                <span className="px-1.5 py-0.2 rounded bg-teal-50 text-teal-700 font-mono text-[9px] font-semibold border border-teal-200">
+                                  Auto SKU
+                                </span>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-rose-600 italic font-normal">
                               [Missing SKU]
