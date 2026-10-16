@@ -619,80 +619,110 @@ export default function ExecutiveDashboardCockpit() {
           </div>
         </div>
 
-        {/* ── 5 EXECUTIVE QUICK ACTION DOCKS ─────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        {/* ── 7 EXECUTIVE QUICK ACTION DOCKS ─────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+          <Link
+            href="/dashboard/reconciliation"
+            className="p-3.5 rounded-2xl border border-rose-200 bg-rose-50/40 hover:border-rose-400 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
+          >
+            <div className="h-9 w-9 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700 shadow-2xs">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-xs font-bold text-slate-900 block">COD Recon</span>
+              <span className="text-[10px] text-rose-700 font-mono">Discrepancy Audit</span>
+            </div>
+          </Link>
+
+          <Link
+            href="/dashboard/expenses"
+            className="p-3.5 rounded-2xl border border-teal-200 bg-teal-50/40 hover:border-teal-400 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
+          >
+            <div className="h-9 w-9 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-700 shadow-2xs">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-xs font-bold text-slate-900 block">Expenses &amp; Ads</span>
+              <span className="text-[10px] text-teal-700 font-mono">Overhead Splitter</span>
+            </div>
+          </Link>
+
           <Link
             href="/dashboard/scanner"
-            className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-2 transition"
+            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-10 w-10 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="h-9 w-9 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600 shadow-2xs">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Barcode Scanner</span>
-              <span className="text-[10px] text-slate-500 font-mono">Camera / Laser Intake</span>
+              <span className="text-xs font-bold text-slate-900 block">Camera Scan</span>
+              <span className="text-[10px] text-slate-500 font-mono">Laser / Camera</span>
             </div>
           </Link>
 
           <Link
             href="/dashboard/ai-hub"
-            className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-2 transition"
+            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-10 w-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="h-9 w-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shadow-2xs">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">RTO Risk Guard</span>
-              <span className="text-[10px] text-slate-500 font-mono">COD Fraud Prevention</span>
+              <span className="text-xs font-bold text-slate-900 block">RTO Shield</span>
+              <span className="text-[10px] text-slate-500 font-mono">Fraud Prevention</span>
             </div>
           </Link>
 
           <Link
             href="/bulk-orders"
-            className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-2 transition"
+            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-10 w-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600">
+            <div className="h-9 w-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 shadow-2xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Bulk Dispatches</span>
-              <span className="text-[10px] text-slate-500 font-mono">Courier Consignments</span>
+              <span className="text-xs font-bold text-slate-900 block">Orders</span>
+              <span className="text-[10px] text-slate-500 font-mono">Courier Dispatch</span>
             </div>
           </Link>
 
           <Link
             href="/dashboard/products/add"
-            className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-2 transition"
+            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-2xs">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Product Intake</span>
-              <span className="text-[10px] text-slate-500 font-mono">New SKU Registration</span>
+              <span className="text-xs font-bold text-slate-900 block">Add Product</span>
+              <span className="text-[10px] text-slate-500 font-mono">New SKU Intake</span>
             </div>
           </Link>
 
           <Link
             href="/reports"
-            className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-2 transition col-span-2 sm:col-span-1"
+            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition col-span-2 sm:col-span-1"
           >
-            <div className="h-10 w-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="h-9 w-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shadow-2xs">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Stock Runways</span>
-              <span className="text-[10px] text-slate-500 font-mono">Depletion Timelines</span>
+              <span className="text-xs font-bold text-slate-900 block">Stock Runway</span>
+              <span className="text-[10px] text-slate-500 font-mono">Depletion Alert</span>
             </div>
           </Link>
         </div>

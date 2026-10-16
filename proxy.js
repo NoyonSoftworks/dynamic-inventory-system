@@ -27,6 +27,7 @@ const PUBLIC_ROUTE_PREFIXES = [
   "/login",
   "/register",
   "/auth",
+  "/api/auth",
   "/api/admin/settings",
 ];
 
@@ -155,16 +156,6 @@ export async function proxy(request) {
       const deniedUrl = new URL("/dashboard", request.url);
       deniedUrl.searchParams.set("denied", "1");
       return NextResponse.redirect(deniedUrl);
-    }
-  } else {
-    // If Super Admin attempts to access merchant workspace routes, route them to /admin
-    const isMerchantRoute = PROTECTED_PREFIXES.some(
-      (prefix) =>
-        prefix !== "/admin" &&
-        (pathname === prefix || pathname.startsWith(`${prefix}/`))
-    );
-    if (isMerchantRoute && userEmail === ADMIN_EMAIL) {
-      return NextResponse.redirect(new URL("/admin", request.url));
     }
   }
 
