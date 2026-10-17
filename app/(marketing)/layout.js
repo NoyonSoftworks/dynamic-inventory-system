@@ -14,9 +14,9 @@ export const metadata = {
     "stock control multi location",
     "smart inventory saas",
   ],
-  authors: [{ name: "SmartInventory Logistics Architecture" }],
-  creator: "SmartInventory",
-  publisher: "SmartInventory",
+  authors: [{ name: "Noyon Hossain", url: "https://smartinventory.io" }],
+  creator: "Noyon Hossain",
+  publisher: "SmartInventory by Noyon Hossain",
   formatDetection: {
     email: false,
     address: false,
@@ -57,6 +57,11 @@ export default function MarketingLayout({ children }) {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "SmartInventory",
+    "author": {
+      "@type": "Person",
+      "name": "Noyon Hossain",
+      "jobTitle": "Founder & Lead Systems Architect"
+    },
     "operatingSystem": "All (Web-based, iOS, Android)",
     "applicationCategory": "BusinessApplication",
     "applicationSubCategory": "SupplyChainAndInventoryManagement",

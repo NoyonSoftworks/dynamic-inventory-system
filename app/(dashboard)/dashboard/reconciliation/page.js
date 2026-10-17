@@ -397,10 +397,10 @@ export default function CourierReconciliationPage() {
               </span>
             </div>
             <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight font-mono">
-              ৳{Math.round(telemetry.totalSettledAmount).toLocaleString()}
+              ৳{Math.round(telemetry.totalSettledAmount || 0).toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              {telemetry.settledCount} consignments reconciled &amp; remitted
+              {telemetry.settledCount || 0} consignments reconciled &amp; remitted
             </div>
           </div>
 
@@ -417,10 +417,10 @@ export default function CourierReconciliationPage() {
               </span>
             </div>
             <div className="mt-3 text-2xl sm:text-3xl font-black text-amber-600 tracking-tight font-mono">
-              ৳{Math.round(telemetry.pendingPayoutAmount).toLocaleString()}
+              ৳{Math.round(telemetry.pendingPayoutAmount || 0).toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              {telemetry.pendingCount} delivered parcels awaiting disbursement
+              {telemetry.pendingCount || 0} delivered parcels awaiting disbursement
             </div>
           </div>
 
@@ -437,10 +437,10 @@ export default function CourierReconciliationPage() {
               </span>
             </div>
             <div className="mt-3 text-2xl sm:text-3xl font-black text-rose-600 tracking-tight font-mono">
-              -৳{Math.round(telemetry.shortPaidVariance).toLocaleString()}
+              -৳{Math.round(telemetry.shortPaidVariance || 0).toLocaleString()}
             </div>
             <div className="text-[11px] text-rose-700 mt-1 font-mono font-semibold">
-              {telemetry.shortPaidCount} orders short-paid • Claim recoverable
+              {telemetry.shortPaidCount || 0} orders short-paid • Claim recoverable
             </div>
           </div>
 
@@ -458,10 +458,10 @@ export default function CourierReconciliationPage() {
               </span>
             </div>
             <div className="mt-3 text-2xl sm:text-3xl font-black text-purple-700 tracking-tight font-mono">
-              {telemetry.stuckCount} <span className="text-sm font-semibold text-slate-500">Parcels</span>
+              {telemetry.stuckCount || 0} <span className="text-sm font-semibold text-slate-500">Parcels</span>
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              ৳{Math.round(telemetry.stuckAtRiskValue).toLocaleString()} trapped goods at risk
+              ৳{Math.round(telemetry.stuckAtRiskValue || 0).toLocaleString()} trapped goods at risk
             </div>
           </div>
         </div>

@@ -209,10 +209,10 @@ export default function ExpensesManagementPage() {
   }, [expenses, selectedCategoryFilter, searchQuery]);
 
   // Distribution percentages
-  const grandTotal = Math.max(1, telemetry.totalExpenses);
-  const adPercent = Math.round((telemetry.adSpendTotal / grandTotal) * 100);
-  const packPercent = Math.round((telemetry.packagingTotal / grandTotal) * 100);
-  const rentPercent = Math.round((telemetry.salariesRentTotal / grandTotal) * 100);
+  const grandTotal = Math.max(1, telemetry.totalExpenses || 0);
+  const adPercent = Math.round(((telemetry.adSpendTotal || 0) / grandTotal) * 100);
+  const packPercent = Math.round(((telemetry.packagingTotal || 0) / grandTotal) * 100);
+  const rentPercent = Math.round(((telemetry.salariesRentTotal || 0) / grandTotal) * 100);
   const utilPercent = Math.max(0, 100 - adPercent - packPercent - rentPercent);
 
   if (ctxLoading || loading) {
@@ -327,10 +327,10 @@ export default function ExpensesManagementPage() {
               </span>
             </div>
             <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
-              ৳{Math.round(telemetry.totalExpenses).toLocaleString()}
+              ৳{Math.round(telemetry.totalExpenses || 0).toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              Across {telemetry.recordCount} logged operational entries
+              Across {telemetry.recordCount || 0} logged operational entries
             </div>
           </div>
 
@@ -348,7 +348,7 @@ export default function ExpensesManagementPage() {
               </span>
             </div>
             <div className="mt-3 text-2xl sm:text-3xl font-black text-teal-700 tracking-tight font-mono">
-              ৳{Math.round(telemetry.adSpendTotal).toLocaleString()}
+              ৳{Math.round(telemetry.adSpendTotal || 0).toLocaleString()}
             </div>
             <div className="text-[11px] text-teal-700 mt-1 font-mono font-semibold">
               {adPercent}% of total operational overheads
@@ -368,7 +368,7 @@ export default function ExpensesManagementPage() {
               </span>
             </div>
             <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-800 tracking-tight font-mono">
-              ৳{Math.round(telemetry.packagingTotal).toLocaleString()}
+              ৳{Math.round(telemetry.packagingTotal || 0).toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
               Flyers, bubble rolls &amp; security tapes
@@ -388,7 +388,7 @@ export default function ExpensesManagementPage() {
               </span>
             </div>
             <div className="mt-3 text-2xl sm:text-3xl font-black text-purple-700 tracking-tight font-mono">
-              ৳{Math.round(telemetry.salariesRentTotal + telemetry.utilitiesMiscTotal).toLocaleString()}
+              ৳{Math.round((telemetry.salariesRentTotal || 0) + (telemetry.utilitiesMiscTotal || 0)).toLocaleString()}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
               Packing crew, broadband &amp; refreshments
@@ -400,7 +400,7 @@ export default function ExpensesManagementPage() {
         <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-2.5">
           <div className="flex items-center justify-between text-xs font-mono">
             <span className="font-bold text-slate-900 uppercase">Overhead Distribution Matrix</span>
-            <span className="text-slate-500">Total: ৳{Math.round(telemetry.totalExpenses).toLocaleString()}</span>
+            <span className="text-slate-500">Total: ৳{Math.round(telemetry.totalExpenses || 0).toLocaleString()}</span>
           </div>
 
           {/* Segmented Progress Bar */}

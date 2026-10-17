@@ -54,20 +54,11 @@ export async function GET(request) {
     let businessId = roleRow?.business_id;
 
     if (!businessId) {
-      const adminEmail = (
-        process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-      )
-        .toLowerCase()
-        .trim();
-      if (user.email?.toLowerCase().trim() === adminEmail) {
-        const { data: firstBiz } = await adminClient
-          .from("businesses")
-          .select("id")
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        businessId = firstBiz?.id;
-      }
+      return NextResponse.json({
+        success: true,
+        found: false,
+        code,
+      });
     }
 
     let product = null;

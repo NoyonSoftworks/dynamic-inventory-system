@@ -1649,7 +1649,7 @@ export default function MarketingLandingPage() {
                 </div>
                 <div className="flex items-baseline gap-1 mt-2">
                   <span className="text-4xl font-black text-slate-900 font-mono">
-                    {currency === "BDT" ? "৳2,490" : "$24"}
+                    {currency === "BDT" ? "৳1,990" : "$19"}
                   </span>
                   <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
                 </div>
@@ -1705,7 +1705,7 @@ export default function MarketingLandingPage() {
                 </span>
                 <div className="flex items-baseline gap-1 mt-2">
                   <span className="text-4xl font-black text-slate-900 font-mono">
-                    {currency === "BDT" ? "৳5,900" : "$55"}
+                    {currency === "BDT" ? "৳4,990" : "$49"}
                   </span>
                   <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
                 </div>

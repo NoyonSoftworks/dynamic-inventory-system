@@ -83,40 +83,31 @@ export async function POST(request) {
 
     // Self-healing: If user has no business_id, auto-provision or assign one
     if (!businessId) {
-      const adminEmail = (
-        process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-      )
-        .toLowerCase()
-        .trim();
       const userEmail = (user.email || "").toLowerCase().trim();
-
-      if (userEmail === adminEmail) {
-        const { data: firstBiz } = await adminClient
-          .from("businesses")
-          .select("id")
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        businessId = firstBiz?.id || "00000000-0000-0000-0000-000000000001";
-      } else {
-        const storeName = userEmail
-          ? `${userEmail.split("@")[0]}'s Store`
-          : "My Workspace";
-        const { data: newBiz } = await adminClient
-          .from("businesses")
-          .insert({ name: storeName })
-          .select("id")
-          .single();
-        if (newBiz) {
-          businessId = newBiz.id;
-          await adminClient.from("user_roles").upsert({
-            id: user.id,
-            email: userEmail,
-            role: "admin",
-            business_id: newBiz.id,
-          });
-        }
+      const storeName = userEmail
+        ? `${userEmail.split("@")[0]}'s Store`
+        : "My Workspace";
+      const { data: newBiz } = await adminClient
+        .from("businesses")
+        .insert({ name: storeName })
+        .select("id")
+        .single();
+      if (newBiz) {
+        businessId = newBiz.id;
+        await adminClient.from("user_roles").upsert({
+          id: user.id,
+          email: userEmail,
+          role: "admin",
+          business_id: newBiz.id,
+        });
       }
+    }
+
+    if (!businessId) {
+      return NextResponse.json(
+        { success: false, error: "Missing business workspace context." },
+        { status: 400 }
+      );
     }
 
     // ── 3. Parse & Validate Payload ───────────────────────────

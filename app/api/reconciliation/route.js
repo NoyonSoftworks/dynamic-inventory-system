@@ -158,9 +158,6 @@ export async function POST(request) {
     const { records = [], singleRecord, resetToDefault } = body || {};
 
     if (resetToDefault) {
-      // Re-populate demo dataset
-      const filePath = getTenantFilePath(businessId, "reconciliations.json");
-      // Resets by passing empty or default
       return NextResponse.json({ success: true, message: "Reset to default demo settlement data." });
     }
 

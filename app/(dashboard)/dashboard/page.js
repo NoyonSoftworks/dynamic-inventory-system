@@ -447,7 +447,7 @@ export default function ExecutiveDashboardCockpit() {
                 <strong className="text-slate-800 font-semibold">Zero special hardware required.</strong> Used smartphone camera as a laser scanner gun and standard A4 home printer packing slips instead of expensive Zebra printers.
               </p>
               <div className="pt-1 flex items-center justify-between text-[10px] font-mono text-slate-500">
-                <span>WebAssembly Camera Scanner</span>
+                <span>Built-in Camera Scanner</span>
                 <Link href="/dashboard/scanner" className="text-teal-700 font-bold hover:underline">
                   Launch Camera Scanner →
                 </Link>
@@ -577,7 +577,7 @@ export default function ExecutiveDashboardCockpit() {
                 <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 text-[10px] font-mono font-bold uppercase">
                   RTO Loss Guard
                 </span>
-                <span className="text-[10px] text-teal-700 font-mono">Anti-Return AI</span>
+                <span className="text-[10px] text-teal-700 font-mono">Courier RTO Shield</span>
               </div>
               <h3 className="text-xs font-bold text-teal-950">
                 Pre-Dispatch Risk Filter is Active
@@ -600,7 +600,7 @@ export default function ExecutiveDashboardCockpit() {
                 <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-mono font-bold uppercase">
                   Speed Intake
                 </span>
-                <span className="text-[10px] text-blue-700 font-mono">Invoice OCR</span>
+                <span className="text-[10px] text-blue-700 font-mono">Challan Reader</span>
               </div>
               <h3 className="text-xs font-bold text-blue-950">
                 Batch Challan Ingestion

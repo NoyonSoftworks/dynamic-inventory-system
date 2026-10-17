@@ -122,9 +122,10 @@ export default function InventoryRunwayReport() {
     // 1% COD Fee standard in Bangladesh logistics
     const codFees = totalGmv * 0.01;
     // Real Digital Ad Spend from Expense Ledger
-    const realAdSpend = Number(expensesData.adSpendTotal) || 0;
+    const totalExp = Number(expensesData?.totalExpenses) || 0;
+    const realAdSpend = Number(expensesData?.adSpendTotal) || 0;
     // Real Operating Overheads (Packaging, Rent, Staff, Utilities) from Ledger
-    const recordedOverheads = Number(expensesData.totalExpenses - expensesData.adSpendTotal) || 0;
+    const recordedOverheads = Math.max(0, totalExp - realAdSpend);
     // Packaging & overhead buffer
     const packagingBuffer = recordedOverheads > 0 ? recordedOverheads : (dispatchedCount || orderCount) * 45;
 

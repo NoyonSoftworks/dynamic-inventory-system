@@ -93,55 +93,30 @@ async function handleBusinessContext(request) {
     let businessName = roleRow?.businesses?.name || null;
     let resolvedRole = roleRow?.role || "admin";
 
-    // 3. Auto-provision or assign business if null
+    // 3. Auto-provision dedicated tenant store if null (Strict Multi-Tenant Isolation)
     if (!businessId) {
-      if (isSuperAdmin) {
-        // Super Admin uses the first active business workspace or Primary Workspace
-        const { data: firstBiz } = await adminClient
-          .from("businesses")
-          .select("id, name")
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle();
+      const storeName = isSuperAdmin
+        ? "Noyon Hossain Enterprise"
+        : userEmail
+        ? `${userEmail.split("@")[0]}'s Store`
+        : "My Workspace";
 
-        if (firstBiz) {
-          businessId = firstBiz.id;
-          businessName = firstBiz.name;
-        } else {
-          // Provision platform master workspace
-          const { data: createdMaster } = await adminClient
-            .from("businesses")
-            .insert({ name: "Primary Workspace" })
-            .select("id, name")
-            .single();
+      const { data: newBiz, error: newBizErr } = await adminClient
+        .from("businesses")
+        .insert({ name: storeName })
+        .select("id, name")
+        .single();
 
-          businessId = createdMaster?.id || "00000000-0000-0000-0000-000000000001";
-          businessName = createdMaster?.name || "Primary Workspace";
-        }
-      } else {
-        // Merchant self-healing: Auto-provision dedicated tenant store
-        const storeName = userEmail
-          ? `${userEmail.split("@")[0]}'s Store`
-          : "My Workspace";
+      if (!newBizErr && newBiz) {
+        businessId = newBiz.id;
+        businessName = newBiz.name;
 
-        const { data: newBiz, error: newBizErr } = await adminClient
-          .from("businesses")
-          .insert({ name: storeName })
-          .select("id, name")
-          .single();
-
-        if (!newBizErr && newBiz) {
-          businessId = newBiz.id;
-          businessName = newBiz.name;
-
-          // Upsert into user_roles
-          await adminClient.from("user_roles").upsert({
-            id: user.id,
-            email: userEmail,
-            role: "admin",
-            business_id: newBiz.id,
-          });
-        }
+        await adminClient.from("user_roles").upsert({
+          id: user.id,
+          email: userEmail,
+          role: "admin",
+          business_id: newBiz.id,
+        });
       }
     }
 
