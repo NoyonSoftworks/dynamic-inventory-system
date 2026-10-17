@@ -30,6 +30,7 @@ const PUBLIC_ROUTE_PREFIXES = [
   "/auth",
   "/api/auth/business-context",
   "/api/admin/settings",
+  "/api/admin/reset-password",
   "/admin/login",
 ];
 

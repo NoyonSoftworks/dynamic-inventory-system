@@ -195,6 +195,7 @@ export default function SuperAdminDashboard() {
             setIsAuthorized(false);
             setAuthChecking(false);
             setLoading(false);
+            router.replace("/admin/login");
           }
           return;
         }
@@ -207,6 +208,7 @@ export default function SuperAdminDashboard() {
             setIsAuthorized(false);
             setAuthChecking(false);
             setLoading(false);
+            router.replace("/admin/login?error=unauthorized");
           }
           return;
         }
@@ -297,6 +299,33 @@ export default function SuperAdminDashboard() {
       triggerToast("error", err.message || "Failed to save settings.");
     } finally {
       setSavingSettings(false);
+    }
+  }
+
+  // ── Change Super Admin Password ────────────────────────────
+  async function handleChangeAdminPassword(e) {
+    if (e) e.preventDefault();
+    if (!newAdminPassword || newAdminPassword.length < 6) {
+      triggerToast("error", "Password must be at least 6 characters in length.");
+      return;
+    }
+    if (newAdminPassword !== confirmAdminPassword) {
+      triggerToast("error", "Password confirmation does not match.");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newAdminPassword,
+      });
+      if (error) throw error;
+      setNewAdminPassword("");
+      setConfirmAdminPassword("");
+      triggerToast("success", "Super Admin master password updated successfully!");
+    } catch (err) {
+      triggerToast("error", err.message || "Failed to update master password.");
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -409,13 +438,13 @@ export default function SuperAdminDashboard() {
           </div>
           <div className="pt-2 flex flex-col gap-2.5">
             <Link
-              href="/login?redirect=/admin"
+              href="/admin/login"
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
-              <span>Sign In as Platform Owner ({ADMIN_EMAIL})</span>
+              <span>Sign In to Super Admin</span>
             </Link>
             <Link
               href="/dashboard"
@@ -592,6 +621,24 @@ export default function SuperAdminDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
             <span>WhatsApp &amp; SMS</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("security")}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === "security"
+                ? "bg-orange-600 text-white shadow-xs btn-tactile"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>Security &amp; Recovery</span>
+            {saasSettings.admin_recovery_email && (
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            )}
           </button>
 
           <button
@@ -1632,6 +1679,233 @@ export default function SuperAdminDashboard() {
                     <span>Save SMS Gateway Config</span>
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 4.5: SECURITY, MASTER PASSWORDS & RECOVERY CONTACTS   */}
+        {/* ========================================================= */}
+        {activeTab === "security" && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Top Security Overview Banner */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-800">
+                    🛡️ Zero-Trust Security Clearance
+                  </span>
+                  <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+                    Super Admin Security &amp; Recovery
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Manage platform owner credentials, configure emergency recovery email &amp; phone, and update master passwords.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/admin/login"
+                    target="_blank"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition"
+                  >
+                    <span>🔐 Preview Admin Login Page</span>
+                    <span>↗</span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Master Identity Card */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Master Administrator
+                  </span>
+                  <p className="text-sm font-bold text-slate-900 font-mono break-all">
+                    {ADMIN_EMAIL}
+                  </p>
+                  <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                    <span>✓</span> Verified Platform Owner
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Active Recovery Email
+                  </span>
+                  <p className="text-sm font-bold text-slate-900 font-mono break-all">
+                    {saasSettings.admin_recovery_email || "Not Configured"}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Dispatches emergency password resets
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Active Recovery Phone
+                  </span>
+                  <p className="text-sm font-bold text-slate-900 font-mono">
+                    {saasSettings.admin_recovery_phone || "Not Configured"}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Emergency SMS &amp; WhatsApp alerts
+                  </p>
+                </div>
+              </div>
+
+              {/* Form 1: Recovery Contacts */}
+              <div className="border-t border-slate-100 pt-6 space-y-5">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span>📞</span>
+                    <span>Emergency Recovery Contacts</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Configure your backup email and phone number. If you ever lose access to this browser, these details are used to verify and recover your master account.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Recovery Email */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Recovery Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={saasSettings.admin_recovery_email || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          admin_recovery_email: e.target.value,
+                        }))
+                      }
+                      placeholder="mdnoyon356268@gmail.com"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Password reset codes and security notifications will be sent to this email.
+                    </p>
+                  </div>
+
+                  {/* Recovery Phone */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Recovery Phone / WhatsApp Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={saasSettings.admin_recovery_phone || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          admin_recovery_phone: e.target.value,
+                        }))
+                      }
+                      placeholder="+8801700000000"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Used for critical SMS alerts, OTP verification, and suspicious access warnings.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSettings("Recovery Contacts")}
+                    disabled={savingSettings}
+                    className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50 cursor-pointer"
+                  >
+                    <span>💾</span>
+                    <span>{savingSettings ? "Saving…" : "Save Recovery Contacts"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Form 2: Change Master Password */}
+              <div className="border-t border-slate-100 pt-6 space-y-5">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span>🔑</span>
+                    <span>Update Super Admin Password</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Set a new strong password for <code className="text-orange-700 bg-orange-50 px-1 py-0.5 rounded font-mono font-bold">{ADMIN_EMAIL}</code>.
+                  </p>
+                </div>
+
+                <form onSubmit={handleChangeAdminPassword} className="space-y-4 max-w-xl">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showAdminNewPass ? "text" : "password"}
+                          value={newAdminPassword}
+                          onChange={(e) => setNewAdminPassword(e.target.value)}
+                          placeholder="At least 6 characters"
+                          className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowAdminNewPass(!showAdminNewPass)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-[11px]"
+                        >
+                          {showAdminNewPass ? "Hide" : "Show"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type={showAdminNewPass ? "text" : "password"}
+                        value={confirmAdminPassword}
+                        onChange={(e) => setConfirmAdminPassword(e.target.value)}
+                        placeholder="Re-enter new password"
+                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={changingPassword || !newAdminPassword}
+                      className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-slate-900/20 hover:bg-slate-800 btn-tactile transition disabled:opacity-50 cursor-pointer"
+                    >
+                      <span>🔒</span>
+                      <span>{changingPassword ? "Updating Password…" : "Update Super Admin Password"}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Self-Service Reset & Security Architecture Info */}
+              <div className="rounded-2xl border border-teal-200 bg-teal-50/70 p-5 space-y-2 text-xs text-teal-900">
+                <div className="flex items-center gap-2 font-bold text-teal-950">
+                  <span>ℹ️</span>
+                  <span>Self-Service Recovery Mechanism</span>
+                </div>
+                <p className="leading-relaxed text-teal-800">
+                  If you ever forget your password, simply navigate to{" "}
+                  <Link href="/admin/login" className="font-bold underline text-teal-950">
+                    /admin/login
+                  </Link>{" "}
+                  and click <strong>&quot;Forgot Password?&quot;</strong>. The system will immediately dispatch a secure 1-click password reset link to{" "}
+                  <code className="font-mono font-bold bg-teal-100/80 px-1 py-0.5 rounded">{ADMIN_EMAIL}</code>.
+                </p>
+                <p className="leading-relaxed text-teal-800/80 text-[11px]">
+                  All administrative logins and password changes are cryptographically verified and recorded in the Immutable Activity Audit Trail.
+                </p>
               </div>
             </div>
           </div>

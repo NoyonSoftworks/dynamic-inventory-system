@@ -1,0 +1,21 @@
+{
+  "id": 1,
+  "pro_plan_price": 49,
+  "free_order_limit": 100,
+  "currency_mode": "AUTO",
+  "bdt_exchange_rate": 122,
+  "whatsapp_api_url": "https://api.green-api.com",
+  "whatsapp_instance_id": "",
+  "whatsapp_token": "",
+  "sms_api_key": "",
+  "sms_sender_id": "",
+  "sms_api_url": "http://bulksmsbd.net/api/smsapi",
+  "sslcommerz_store_id": "",
+  "sslcommerz_store_passwd": "",
+  "sslcommerz_is_live": false,
+  "stripe_public_key": "",
+  "stripe_secret_key": "",
+  "admin_recovery_email": "mdnoyon356268@gmail.com",
+  "admin_recovery_phone": "+8801700000000",
+  "updated_at": "2026-10-17T18:22:27.029Z"
+}
