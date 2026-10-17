@@ -35,20 +35,6 @@ export default function DashboardLayout({ children }) {
           return;
         }
 
-        const userEmail = (session.user.email || "").toLowerCase().trim();
-        const adminEmail = (
-          process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-        )
-          .toLowerCase()
-          .trim();
-
-        if (userEmail === adminEmail) {
-          if (isMounted) {
-            router.replace("/admin");
-          }
-          return;
-        }
-
         if (isMounted) {
           setIsAuthenticated(true);
           setAuthChecking(false);

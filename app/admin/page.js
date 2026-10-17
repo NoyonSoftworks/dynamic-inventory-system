@@ -74,6 +74,8 @@ export default function SuperAdminDashboard() {
     sslcommerz_is_live: false,
     stripe_public_key: "",
     stripe_secret_key: "",
+    admin_recovery_email: "mdnoyon356268@gmail.com",
+    admin_recovery_phone: "",
   });
 
   // Password visibility toggles
@@ -81,6 +83,12 @@ export default function SuperAdminDashboard() {
   const [showSmsApiKey, setShowSmsApiKey] = useState(false);
   const [showSslPasswd, setShowSslPasswd] = useState(false);
   const [showStripeSecret, setShowStripeSecret] = useState(false);
+
+  // Super Admin Password & Security Settings
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showAdminNewPass, setShowAdminNewPass] = useState(false);
 
   // ── Activity Footprints / Audit Trail State ─────────────────
   const [activityLogs, setActivityLogs] = useState([]);
@@ -334,10 +342,18 @@ export default function SuperAdminDashboard() {
 
   // ── Logout ─────────────────────────────────────────────────
   async function handleLogout() {
-    document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
-    document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+    document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+    document.cookie = "sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+    document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+    document.cookie = "sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage?.clear();
+        window.sessionStorage?.clear();
+      } catch {}
+    }
     await supabase.auth.signOut();
-    router.push("/login");
+    window.location.href = "/login";
   }
 
   // ── 1. LOADING SCREEN ──────────────────────────────────────
@@ -399,11 +415,11 @@ export default function SuperAdminDashboard() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
-              <span>Sign in with Platform Owner Credentials</span>
+              <span>Sign In as Platform Owner ({ADMIN_EMAIL})</span>
             </Link>
             <Link
               href="/dashboard"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
             >
               <span>← Go to Merchant Dashboard</span>
             </Link>

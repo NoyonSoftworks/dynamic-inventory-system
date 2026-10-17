@@ -20,6 +20,7 @@ const PUBLIC_EXACT_ROUTES = new Set([
   "/login",
   "/register",
   "/update-password",
+  "/admin/login",
 ]);
 
 const PUBLIC_ROUTE_PREFIXES = [
@@ -29,6 +30,7 @@ const PUBLIC_ROUTE_PREFIXES = [
   "/auth",
   "/api/auth/business-context",
   "/api/admin/settings",
+  "/admin/login",
 ];
 
 /**
@@ -139,20 +141,25 @@ export async function proxy(request) {
 
   // 7. Enforce Redirect to Login for Unauthenticated Access to Protected Routes
   if (!currentUser) {
+    if (isAdminRoute) {
+      const adminLoginUrl = new URL("/admin/login", request.url);
+      return NextResponse.redirect(adminLoginUrl);
+    }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // 8. Strict Super Admin Route Protection & Isolation
+  // 8. Strict Super Admin Route Protection
   if (isAdminRoute) {
-    // Only the verified system super admin email can access /admin
     if (userEmail !== ADMIN_EMAIL) {
-      const deniedUrl = new URL("/dashboard", request.url);
-      deniedUrl.searchParams.set("denied", "1");
-      return NextResponse.redirect(deniedUrl);
+      const adminLoginUrl = new URL("/admin/login", request.url);
+      adminLoginUrl.searchParams.set("error", "unauthorized");
+      return NextResponse.redirect(adminLoginUrl);
     }
   }
+
+
 
   // 9. Propagate user context headers downstream
   response.headers.set("x-user-id", currentUser.id);

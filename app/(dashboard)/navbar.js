@@ -118,10 +118,15 @@ const ROLE_BADGE_STYLES = {
   viewer: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
+const ADMIN_EMAIL = (
+  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
+).toLowerCase().trim();
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { role, userEmail, businessName, loading } = useBusinessContext();
+  const isSuperAdmin = (userEmail || "").toLowerCase().trim() === ADMIN_EMAIL;
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -144,13 +149,21 @@ export default function Navbar() {
   // Secure sign out handler
   async function handleLogout() {
     try {
-      document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
-      document.cookie = `sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+      document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+      document.cookie = "sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+      document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+      document.cookie = "sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage?.clear();
+          window.sessionStorage?.clear();
+        } catch {}
+      }
       await supabase.auth.signOut();
     } catch (err) {
       console.warn("Sign out note:", err);
     } finally {
-      router.replace("/login");
+      window.location.href = "/login";
     }
   }
 
@@ -247,6 +260,17 @@ export default function Navbar() {
 
           {/* ── 3. RIGHT: Workspace Settings & User Profile ──────── */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Super Admin Console Button */}
+            {isSuperAdmin && (
+              <Link
+                href="/admin"
+                className="btn-tactile inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition shadow-2xs"
+                title="Super Admin Control Plane"
+              >
+                <span>⚙️ Super Admin</span>
+              </Link>
+            )}
+
             {/* Quick Settings Icon */}
             {isWorkspaceAdmin && (
               <Link
@@ -304,6 +328,18 @@ export default function Navbar() {
 
                     {/* Pure Tenant Navigation Items */}
                     <div className="py-1.5 space-y-0.5 text-xs font-medium">
+                      {isSuperAdmin && (
+                        <div className="pb-1.5 mb-1.5 border-b border-slate-100">
+                          <Link
+                            href="/admin"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-bold transition"
+                          >
+                            <span>⚙️</span>
+                            <span>Super Admin Control Plane</span>
+                          </Link>
+                        </div>
+                      )}
                       {isWorkspaceAdmin && (
                         <>
                           <Link

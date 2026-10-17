@@ -2,11 +2,18 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
 
+const ADMIN_EMAIL = (
+  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
+).toLowerCase().trim();
+
 export default function ExecutiveDashboardCockpit() {
-  const { businessId, businessName, loading: ctxLoading } = useBusinessContext();
+  const { businessId, businessName, userEmail, loading: ctxLoading } = useBusinessContext();
+  const searchParams = useSearchParams();
+  const isDenied = searchParams?.get("denied") === "1";
 
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -223,6 +230,31 @@ export default function ExecutiveDashboardCockpit() {
   return (
     <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        {/* ── ACCESS DENIED ALERT ─────────────────── */}
+        {isDenied && (
+          <div className="rounded-2xl border border-rose-300 bg-rose-50/90 p-4 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <span className="p-2 rounded-xl bg-rose-100 text-rose-700 text-lg">⚠️</span>
+              <div>
+                <p className="text-xs sm:text-sm font-bold">
+                  Super Admin Access Denied
+                </p>
+                <p className="text-[11px] text-rose-700">
+                  Signed in as <span className="font-mono underline">{userEmail || "Customer"}</span>. The Super Admin Console is strictly restricted to the Platform Owner (<span className="font-semibold">{ADMIN_EMAIL}</span>).
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/login?redirect=/admin"
+                className="btn-tactile px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs"
+              >
+                Sign In as Platform Owner
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* ── TOP STORE BANNER & GREETING ──────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
           <div>
