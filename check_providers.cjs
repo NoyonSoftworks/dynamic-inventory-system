@@ -11,10 +11,10 @@ fs.readFileSync('.env.local', 'utf8').split(/\r?\n/).forEach(line => {
 const { createClient } = require('@supabase/supabase-js');
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
-async function check() {
-  const { data: biz } = await sb.from('businesses').select('*');
-  console.log('ALL BUSINESSES:', biz);
-  const { data: roles } = await sb.from('user_roles').select('*');
-  console.log('ALL USER ROLES:', roles);
+async function run() {
+  const { data: users } = await sb.auth.admin.listUsers();
+  (users?.users || []).forEach(u => {
+    console.log(u.email, 'app_metadata:', u.app_metadata, 'user_metadata:', u.user_metadata);
+  });
 }
-check();
+run();

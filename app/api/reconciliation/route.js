@@ -39,20 +39,46 @@ async function resolveAuthAndTenant(request) {
 
   let businessId = roleRow?.business_id;
 
-  if (!businessId) {
+  if (!businessId && user.email) {
+    const { data: byEmail } = await adminClient
+      .from("user_roles")
+      .select("role, business_id")
+      .eq("email", user.email.toLowerCase().trim())
+      .maybeSingle();
+    businessId = byEmail?.business_id;
+  }
+
+  if (!businessId && user.id) {
     const adminEmail = (
       process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-    )
-      .toLowerCase()
-      .trim();
-    if (user.email?.toLowerCase().trim() === adminEmail) {
-      const { data: firstBiz } = await adminClient
-        .from("businesses")
-        .select("id")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      businessId = firstBiz?.id;
+    ).toLowerCase().trim();
+    const isSuperAdmin = user.email?.toLowerCase().trim() === adminEmail;
+    const storeName = isSuperAdmin
+      ? "Noyon Hossain Enterprise"
+      : user.email
+      ? `${user.email.split("@")[0]}'s Store`
+      : "My Store";
+
+    const { data: newBiz } = await adminClient
+      .from("businesses")
+      .insert({
+        name: storeName,
+        owner_id: user.id,
+      })
+      .select("id")
+      .single();
+
+    if (newBiz?.id) {
+      businessId = newBiz.id;
+      await adminClient.from("user_roles").upsert(
+        {
+          id: user.id,
+          email: user.email,
+          role: "admin",
+          business_id: businessId,
+        },
+        { onConflict: "id" }
+      );
     }
   }
 

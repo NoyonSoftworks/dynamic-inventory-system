@@ -90,8 +90,8 @@
     "status": "LOST_STUCK",
     "days_in_transit": 9,
     "settlement_date": null,
-    "claim_status": "NONE",
-    "claim_notes": "Warning: Parcel stuck in Gazipur sorting hub for 9 consecutive days without movement scan. Immediate claim recommended.",
+    "claim_status": "CLAIM_FILED",
+    "claim_notes": "Parcel Lost/Stuck: Parcel has been in transit for 9 days without scan update. Immediate courier compensation or delivery trace required.",
     "batch_reference": "UNSETTLED",
     "created_at": "2026-10-07T20:56:06.721Z"
   },
