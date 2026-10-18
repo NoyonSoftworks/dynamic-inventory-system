@@ -495,7 +495,7 @@ function AdminLoginForm() {
         {/* Top Control Plane Branding */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full bg-orange-950/60 border border-orange-500/40 px-3.5 py-1 text-[11px] font-mono font-bold tracking-widest text-orange-400 uppercase shadow-inner">
-            <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-orange-500" />
             Master Control Plane
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center justify-center gap-2">
@@ -534,7 +534,7 @@ function AdminLoginForm() {
 
           {/* Rate Limit Lockout Banner */}
           {lockoutRemaining > 0 && (
-            <div className="rounded-2xl border border-rose-500/60 bg-rose-950/80 p-4 text-xs text-rose-200 space-y-1.5 animate-pulse">
+            <div className="rounded-2xl border border-rose-500/60 bg-rose-950/80 p-4 text-xs text-rose-200 space-y-1.5">
               <div className="flex items-center gap-2 font-bold text-rose-300">
                 <span>🛡️</span>
                 <span>Anti-Brute Force Lockout Active</span>

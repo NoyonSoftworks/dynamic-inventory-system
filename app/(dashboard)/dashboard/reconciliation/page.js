@@ -290,7 +290,7 @@ export default function CourierReconciliationPage() {
           <span
             className={`h-2 w-2 rounded-full ${
               toastMessage.type === "error" ? "bg-rose-400" : "bg-emerald-400"
-            } animate-pulse`}
+            }`}
           />
           <span className="text-xs font-semibold">{toastMessage.text}</span>
         </div>
@@ -544,7 +544,7 @@ export default function CourierReconciliationPage() {
         <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-teal-500" />
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
                 Dispatched Consignments &amp; Remittance Audit Log ({filteredRecords.length} Items)
               </h2>

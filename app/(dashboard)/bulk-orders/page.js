@@ -656,7 +656,7 @@ export default function BulkOrdersPage() {
                               {isHighRisk && (
                                 <div className="space-y-1">
                                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
                                     High RTO Risk (Call to Confirm)
                                   </span>
                                   {o.risk.flags.length > 0 && (

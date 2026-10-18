@@ -356,9 +356,9 @@ export default function InteractiveDemoPage() {
                   : "bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              <span>4. AI Return &amp; Fraud Guard</span>
+              <span>4. Return &amp; Fraud Guard</span>
               <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${activeTab === "ai-copilot" ? "bg-white/20 text-white" : "bg-orange-100 text-orange-700"}`}>
-                AI
+                SHIELD
               </span>
             </button>
           </div>
@@ -765,7 +765,7 @@ export default function InteractiveDemoPage() {
             <div className="card-lift lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-orange-600 animate-pulse" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-orange-600" />
                   <h3 className="text-sm font-bold text-slate-900 uppercase font-mono">
                     Pre-Dispatch Risk Evaluation
                   </h3>
@@ -815,7 +815,7 @@ export default function InteractiveDemoPage() {
                 disabled={simRtoAnalyzing}
                 className="w-full btn-tactile flex items-center justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white py-2.5 text-xs font-bold shadow-xs transition disabled:opacity-50 cursor-pointer"
               >
-                {simRtoAnalyzing ? "Running Anti-Fraud AI Model…" : "Evaluate Consignment Return Risk"}
+                {simRtoAnalyzing ? "Evaluating Return Risk Heuristics…" : "Evaluate Consignment Return Risk"}
               </button>
 
               <div className="flex gap-2 pt-1">
@@ -848,7 +848,7 @@ export default function InteractiveDemoPage() {
             <div className="card-lift lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <span className="text-[11px] font-mono font-bold uppercase text-slate-400">
-                  AI Risk Prediction Verdict
+                  Return Risk Assessment
                 </span>
                 {simRtoResult && (
                   <span className="text-xl font-black font-mono text-slate-900">

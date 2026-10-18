@@ -99,7 +99,7 @@ export default function ThermalAndInvoiceModal({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-orange-600 animate-pulse" />
+                <span className="h-2 w-2 rounded-full bg-orange-600" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
                   Print Documents: {order.customer_name || "Order #" + (order.id || "").slice(0, 6)}
                 </h3>

@@ -8,7 +8,7 @@ import { createClient, createAdminClient } from "@/utils/supabase/server";
  * Capabilities:
  * 1. RTO Delivery Risk & Fraud Predictor (pre-dispatch loss prevention)
  * 2. Smart Supplier Invoice / Challan Intake Parser
- * 3. Autonomous Purchase Order (PO) & Reorder Point (ROP) Generator
+ * 3. Automated Purchase Order (PO) & Reorder Point (ROP) Generator
  * 4. Deadstock Liquidation & Bundling Recommendation Engine
  */
 export async function POST(request) {
@@ -275,7 +275,7 @@ export async function POST(request) {
       }
 
       // ─────────────────────────────────────────────────────────────
-      // 3. AUTONOMOUS PURCHASE ORDER (PO) GENERATOR
+      // 3. AUTOMATED PURCHASE ORDER (PO) GENERATOR
       // ─────────────────────────────────────────────────────────────
       case "restock_po_generator": {
         const { items = [], leadTimeDays = 5, supplierName = "Premier Wholesale Supplier Ltd." } = payload || {};

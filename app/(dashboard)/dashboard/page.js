@@ -10,7 +10,7 @@ const ADMIN_EMAIL = (
   process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
 ).toLowerCase().trim();
 
-export default function ExecutiveDashboardCockpit() {
+export default function MerchantDashboard() {
   const { businessId, businessName, userEmail, loading: ctxLoading } = useBusinessContext();
   const searchParams = useSearchParams();
   const isDenied = searchParams?.get("denied") === "1";
@@ -282,10 +282,8 @@ export default function ExecutiveDashboardCockpit() {
               className="btn-tactile inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 py-2 text-xs font-bold transition shadow-2xs cursor-pointer disabled:opacity-60"
               title="Populate 5 sample products and 3 test orders"
             >
-              {isSeeding ? (
+              {isSeeding && (
                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-teal-700 border-t-transparent" />
-              ) : (
-                <span>⚡</span>
               )}
               <span>{isSeeding ? "Loading Demo..." : "Load Demo Data"}</span>
             </button>
@@ -537,10 +535,7 @@ export default function ExecutiveDashboardCockpit() {
                     <span>Loading Sample Store…</span>
                   </>
                 ) : (
-                  <>
-                    <span>✨</span>
-                    <span>Load 5 Sample Products &amp; Orders</span>
-                  </>
+                  <span>Load 5 Sample Products &amp; Orders</span>
                 )}
               </button>
               <Link
@@ -694,7 +689,7 @@ export default function ExecutiveDashboardCockpit() {
             </div>
             <div>
               <span className="text-xs font-bold text-slate-900 block">Camera Scan</span>
-              <span className="text-[10px] text-slate-500 font-mono">Laser / Camera</span>
+              <span className="text-[10px] text-slate-500 font-mono">Optical Barcode</span>
             </div>
           </Link>
 

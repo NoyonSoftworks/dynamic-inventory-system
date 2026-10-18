@@ -64,7 +64,7 @@ export default function AiOperationsHubPage() {
   const [rtoAnalyzing, setRtoAnalyzing] = useState(false);
   const [rtoResult, setRtoResult] = useState(null);
 
-  // ── Tab 2: Autonomous Purchase Order (PO) State ──────────────
+  // ── Tab 2: Automated Purchase Order (PO) State ───────────────
   const [poLeadTime, setPoLeadTime] = useState(5);
   const [poSupplierName, setPoSupplierName] = useState("Global Sourcing Direct Ltd");
   const [poGenerating, setPoGenerating] = useState(false);
@@ -420,7 +420,7 @@ export default function AiOperationsHubPage() {
       {/* ── Toast Notification ─────────────────────────────────── */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-slate-900 text-white px-4 py-3 shadow-2xl border border-slate-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>
       )}
@@ -440,10 +440,10 @@ export default function AiOperationsHubPage() {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              Operations &amp; Profit Intelligence
+              Operations &amp; Profit Management
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Autonomous algorithms designed to eliminate courier return losses, automate supplier POs, and maximize merchant margins.
+              Operational tools designed to eliminate courier return losses, automate supplier POs, and protect merchant profit margins.
             </p>
           </div>
 
@@ -455,7 +455,7 @@ export default function AiOperationsHubPage() {
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span>Back to Cockpit</span>
+              <span>Back to Dashboard</span>
             </Link>
 
             <Link
@@ -470,7 +470,7 @@ export default function AiOperationsHubPage() {
           </div>
         </div>
 
-        {/* ── 5 PRIMARY AI NAVIGATION TABS ─────────────────────── */}
+        {/* ── 5 PRIMARY OPERATIONS TABS ─────────────────────────── */}
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar p-1.5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
           {[
             {
@@ -485,7 +485,7 @@ export default function AiOperationsHubPage() {
             },
             {
               id: "restock",
-              label: "AI Purchase Order (PO)",
+              label: "Smart Purchase Order (PO)",
               badge: "Auto-Restock",
               icon: (
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -855,7 +855,7 @@ export default function AiOperationsHubPage() {
         )}
 
         {/* ─────────────────────────────────────────────────────────────
-            TAB 2: AUTONOMOUS PURCHASE ORDER (PO) & REORDER POINT ENGINE
+            TAB 2: AUTOMATED PURCHASE ORDER (PO) & REORDER POINT ENGINE
         ───────────────────────────────────────────────────────────── */}
         {activeTab === "restock" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -1263,7 +1263,7 @@ export default function AiOperationsHubPage() {
                   Working Capital Recovery
                 </span>
                 <h2 className="text-xl font-black text-slate-900 mt-0.5">
-                  AI Deadstock Liquidation &amp; Bundle Optimizer
+                  Deadstock Bundling &amp; Liquidation Optimizer
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Identifies stagnant SKUs with zero movement and pairs them with high-velocity heroes to reclaim cash flow.
@@ -1545,7 +1545,7 @@ export default function AiOperationsHubPage() {
                 </div>
 
                 <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 text-xs text-orange-950 leading-relaxed">
-                  <strong>The SmartInventory Advantage:</strong> By activating our AI RTO Risk Guard and taking advance delivery charges on high-risk parcels, you eliminate up to 75% of your <strong>৳{unitEconomics.monthlyRtoLosses.toLocaleString()}</strong> monthly return losses, directly increasing your bottom line profit!
+                  <strong>The SmartInventory Advantage:</strong> By activating our Courier RTO Risk Guard and taking advance delivery charges on high-risk parcels, you eliminate up to 75% of your <strong>৳{unitEconomics.monthlyRtoLosses.toLocaleString()}</strong> monthly return losses, directly increasing your bottom line profit!
                 </div>
               </div>
             </div>

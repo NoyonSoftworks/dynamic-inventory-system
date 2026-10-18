@@ -83,11 +83,11 @@ export default function AdminTasksTab({ triggerToast }) {
         const json = await res.json();
         if (json.suggestions) {
           setAiSuggestions(json.suggestions);
-          triggerToast("success", "AI Logistics Copilot generated 4 operational tasks!");
+          triggerToast("success", "Loaded 4 suggested operational tasks.");
         }
       }
     } catch (err) {
-      triggerToast("error", "Failed to contact AI Copilot.");
+      triggerToast("error", "Failed to load suggested tasks.");
     } finally {
       setAiLoading(false);
     }
@@ -235,10 +235,7 @@ export default function AdminTasksTab({ triggerToast }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-slate-200 shadow-xs">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-semibold">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-            </span>
+            <span className="h-2 w-2 rounded-full bg-orange-500 inline-block" />
             Logistics &amp; Operations Command
           </div>
           <h2 className="text-xl font-black text-slate-900 tracking-tight">
@@ -256,7 +253,7 @@ export default function AdminTasksTab({ triggerToast }) {
             disabled={aiLoading}
             className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 btn-tactile transition-all disabled:opacity-50"
           >
-            <span>{aiLoading ? "⚡ Analyzing..." : "✨ AI Operations Dispatch"}</span>
+            <span>{aiLoading ? "Analyzing..." : "Auto-Suggest Tasks"}</span>
           </button>
 
           <button
@@ -318,9 +315,11 @@ export default function AdminTasksTab({ triggerToast }) {
         <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg">✨</span>
+              <svg className="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
               <h3 className="text-sm font-bold text-slate-900">
-                Logistics &amp; Security Recommendations
+                Operational Recommendations
               </h3>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 font-semibold">
                 {aiSuggestions.length} Recommendations
@@ -376,7 +375,7 @@ export default function AdminTasksTab({ triggerToast }) {
                     onClick={() => handleAdoptAiTask(item)}
                     className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-teal-500 btn-tactile transition shadow-xs"
                   >
-                    <span>⚡ Approve &amp; Dispatch</span>
+                    <span>Approve &amp; Dispatch</span>
                   </button>
                 </div>
               </div>
@@ -509,7 +508,7 @@ export default function AdminTasksTab({ triggerToast }) {
                           task.status === "COMPLETED"
                             ? "bg-emerald-500"
                             : task.status === "IN_PROGRESS"
-                            ? "bg-orange-500 animate-pulse"
+                            ? "bg-orange-500"
                             : "bg-amber-500"
                         }`}
                       />

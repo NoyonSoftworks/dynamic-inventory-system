@@ -234,7 +234,7 @@ function BlogPostReaderContent() {
         {/* AEO / Answer Engine Key Takeaways Callout */}
         <section className="rounded-2xl border border-orange-200 bg-orange-50/70 p-6 space-y-2.5 shadow-xs">
           <div className="flex items-center gap-2 text-[11px] font-mono font-bold uppercase tracking-wider text-orange-700">
-            <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-orange-500" />
             <span>EXECUTIVE KEY TAKEAWAYS (AEO SUMMARY)</span>
           </div>
           <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
@@ -388,7 +388,7 @@ function BlogPostReaderContent() {
             <span className="font-bold text-slate-800">SmartInventory</span>
             <span className="text-slate-300">·</span>
             <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px]">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               All Systems Operational
             </span>
           </div>

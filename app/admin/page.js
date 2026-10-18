@@ -417,7 +417,7 @@ export default function SuperAdminDashboard() {
           </div>
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-rose-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
               403 Access Denied
             </div>
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -498,10 +498,7 @@ export default function SuperAdminDashboard() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-6">
           <div>
             <div className="flex items-center gap-2.5 mb-1.5">
-              <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500" />
-              </span>
+              <span className="inline-flex rounded-full h-2 w-2 bg-orange-500" />
               <span className="text-[11px] font-mono uppercase tracking-widest text-orange-700 font-bold bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full">
                 Platform Control Plane · Super Administrator
               </span>
@@ -798,7 +795,7 @@ export default function SuperAdminDashboard() {
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-600">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
                   <span>Operational Uptime (99.98% SLA)</span>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />

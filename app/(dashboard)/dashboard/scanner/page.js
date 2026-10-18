@@ -433,18 +433,11 @@ export default function SmartScannerPage() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200 px-4 py-3 sm:px-6 shadow-2xs">
         <div className="mx-auto max-w-2xl flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-2.5 w-2.5 relative">
-              <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                  cameraActive ? "bg-emerald-400" : "bg-amber-400"
-                } opacity-75`}
-              />
-              <span
-                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                  cameraActive ? "bg-emerald-500" : "bg-amber-500"
-                }`}
-              />
-            </span>
+            <span
+              className={`inline-flex rounded-full h-2.5 w-2.5 ${
+                cameraActive ? "bg-emerald-500" : "bg-amber-500"
+              }`}
+            />
             <div>
               <h1 className="text-sm font-bold tracking-tight text-slate-900 flex items-center gap-2">
                 Barcode &amp; QR Optical Scanner

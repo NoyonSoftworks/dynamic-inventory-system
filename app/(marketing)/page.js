@@ -272,7 +272,7 @@ export default function MarketingLandingPage() {
               href="/demo"
               className="text-orange-600 hover:text-orange-700 font-bold transition flex items-center gap-1.5 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>Live Sandbox</span>
             </Link>
           </nav>
@@ -355,7 +355,7 @@ export default function MarketingLandingPage() {
           <div className="text-center max-w-4xl mx-auto space-y-6">
             {/* Live Trust Micro-Signals Pill */}
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/90 bg-orange-50/90 px-4 py-1.5 text-xs font-semibold text-orange-900 shadow-2xs">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
               <span className="font-mono text-[11px] sm:text-xs tracking-tight">
                 Sub-second Courier Webhooks · Zebra 4×6 Thermal Ready · Multi-Tenant RLS Secured
               </span>
@@ -364,8 +364,8 @@ export default function MarketingLandingPage() {
             {/* Commercial B2B Headline */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.12]">
               Stop Courier Return Losses.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600">
-                Automate Dispatches &amp; Unlock Trapped Cash.
+              <span className="text-orange-600">
+                Automate Dispatches &amp; Keep More Profit.
               </span>
             </h1>
 
@@ -429,11 +429,11 @@ export default function MarketingLandingPage() {
                 </div>
                 <div className="h-4 w-[1px] bg-slate-700 hidden sm:block" />
                 <span className="font-mono text-xs text-slate-300 font-bold hidden sm:inline">
-                  SmartInventory OS · Operational Workbench
+                  SmartInventory · Warehouse Dispatch Console
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/80 px-2 py-0.5 text-emerald-400 font-mono text-[10px] font-bold border border-emerald-800">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Cluster Online
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  System Online
                 </span>
               </div>
 
@@ -700,7 +700,7 @@ export default function MarketingLandingPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-                      Unit Economics &amp; Trapped Working Capital Telemetry
+                      Unit Economics &amp; Trapped Working Capital Analytics
                     </h3>
                     <p className="text-[11px] text-slate-500">
                       Real net margins factoring wholesale COGS, 1% COD fees, and return logistics reserves.
@@ -791,8 +791,8 @@ export default function MarketingLandingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                   {/* Camera Viewfinder Mockup */}
                   <div className="md:col-span-6 relative rounded-2xl bg-slate-950 p-6 overflow-hidden text-center text-white space-y-4 shadow-inner">
-                    {/* Targeting Laser Line */}
-                    <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-[2px] bg-orange-500 shadow-[0_0_12px_#ea580c] z-10 laser-sweep" />
+                    {/* Targeting Line */}
+                    <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-[1.5px] bg-orange-500 z-10 opacity-75" />
 
                     <div className="relative z-20 space-y-2">
                       <span className="text-[10px] font-mono uppercase font-bold text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800">
@@ -845,13 +845,13 @@ export default function MarketingLandingPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                         </svg>
                         <span>
-                          {heroScanningActive ? "Decoding Laser Stream (140ms)…" : "Trigger Smartphone Camera Scan"}
+                          {heroScanningActive ? "Scanning Barcode Stream…" : "Trigger Smartphone Camera Scan"}
                         </span>
                       </button>
 
                       {heroScanSuccess && (
                         <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-mono font-bold flex items-center gap-2 animate-in fade-in">
-                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
                           <span>Decoded in 140ms ✓ Stock depleted: {heroScannerStock} units · Audit record logged.</span>
                         </div>
                       )}
@@ -1091,7 +1091,7 @@ export default function MarketingLandingPage() {
               <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
                 04
               </div>
-              <h3 className="text-lg font-bold text-slate-900">AI Stock Runway Forecaster</h3>
+              <h3 className="text-lg font-bold text-slate-900">Automated Stock Runway Forecast</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Rolling 14-day sales velocity analysis forecasts exact stockout dates for high-demand items so managers reorder before critical stockouts occur.
               </p>
@@ -1446,7 +1446,7 @@ export default function MarketingLandingPage() {
               Why 2,400+ High-Volume Merchants Chose Us Over Standard CMS &amp; Spreadsheets
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Generic eCommerce plugins only count basic in/out quantities. SmartInventory is an autonomous operating system engineered to eliminate courier return losses, prevent stockouts, and maximize merchant margins.
+              Generic eCommerce plugins only count basic in/out quantities. SmartInventory is a modern warehouse management system engineered to eliminate courier return losses, prevent stockouts, and maximize merchant margins.
             </p>
           </div>
 
@@ -1458,7 +1458,7 @@ export default function MarketingLandingPage() {
                   <tr>
                     <th className="px-5 py-4 font-bold">Operational Capability</th>
                     <th className="px-5 py-4 font-bold text-slate-400">Standard CMS / WooCommerce / Excel</th>
-                    <th className="px-5 py-4 font-bold text-orange-700 bg-orange-50/50">SmartInventory AI Operating System</th>
+                    <th className="px-5 py-4 font-bold text-orange-700 bg-orange-50/50">SmartInventory Fulfillment Platform</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
@@ -1470,13 +1470,13 @@ export default function MarketingLandingPage() {
                       ❌ None. 18%–30% COD parcels get returned, costing ৳160+ each.
                     </td>
                     <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
-                      ✅ AI scores address &amp; phone validity before booking to prevent 70%+ return losses.
+                      ✅ Smart risk detection scores address &amp; phone validity before booking to prevent 70%+ return losses.
                     </td>
                   </tr>
 
                   <tr className="hover:bg-slate-50/70">
                     <td className="px-5 py-4 font-semibold text-slate-900">
-                      Autonomous Restock &amp; Purchase Orders (PO)
+                      Automated Restock &amp; Purchase Orders (PO)
                     </td>
                     <td className="px-5 py-4 text-slate-500">
                       ❌ Manual spreadsheet calculations and guesswork.
@@ -1506,7 +1506,7 @@ export default function MarketingLandingPage() {
                       ❌ Stagnant stock sits idle in warehouse unnoticed.
                     </td>
                     <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
-                      ✅ AI pairs slow-moving inventory with hero SKUs in discounted bundles to release cash.
+                      ✅ Intelligent bundling pairs slow-moving inventory with hero SKUs in discounted bundles to release cash.
                     </td>
                   </tr>
 
@@ -1654,7 +1654,7 @@ export default function MarketingLandingPage() {
                   <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed mt-2">
-                  Autonomous fulfillment, courier automation, and RTO fraud protection for growing e-commerce brands.
+                  Automated fulfillment, courier integrations, and return fraud protection for growing e-commerce brands.
                 </p>
 
                 <div className="pt-5 border-t border-slate-100 space-y-3 text-xs text-slate-700">
@@ -1664,7 +1664,7 @@ export default function MarketingLandingPage() {
                   </div>
                   <div className="flex items-center gap-2.5">
                     <span className="text-emerald-600 font-bold text-sm">✓</span>
-                    <span><strong>AI COD Risk Shield</strong> &amp; RTO Predictor</span>
+                    <span><strong>Smart COD Return Guard</strong> &amp; RTO Predictor</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <span className="text-emerald-600 font-bold text-sm">✓</span>
@@ -1824,7 +1824,7 @@ export default function MarketingLandingPage() {
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
                       NH
                     </div>
-                    <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-400 animate-pulse" />
+                    <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white" />
                   </div>
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 tracking-tight">

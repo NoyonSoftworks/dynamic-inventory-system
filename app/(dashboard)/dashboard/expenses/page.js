@@ -242,7 +242,7 @@ export default function ExpensesManagementPage() {
           <span
             className={`h-2 w-2 rounded-full ${
               toastMessage.type === "error" ? "bg-rose-400" : "bg-emerald-400"
-            } animate-pulse`}
+            }`}
           />
           <span className="text-xs font-semibold">{toastMessage.text}</span>
         </div>
@@ -453,9 +453,9 @@ export default function ExpensesManagementPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-orange-600 animate-pulse" />
+                <span className="h-2.5 w-2.5 rounded-full bg-orange-600" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-                  Ultra-Fast Daily Expense Logger
+                  Daily Expense Logger
                 </h2>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">

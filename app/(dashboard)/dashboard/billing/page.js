@@ -222,7 +222,7 @@ export default function ClientBillingPage() {
           <div className="flex items-center gap-2">
             {isProPlan ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Pro Enterprise Active
               </span>
             ) : (

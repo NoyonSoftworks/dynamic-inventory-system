@@ -359,7 +359,7 @@ export default function InventoryRunwayReport() {
       {/* ── Toast Notification ─────────────────────────────────── */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-slate-900 text-white px-4 py-3 shadow-2xl border border-slate-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>
       )}
@@ -557,7 +557,7 @@ export default function InventoryRunwayReport() {
           {/* Ledger Audit Connection Strip */}
           <div className="p-3 rounded-xl bg-slate-900 text-slate-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
               <span className="text-[11px] font-mono">
                 <span className="text-white font-bold">Take-Home Formula:</span> Gross Sales (৳{Math.round(financialMetrics.totalGmv).toLocaleString()}) − COGS (৳{Math.round(financialMetrics.estimatedCogs).toLocaleString()}) − Ad Spend (৳{Math.round(financialMetrics.realAdSpend).toLocaleString()}) − Overheads (৳{Math.round(financialMetrics.packagingBuffer).toLocaleString()}) = <span className="text-emerald-400 font-bold">৳{Math.round(financialMetrics.estimatedNetProfit).toLocaleString()} Real Cash</span>
               </span>
