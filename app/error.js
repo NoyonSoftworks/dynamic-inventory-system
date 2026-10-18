@@ -45,7 +45,7 @@ export default function GlobalError({ error, reset }) {
           </div>
 
           <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-rose-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
             Application Exception Caught
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function GlobalError({ error, reset }) {
             <div className="mt-4 text-left rounded-xl bg-slate-900 text-slate-100 border border-slate-800 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                  Exception Telemetry
+                  Diagnostic Information
                 </span>
                 <button
                   onClick={copyErrorDetails}

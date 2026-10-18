@@ -110,7 +110,7 @@ export default function BlogIndexPage() {
       <section className="relative z-10 pt-16 pb-12 border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-8 text-center space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3.5 py-1 text-xs font-mono text-orange-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
             <span>KNOWLEDGE BASE &amp; OPERATIONAL BLUEPRINTS</span>
           </div>
 
