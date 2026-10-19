@@ -92,7 +92,7 @@ export async function POST(request) {
       success: true,
       suggestions: suggestedTasks,
       generated_at: new Date().toISOString(),
-      system_telemetry: {
+      system_metrics: {
         activeTenants: tenantCount,
         totalOrders: orderCount,
       },

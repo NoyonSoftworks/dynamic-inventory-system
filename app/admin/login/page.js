@@ -14,6 +14,70 @@ const ADMIN_EMAIL = (
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
+function AlertIcon({ className = "w-4 h-4 text-amber-400" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  );
+}
+
+function ShieldIcon({ className = "w-4 h-4 text-rose-300" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className = "w-4 h-4 text-emerald-400" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className = "w-4 h-4 text-rose-400" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+function MailIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function LockIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+  );
+}
+
+function KeyIcon({ className = "w-4 h-4 text-white" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+    </svg>
+  );
+}
+
+function PhoneIcon({ className = "w-4 h-4 text-slate-400" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+    </svg>
+  );
+}
+
 function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -511,7 +575,7 @@ function AdminLoginForm() {
           (currentUser.email || "").toLowerCase().trim() !== ADMIN_EMAIL && (
             <div className="rounded-2xl border border-amber-500/40 bg-amber-950/40 p-4 text-xs text-amber-200 space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-base">⚠️</span>
+                <AlertIcon className="w-4 h-4 text-amber-400 shrink-0" />
                 <p className="font-semibold">Active Session Detected</p>
               </div>
               <p className="text-[11px] text-amber-300/80 leading-relaxed">
@@ -536,7 +600,7 @@ function AdminLoginForm() {
           {lockoutRemaining > 0 && (
             <div className="rounded-2xl border border-rose-500/60 bg-rose-950/80 p-4 text-xs text-rose-200 space-y-1.5">
               <div className="flex items-center gap-2 font-bold text-rose-300">
-                <span>🛡️</span>
+                <ShieldIcon className="w-4 h-4 text-rose-300 shrink-0" />
                 <span>Anti-Brute Force Lockout Active</span>
               </div>
               <p className="text-[11px] leading-relaxed text-rose-300/90">
@@ -551,14 +615,14 @@ function AdminLoginForm() {
           {/* Feedback Messages */}
           {error && !lockoutRemaining && (
             <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-950/50 px-4 py-3 text-xs text-rose-200">
-              <span className="mt-0.5 shrink-0 text-rose-400">✕</span>
+              <CloseIcon className="mt-0.5 shrink-0 text-rose-400 w-3.5 h-3.5" />
               <p className="leading-relaxed font-medium">{error}</p>
             </div>
           )}
 
           {successMessage && (
             <div className="flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-950/50 px-4 py-3 text-xs text-emerald-200">
-              <span className="mt-0.5 shrink-0 text-emerald-400">✓</span>
+              <CheckIcon className="mt-0.5 shrink-0 text-emerald-400 w-3.5 h-3.5" />
               <p className="leading-relaxed font-medium">{successMessage}</p>
             </div>
           )}
@@ -573,8 +637,8 @@ function AdminLoginForm() {
                   Administrator Email
                 </label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
-                    ✉
+                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                    <MailIcon className="w-4 h-4 text-slate-500" />
                   </span>
                   <input
                     type="email"
@@ -612,8 +676,8 @@ function AdminLoginForm() {
                   </button>
                 </div>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
-                    🔒
+                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                    <LockIcon className="w-4 h-4 text-slate-500" />
                   </span>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -664,7 +728,7 @@ function AdminLoginForm() {
             <div className="space-y-5">
               <div className="space-y-1 text-left border-b border-slate-800 pb-4">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>🔑</span>
+                  <KeyIcon className="w-4 h-4 text-white shrink-0" />
                   <span>Super Admin Password Recovery</span>
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
@@ -686,7 +750,7 @@ function AdminLoginForm() {
                         : "bg-slate-800 text-slate-400 hover:text-white"
                     }`}
                   >
-                    ✉️ 6-Digit Email Code
+                    Email verification code
                   </button>
                   <button
                     type="button"
@@ -701,7 +765,7 @@ function AdminLoginForm() {
                         : "bg-slate-800 text-slate-400 hover:text-white"
                     }`}
                   >
-                    📞 Emergency Phone (Instant)
+                    Recovery phone verification
                   </button>
                 </div>
               </div>
@@ -717,8 +781,8 @@ function AdminLoginForm() {
                           Administrator Email
                         </label>
                         <div className="relative">
-                          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
-                            ✉
+                          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                            <MailIcon className="w-4 h-4 text-slate-500" />
                           </span>
                           <input
                             type="email"

@@ -219,7 +219,7 @@ export async function POST(request) {
           let quantity = qtyMatch ? parseInt(qtyMatch[1], 10) : 10;
           let unitCost = priceMatch ? parseFloat(priceMatch[1]) : 450;
 
-          // If no specific match was found, perform basic heuristic token split
+          // If no specific match was found, perform basic token split fallback
           if (!qtyMatch && !priceMatch) {
             const numbers = cleanLine.match(/\b\d+(\.\d+)?\b/g);
             if (numbers && numbers.length >= 2) {
@@ -240,7 +240,7 @@ export async function POST(request) {
             name = `Catalog Item ${idx + 1}`;
           }
 
-          // Category heuristic
+          // Category detection rules
           let category = "General Merchandise";
           const lower = name.toLowerCase();
           if (/shirt|tee|pants|denim|hoodie|dress|polo|cloth/i.test(lower)) category = "Apparel";

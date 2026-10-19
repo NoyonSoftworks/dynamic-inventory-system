@@ -182,7 +182,7 @@ export default function ClientBillingPage() {
       <main className="min-h-screen bg-[#f8fafc] text-slate-900 flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
           <div className="h-7 w-7 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
-          <p className="text-xs font-mono text-slate-500">Loading billing telemetry…</p>
+          <p className="text-xs font-mono text-slate-500">Loading billing overview…</p>
         </div>
       </main>
     );
@@ -270,7 +270,7 @@ export default function ClientBillingPage() {
           </div>
         )}
 
-        {/* ── Usage Telemetry Card ───────────────────────────────── */}
+        {/* ── Plan Usage Summary ───────────────────────────────── */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs card-lift">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100">
             <div>
@@ -488,8 +488,9 @@ export default function ClientBillingPage() {
             </div>
 
             {isProPlan ? (
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 py-2.5 text-center text-xs font-bold text-emerald-700">
-                Current Active Plan ✓
+              <div className="inline-flex items-center justify-center gap-1.5 w-full rounded-xl bg-emerald-50 border border-emerald-200 py-2.5 text-center text-xs font-medium text-emerald-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Current active plan</span>
               </div>
             ) : (
               <button

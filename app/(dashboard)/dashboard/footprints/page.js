@@ -248,7 +248,7 @@ export default function AuditFootprintsPage() {
         <div className="flex flex-col items-center gap-3">
           <div className="h-7 w-7 animate-spin rounded-full border-2 border-orange-600 border-t-transparent" />
           <p className="text-xs font-mono text-slate-500">
-            Decrypting workspace security logs and audit telemetry…
+            Loading security and audit activity logs…
           </p>
         </div>
       </main>
@@ -270,7 +270,7 @@ export default function AuditFootprintsPage() {
               Activity Footprints &amp; Audit Trail
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Immutable telemetry tracking user operations, transactions, and system mutations.
+              Permanent log of user operations, inventory changes, and system updates.
             </p>
           </div>
 

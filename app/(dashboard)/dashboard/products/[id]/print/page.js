@@ -180,8 +180,10 @@ function PrintStickersContent({ params }) {
     return (
       <main className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-2xl p-6 shadow-xl ring-1 ring-slate-200 text-center space-y-4">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600 text-xl font-bold">
-            ⚠️
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
           </div>
           <h2 className="text-lg font-bold text-slate-900">Failed to Load Product</h2>
           <p className="text-xs text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-200">
@@ -218,7 +220,10 @@ function PrintStickersContent({ params }) {
               <span className="text-indigo-600 font-semibold">Thermal Print</span>
             </nav>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-              <span>🏷️</span> Thermal Barcode Printing
+              <svg className="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Thermal Barcode Printing
             </h1>
             <p className="mt-1 text-sm text-slate-500">
               Standard 50mm × 25mm (2&quot; × 1&quot;) label printer layout for Zebra, Rollo, Munbyn &amp; Dymo printers.
@@ -352,7 +357,7 @@ function PrintStickersContent({ params }) {
                             : "bg-slate-200 text-slate-600"
                         }`}
                       >
-                        {isSelected ? "✓ Included" : "Excluded"}
+                        {isSelected ? "Included" : "Excluded"}
                       </span>
                     </div>
 
@@ -434,7 +439,7 @@ const ComponentToPrint = ({ product, items }, ref) => {
             {product?.name || "Product"}
           </div>
 
-          {/* 2. Vector SVG Barcode (Optimized for 50mm width) */}
+          {/* 2. SVG Barcode (Optimized for 50mm width) */}
           <div
             style={{
               width: "100%",

@@ -384,9 +384,9 @@ export default function AdminBlogTab({ triggerToast }) {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 font-mono text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 font-mono text-xs cursor-pointer"
               >
-                ✕ Close
+                Close
               </button>
             </div>
 

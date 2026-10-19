@@ -14,7 +14,7 @@ function generateRandomCode(length = 5) {
  * POST /api/demo/seed
  * 1-Click Frictionless Onboarding: Seeds 5 high-converting products and 3 sample
  * orders so merchants can immediately test the Smartphone Camera Scanner,
- * Delivery RTO Shield, and Thermal/A4 Invoicing without manual data entry.
+ * Delivery RTO verification, and Thermal/A4 Invoicing without manual data entry.
  */
 export async function POST(request) {
   try {
@@ -176,7 +176,7 @@ export async function POST(request) {
       } catch {}
     }
 
-    // 4. Create 3 Sample Orders to showcase RTO Shield & Thermal Print
+    // 4. Create 3 Sample Orders to showcase RTO verification & Thermal Print
     const sampleOrders = [
       {
         customer_name: "Tariqul Islam",
@@ -218,7 +218,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: "🎉 Success! 5 sample products and 3 test orders have been loaded.",
+      message: "5 sample products and 3 test orders have been loaded successfully.",
       productsCount: insertedProducts.length,
       itemsCount: inventoryRows.length,
     });

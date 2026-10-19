@@ -87,7 +87,7 @@ async function resolveAuthAndTenant(request) {
 
 /**
  * GET /api/reconciliation
- * Fetches reconciled courier settlement records and discrepancy telemetry.
+ * Fetches reconciled courier settlement records and discrepancy summary.
  */
 export async function GET(request) {
   try {
@@ -115,7 +115,7 @@ export async function GET(request) {
       );
     }
 
-    // Telemetry computations
+    // Summary computations
     const allRecords = await getTenantReconciliations(businessId);
     
     // Total Settled (actual paid amount where status is SETTLED)
@@ -142,20 +142,22 @@ export async function GET(request) {
       0
     );
 
+    const summary = {
+      totalSettledAmount,
+      pendingPayoutAmount,
+      shortPaidVariance,
+      stuckCount: stuckParcels.length,
+      stuckAtRiskValue,
+      totalParcels: allRecords.length,
+      settledCount: allRecords.filter((r) => r.status === "SETTLED").length,
+      shortPaidCount: allRecords.filter((r) => r.status === "SHORT_PAID").length,
+      pendingCount: allRecords.filter((r) => r.status === "PENDING_PAYOUT").length,
+    };
+
     return NextResponse.json({
       success: true,
       records,
-      telemetry: {
-        totalSettledAmount,
-        pendingPayoutAmount,
-        shortPaidVariance,
-        stuckCount: stuckParcels.length,
-        stuckAtRiskValue,
-        totalParcels: allRecords.length,
-        settledCount: allRecords.filter((r) => r.status === "SETTLED").length,
-        shortPaidCount: allRecords.filter((r) => r.status === "SHORT_PAID").length,
-        pendingCount: allRecords.filter((r) => r.status === "PENDING_PAYOUT").length,
-      },
+      summary,
     });
   } catch (err) {
     console.error("GET /api/reconciliation error:", err);

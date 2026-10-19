@@ -543,12 +543,14 @@ export default function BulkImportPage() {
         {importResult && (
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-6 sm:p-8 space-y-4 shadow-xs">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white text-lg font-bold shadow-md shadow-emerald-600/30">
-                ✓
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/30">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                </svg>
               </span>
               <div>
                 <h3 className="text-lg font-bold text-emerald-950">
-                  Bulk Import Finished Successfully!
+                  Bulk import completed
                 </h3>
                 <p className="text-xs text-emerald-800">
                   All valid products and individual barcodes are now registered and ready for fulfillment scanning.
@@ -779,22 +781,24 @@ export default function BulkImportPage() {
         {parsedRows.length > 0 && !importResult && (
           <div className="rounded-2xl border border-teal-200 bg-teal-50/70 p-4 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs animate-in fade-in">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-600 text-white font-bold text-xs shrink-0">
-                ✨
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-600 text-white shrink-0">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
               </span>
               <div>
                 <span className="font-bold text-slate-900 block">
-                  Smart Excel Column Auto-Detection Active
+                  Column mapping active
                 </span>
                 <span className="text-slate-600">
                   {detectedColumns.length > 0
-                    ? `Auto-matched ${detectedColumns.length} fields: ${detectedColumns.join(" • ")}. Missing SKUs are auto-generated.`
+                    ? `Matched ${detectedColumns.length} fields: ${detectedColumns.join(" • ")}. Missing SKUs are auto-generated.`
                     : "Intelligently mapped your CSV headers. Ready for 1-click import."}
                 </span>
               </div>
             </div>
             <span className="px-2.5 py-1 rounded-lg bg-teal-100 text-teal-800 font-mono text-[11px] font-bold shrink-0 self-start sm:self-auto">
-              Auto-Mapped
+              Auto-mapped
             </span>
           </div>
         )}
@@ -853,13 +857,15 @@ export default function BulkImportPage() {
                         {/* 2. Validation Status */}
                         <td className="px-5 py-3.5 font-sans">
                           {row.isValid ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
-                              ✓ Valid
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              Valid
                             </span>
                           ) : (
                             <div className="space-y-1">
-                              <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700">
-                                ✕ Error
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-medium text-rose-700">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                Error
                               </span>
                               <div className="text-[10px] text-rose-600 font-sans">
                                 {row.errors.join(", ")}

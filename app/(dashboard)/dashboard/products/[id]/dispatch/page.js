@@ -14,6 +14,14 @@ const COURIERS = [
   { id: "Carrybee", name: "Carrybee Logistics", badge: "Economy", color: "bg-amber-50 text-amber-700 border-amber-200" },
 ];
 
+function CloseIcon({ className = "w-3.5 h-3.5" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
 function ProductDispatchContent({ params }) {
   const router = useRouter();
   const clientParams = useParams();
@@ -128,7 +136,7 @@ function ProductDispatchContent({ params }) {
       if (!matchedItem) {
         showToast(
           "error",
-          `⚠️ Barcode "${rawCode}" not found in available stock for this product!`
+          `Barcode "${rawCode}" not found in available stock for this product.`
         );
         setBarcodeInput("");
         return;
@@ -144,7 +152,7 @@ function ProductDispatchContent({ params }) {
 
       // 3. Add to scanned list
       setScannedItems((prev) => [...prev, matchedItem]);
-      showToast("success", `✓ Barcode "${matchedItem.unique_barcode}" ready to dispatch!`);
+      showToast("success", `Barcode "${matchedItem.unique_barcode}" ready to dispatch.`);
       setBarcodeInput("");
 
       // Refocus scanner
@@ -166,7 +174,7 @@ function ProductDispatchContent({ params }) {
   function quickAddBarcode(item) {
     if (scannedItems.some((i) => i.id === item.id)) return;
     setScannedItems((prev) => [...prev, item]);
-    showToast("success", `✓ Added "${item.unique_barcode}"`);
+    showToast("success", `Added "${item.unique_barcode}"`);
     setTimeout(() => {
       scannerInputRef.current?.focus();
     }, 50);
@@ -300,25 +308,25 @@ function ProductDispatchContent({ params }) {
               "Generated";
             showToast(
               "success",
-              `🎉 Order created & Steadfast tracking generated! Tracking ID: #${trackId}`
+              `Order created and Steadfast tracking generated. Tracking ID: #${trackId}`
             );
           } else {
             showToast(
               "error",
-              `⚠️ Order saved locally (#${orderData?.id || "N/A"}), but Steadfast API warning: ${courierData?.error || "Dispatch sync failed"}`
+              `Order saved locally (#${orderData?.id || "N/A"}), but Steadfast API warning: ${courierData?.error || "Dispatch sync failed"}`
             );
           }
         } catch (courierErr) {
           console.error("Courier API dispatch error:", courierErr);
           showToast(
             "error",
-            `⚠️ Order saved locally (#${orderData?.id || "N/A"}), but could not contact Steadfast API.`
+            `Order saved locally (#${orderData?.id || "N/A"}), but could not contact Steadfast API.`
           );
         }
       } else {
         showToast(
           "success",
-          `🎉 Order successfully dispatched via ${selectedCourier}! ${scannedItems.length} unit(s) marked as SHIPPED.`
+          `Order successfully dispatched via ${selectedCourier}. ${scannedItems.length} unit(s) marked as shipped.`
         );
       }
 
@@ -362,7 +370,11 @@ function ProductDispatchContent({ params }) {
     return (
       <main className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-2xl p-6 shadow-xl text-center space-y-4">
-          <div className="text-3xl">⚠️</div>
+          <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
           <h2 className="text-lg font-bold text-slate-900">Product Not Found</h2>
           <p className="text-xs text-rose-600">{error || "Could not retrieve product."}</p>
           <Link
@@ -714,9 +726,10 @@ function ProductDispatchContent({ params }) {
                         <button
                           type="button"
                           onClick={() => removeScannedItem(item.id)}
-                          className="text-rose-400 hover:text-rose-300 px-1 text-xs"
+                          className="text-rose-400 hover:text-rose-300 p-0.5 rounded transition"
+                          aria-label={`Remove ${item.unique_barcode}`}
                         >
-                          ✕
+                          <CloseIcon className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ))}
@@ -788,11 +801,11 @@ function ProductDispatchContent({ params }) {
                 {submitting ? (
                   <>
                     <Spinner size={18} />
-                    <span>Processing Order &amp; Dispatching…</span>
+                    <span>Processing order &amp; dispatching…</span>
                   </>
                 ) : (
                   <>
-                    <span>🚀 Confirm Dispatch via {selectedCourier}</span>
+                    <span>Confirm dispatch via {selectedCourier}</span>
                   </>
                 )}
               </button>

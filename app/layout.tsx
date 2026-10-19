@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory — Inventory & Automated Courier Fulfillment OS",
-  description: "Enterprise multi-tenant warehouse inventory & logistics orchestration system with smartphone barcode scanning, 1-click Steadfast courier dispatch, and automated WhatsApp delivery tracking.",
+  title: process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory — Inventory & Courier Fulfillment System",
+  description: "Warehouse inventory management and automated courier fulfillment system with smartphone barcode scanning, 1-click Steadfast courier dispatch, and automated delivery tracking.",
   authors: [{ name: "Noyon Hossain", url: "https://smartinventory.io" }],
   creator: "Noyon Hossain",
   publisher: "SmartInventory",

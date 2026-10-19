@@ -178,13 +178,18 @@ export default function ThermalAndInvoiceModal({
 
           {/* Friendly Guidance Bar for Zero-Hardware Merchants */}
           <div className="flex items-center gap-2 p-2 rounded-xl bg-orange-50 border border-orange-200/80 text-[11px] text-orange-950">
-            <span className="text-orange-600 font-bold shrink-0">💡 Printer-Less &amp; Home Printer Friendly:</span>
+            <span className="inline-flex items-center gap-1.5 text-orange-700 font-semibold shrink-0">
+              <svg className="w-3.5 h-3.5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Printing guide:</span>
+            </span>
             <span>
               {activeMode === "standard-a4"
-                ? "No thermal hardware needed! Prints on regular A4 home/office paper. Simply cut along the dashed line and tape it onto your package."
+                ? "Formatted for standard A4 desktop printers. Cut along the dashed line and attach to the parcel."
                 : activeMode === "thermal"
                 ? "Formatted for standard 100mm × 150mm Zebra, Xprinter, and HPRT roll label printers."
-                : "Full formal A4 commercial invoice with itemized tax details and dispatch signature lines."}
+                : "Standard A4 commercial invoice with itemized tax details and dispatch signature lines."}
             </span>
           </div>
         </div>
@@ -206,7 +211,10 @@ export default function ThermalAndInvoiceModal({
                 {/* TOP HALF: Cut-Out Courier Shipping Label */}
                 <div className="border-2 border-dashed border-slate-400 rounded-xl p-4 sm:p-5 relative bg-white space-y-3">
                   <div className="absolute -top-3 left-6 bg-slate-900 text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded flex items-center gap-1.5 uppercase">
-                    <span>✂ Cut along dashed line and tape onto parcel</span>
+                    <svg className="w-3 h-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a3 3 0 11-4.242-4.242 3 3 0 014.242 0M12 12L9.121 9.121m0 5.758a3 3 0 10-4.242-4.242 3 3 0 004.242 4.242z" />
+                    </svg>
+                    <span>Cut along dashed line and tape onto parcel</span>
                   </div>
 
                   {/* Header */}

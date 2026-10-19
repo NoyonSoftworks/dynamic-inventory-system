@@ -357,9 +357,6 @@ export default function InteractiveDemoPage() {
               }`}
             >
               <span>4. Return &amp; Fraud Guard</span>
-              <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${activeTab === "ai-copilot" ? "bg-white/20 text-white" : "bg-orange-100 text-orange-700"}`}>
-                SHIELD
-              </span>
             </button>
           </div>
         </div>
@@ -815,7 +812,7 @@ export default function InteractiveDemoPage() {
                 disabled={simRtoAnalyzing}
                 className="w-full btn-tactile flex items-center justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white py-2.5 text-xs font-bold shadow-xs transition disabled:opacity-50 cursor-pointer"
               >
-                {simRtoAnalyzing ? "Evaluating Return Risk Heuristics…" : "Evaluate Consignment Return Risk"}
+                {simRtoAnalyzing ? "Evaluating delivery history…" : "Evaluate consignment return risk"}
               </button>
 
               <div className="flex gap-2 pt-1">

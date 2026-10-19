@@ -210,7 +210,7 @@ export async function GET(request) {
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to load platform telemetry overview.",
+        error: "Failed to load platform activity overview.",
       },
       { status: 500 }
     );

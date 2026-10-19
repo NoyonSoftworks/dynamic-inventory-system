@@ -10,6 +10,14 @@ function emptyRow() {
   return { productId: "", variantId: "", quantity: "" };
 }
 
+function CloseIcon({ className = "w-3.5 h-3.5 text-slate-400" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
 // ── Customer Trust & COD Risk Scoring Engine ────────────────
 function computeOrderRisk(order, allOrders = []) {
   const phone = String(order.customer_phone || "").replace(/[^0-9]/g, "");
@@ -34,7 +42,7 @@ function computeOrderRisk(order, allOrders = []) {
     flags.push("Suspicious repeating digit pattern detected");
   }
 
-  // 2. Address completeness heuristic
+  // 2. Address completeness check
   if (address.length < 14) {
     riskScore += 30;
     flags.push("Incomplete address (lacks road/house/thana specification)");
@@ -87,7 +95,7 @@ export default function BulkOrdersPage() {
   // ── Tab Navigation: 'orders_queue' | 'manual_bulk' ─────────
   const [activeTab, setActiveTab] = useState("orders_queue");
 
-  // ── Orders & COD Risk Shield State ──────────────────────────
+  // ── Orders & COD Verification State ────────────────────────
   const [orders, setOrders] = useState([]);
   const [riskFilter, setRiskFilter] = useState("ALL"); // 'ALL' | 'HIGH_RISK' | 'VERIFIED'
   const [searchQuery, setSearchQuery] = useState("");
@@ -396,7 +404,7 @@ export default function BulkOrdersPage() {
             <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
               <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
               <span className="text-slate-400">/</span>
-              <span className="text-orange-600 font-semibold">Orders &amp; COD Risk Shield</span>
+              <span className="text-orange-600 font-semibold">Orders &amp; COD Verification</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               Orders &amp; Consignment Management
@@ -418,7 +426,7 @@ export default function BulkOrdersPage() {
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Inbound Orders &amp; RTO Shield
+                Inbound Orders &amp; Return Verification
               </button>
               <button
                 type="button"
@@ -454,11 +462,11 @@ export default function BulkOrdersPage() {
         )}
 
         {/* ======================================================= */}
-        {/* VIEW 1: INBOUND ORDERS & COD RISK SHIELD (MODULE 1 & 4) */}
+        {/* VIEW 1: INBOUND ORDERS & COD VERIFICATION (MODULE 1 & 4) */}
         {/* ======================================================= */}
         {activeTab === "orders_queue" && (
           <div className="space-y-6">
-            {/* 4 Executive RTO Risk & Shield KPI Tiles */}
+            {/* 4 Executive RTO Risk & Return Check KPI Tiles */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
                 <div className="flex items-center justify-between">
@@ -597,7 +605,7 @@ export default function BulkOrdersPage() {
                       <th className="px-4 py-3">Consignment / Date</th>
                       <th className="px-4 py-3">Buyer &amp; Delivery Destination</th>
                       <th className="px-4 py-3 font-mono">COD Amount</th>
-                      <th className="px-4 py-3 font-mono">Customer Risk Shield</th>
+                      <th className="px-4 py-3 font-mono">Customer Delivery History</th>
                       <th className="px-4 py-3 text-right">Fulfillment Actions</th>
                     </tr>
                   </thead>
@@ -812,10 +820,10 @@ export default function BulkOrdersPage() {
                     type="button"
                     onClick={() => removeRow(i)}
                     disabled={rows.length <= 1}
-                    className="p-2 text-slate-400 hover:text-rose-600 transition disabled:opacity-30"
+                    className="p-2 text-slate-400 hover:text-rose-600 transition disabled:opacity-30 inline-flex items-center justify-center"
                     title="Remove row"
                   >
-                    ✕
+                    <CloseIcon className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}

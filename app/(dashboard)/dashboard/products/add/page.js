@@ -131,7 +131,7 @@ export default function AddProductPage() {
       // 5. Success State & Summary
       triggerToast(
         "success",
-        `🎉 Successfully created "${trimmedName}" and generated ${parsedQty} serialized inventory items!`
+        `Successfully created "${trimmedName}" and generated ${parsedQty} serialized inventory items.`
       );
 
       setCreatedSummary({
@@ -197,9 +197,7 @@ export default function AddProductPage() {
                 : "border-rose-200 bg-rose-50 text-rose-800"
             }`}
           >
-            <span className="text-base shrink-0">
-              {toast.type === "success" ? "✓" : "⚠️"}
-            </span>
+            <span className={`h-2 w-2 rounded-full shrink-0 ${toast.type === "success" ? "bg-emerald-500" : "bg-rose-500"}`} />
             <p className="font-medium">{toast.message}</p>
           </div>
         )}
@@ -210,7 +208,9 @@ export default function AddProductPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white font-bold text-sm">
-                  📦
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
                 </span>
                 <div>
                   <h3 className="text-base font-bold text-orange-950">
@@ -238,9 +238,12 @@ export default function AddProductPage() {
                 {createdSummary.sampleBarcodes.map((code) => (
                   <span
                     key={code}
-                    className="inline-flex items-center rounded-md bg-white border border-orange-200 px-2.5 py-1 text-xs font-mono font-semibold text-orange-900 shadow-2xs"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-white border border-orange-200 px-2.5 py-1 text-xs font-mono font-semibold text-orange-900 shadow-2xs"
                   >
-                    🏷️ {code}
+                    <svg className="w-3 h-3 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    {code}
                   </span>
                 ))}
                 {createdSummary.quantity > createdSummary.sampleBarcodes.length && (

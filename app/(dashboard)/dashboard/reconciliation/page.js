@@ -24,7 +24,7 @@ export default function CourierReconciliationPage() {
   const { businessId, businessName, loading: ctxLoading } = useBusinessContext();
 
   const [records, setRecords] = useState([]);
-  const [telemetry, setTelemetry] = useState({
+  const [reconciliationSummary, setReconciliationSummary] = useState({
     totalSettledAmount: 0,
     pendingPayoutAmount: 0,
     shortPaidVariance: 0,
@@ -64,7 +64,9 @@ export default function CourierReconciliationPage() {
       const data = await res.json();
       if (data.success) {
         setRecords(data.records || []);
-        if (data.telemetry) setTelemetry(data.telemetry);
+        if (data.summary) {
+          setReconciliationSummary(data.summary);
+        }
       }
     } catch (err) {
       console.warn("Failed to load reconciliation records:", err);
@@ -102,7 +104,7 @@ export default function CourierReconciliationPage() {
           throw new Error("CSV file must contain a header and at least one data row.");
         }
 
-        // Header mapping heuristic
+        // Header column mapping rules
         const headers = lines[0].toLowerCase().split(",").map((h) => h.replace(/["']/g, "").trim());
         const findColIdx = (aliases) => headers.findIndex((h) => aliases.some((a) => h.includes(a)));
 
@@ -382,86 +384,86 @@ export default function CourierReconciliationPage() {
           </div>
         </div>
 
-        {/* ── 4 SUMMARY TELEMETRY METRIC CARDS ───────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ── ARCHITECTURAL RECONCILIATION SUMMARY BAR ───────────────── */}
+        <div className="rounded-xl border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Card 1: Total Settled & Paid */}
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Settled &amp; Deposited COD
               </span>
-              <span className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M5 13l4 4L19 7" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight font-mono">
-              ৳{Math.round(telemetry.totalSettledAmount || 0).toLocaleString()}
+            <div className="text-2xl sm:text-3xl font-bold text-emerald-600 tracking-tight font-mono">
+              ৳{Math.round(reconciliationSummary.totalSettledAmount || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              {telemetry.settledCount || 0} consignments reconciled &amp; remitted
+            <div className="text-[11px] text-slate-500 font-mono">
+              {reconciliationSummary.settledCount || 0} consignments remitted
             </div>
           </div>
 
           {/* Card 2: Pending Courier Payout */}
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Pending Courier Payouts
               </span>
-              <span className="p-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-amber-50 text-amber-600 border border-amber-200">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-amber-600 tracking-tight font-mono">
-              ৳{Math.round(telemetry.pendingPayoutAmount || 0).toLocaleString()}
+            <div className="text-2xl sm:text-3xl font-bold text-amber-600 tracking-tight font-mono">
+              ৳{Math.round(reconciliationSummary.pendingPayoutAmount || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              {telemetry.pendingCount || 0} delivered parcels awaiting disbursement
+            <div className="text-[11px] text-slate-500 font-mono">
+              {reconciliationSummary.pendingCount || 0} parcels awaiting disbursement
             </div>
           </div>
 
           {/* Card 3: Short-Paid & Mismatched Variance */}
-          <div className="p-5 rounded-2xl border border-rose-200 bg-rose-50/40 shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-rose-800 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-rose-800 font-semibold">
                 Short-Paid Discrepancies
               </span>
-              <span className="p-1.5 rounded-lg bg-rose-100 border border-rose-300 text-rose-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-rose-50 text-rose-600 border border-rose-200">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-rose-600 tracking-tight font-mono">
-              -৳{Math.round(telemetry.shortPaidVariance || 0).toLocaleString()}
+            <div className="text-2xl sm:text-3xl font-bold text-rose-600 tracking-tight font-mono">
+              -৳{Math.round(reconciliationSummary.shortPaidVariance || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-rose-700 mt-1 font-mono font-semibold">
-              {telemetry.shortPaidCount || 0} orders short-paid • Claim recoverable
+            <div className="text-[11px] text-rose-700 font-mono font-medium">
+              {reconciliationSummary.shortPaidCount || 0} orders short-paid · Claim recoverable
             </div>
           </div>
 
           {/* Card 4: Stuck & Lost Parcels (>7 Days) */}
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Stuck In-Transit (&gt;7 Days)
               </span>
-              <span className="p-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-purple-50 text-purple-600 border border-purple-200">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-purple-700 tracking-tight font-mono">
-              {telemetry.stuckCount || 0} <span className="text-sm font-semibold text-slate-500">Parcels</span>
+            <div className="text-2xl sm:text-3xl font-bold text-purple-700 tracking-tight font-mono">
+              {reconciliationSummary.stuckCount || 0} <span className="text-sm font-semibold text-slate-500">Parcels</span>
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              ৳{Math.round(telemetry.stuckAtRiskValue || 0).toLocaleString()} trapped goods at risk
+            <div className="text-[11px] text-slate-500 font-mono">
+              ৳{Math.round(reconciliationSummary.stuckAtRiskValue || 0).toLocaleString()} trapped goods at risk
             </div>
           </div>
         </div>
@@ -727,7 +729,7 @@ export default function CourierReconciliationPage() {
               </h3>
             </div>
             <p className="text-xs text-slate-500 max-w-2xl">
-              Unreconciled courier fee deductions silently bleed 4% to 8% off your monthly take-home profit. View your full financial telemetry and operating overhead breakdown.
+              Unreconciled courier fee deductions silently bleed 4% to 8% off your monthly take-home profit. View your full store expenses and operating overhead breakdown.
             </p>
           </div>
 

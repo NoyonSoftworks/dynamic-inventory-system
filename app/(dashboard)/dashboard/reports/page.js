@@ -46,7 +46,7 @@ export default function InventoryRunwayReport() {
     setTimeout(() => setToastMessage(null), 4000);
   }
 
-  // ── Fetch Telemetry Data ─────────────────────────────────────
+  // ── Fetch Store Summary Data ─────────────────────────────────
   async function loadData() {
     if (!businessId) {
       setLoading(false);
@@ -80,8 +80,8 @@ export default function InventoryRunwayReport() {
       try {
         const expRes = await fetch("/api/expenses?timeframe=all");
         const expJson = await expRes.json();
-        if (expJson.success && expJson.telemetry) {
-          setExpensesData(expJson.telemetry);
+        if (expJson.success && expJson.summary) {
+          setExpensesData(expJson.summary);
         }
       } catch (expErr) {
         console.warn("Expense data load notice:", expErr);
@@ -224,7 +224,7 @@ export default function InventoryRunwayReport() {
     });
   }, [products, transactions, selectedDays]);
 
-  // ── Deadstock & Trapped Working Capital Radar (Module 2) ─────
+  // ── Slow-Moving Stock & Trapped Working Capital (Module 2) ─────
   const deadstockRadar = useMemo(() => {
     const deadItems = forecastItems.filter(
       (item) => item.riskLevel === "DEADSTOCK" && item.totalStock > 0
@@ -580,14 +580,14 @@ export default function InventoryRunwayReport() {
           </div>
         </div>
 
-        {/* ── MODULE 2: DEAD-STOCK & TRAPPED CAPITAL RADAR ─────── */}
+        {/* ── MODULE 2: SLOW-MOVING STOCK & TRAPPED CAPITAL ─────── */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-                  Dead-Stock &amp; Trapped Capital Radar
+                  Slow-Moving Stock &amp; Capital Report
                 </h2>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -710,11 +710,11 @@ export default function InventoryRunwayReport() {
           </div>
         </div>
 
-        {/* ── PREDICTIVE MATRIX TABLE (WITH MODULE 3 PO TRIGGER) ─── */}
+        {/* ── STOCK RUNWAY & RESTOCK TABLE (WITH MODULE 3 PO TRIGGER) ─── */}
         <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
           <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between text-xs font-mono text-slate-600 bg-slate-50">
             <span className="font-bold text-slate-900">
-              RUNWAY &amp; RESTOCK MATRIX ({filteredForecast.length} SKUs)
+              STOCK RUNWAY &amp; RESTOCK FORECAST ({filteredForecast.length} SKUs)
             </span>
             <span className="text-[11px] text-slate-500">
               Click &quot;Generate PO&quot; on any item to create WhatsApp supplier order

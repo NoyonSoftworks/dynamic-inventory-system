@@ -13,6 +13,22 @@ const ADMIN_EMAIL = (
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory";
 const APP_SHORT_NAME = "SmartInventory";
 
+function CheckIcon({ className = "w-4 h-4 text-emerald-600 shrink-0" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+function CrossIcon({ className = "w-4 h-4 text-slate-400 shrink-0" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
 export default function MarketingLandingPage() {
   // ── Authentication & Session State ───────────────────────────
   const [user, setUser] = useState(null);
@@ -43,8 +59,8 @@ export default function MarketingLandingPage() {
   // ── FAQ Accordion State ──────────────────────────────────────
   const [openFaq, setOpenFaq] = useState(0);
 
-  // ── Hero Interactive Command Center State ─────────────────────
-  const [heroTab, setHeroTab] = useState("dispatch"); // "dispatch" | "telemetry" | "scanner"
+  // ── Hero Interactive Workbench State ─────────────────────
+  const [heroTab, setHeroTab] = useState("dispatch"); // "dispatch" | "profit" | "scanner"
   const [heroDispatchedOrders, setHeroDispatchedOrders] = useState({});
   const [heroLabelModalOrder, setHeroLabelModalOrder] = useState(null);
   const [heroScannerStock, setHeroScannerStock] = useState(64);
@@ -353,12 +369,10 @@ export default function MarketingLandingPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-10 sm:space-y-12">
           {/* Top Column: Value Proposition & High-Trust Micro Signals */}
           <div className="text-center max-w-4xl mx-auto space-y-6">
-            {/* Live Trust Micro-Signals Pill */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/90 bg-orange-50/90 px-4 py-1.5 text-xs font-semibold text-orange-900 shadow-2xs">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="font-mono text-[11px] sm:text-xs tracking-tight">
-                Sub-second Courier Webhooks · Zebra 4×6 Thermal Ready · Multi-Tenant RLS Secured
-              </span>
+            {/* Live Trust Micro-Signals Monospace Micro-Typography */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 text-slate-500 font-mono text-[11px] sm:text-xs uppercase tracking-[0.12em]">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>Direct Courier Webhooks · 4×6 Thermal Label Ready · Isolated Merchant Accounts</span>
             </div>
 
             {/* Commercial B2B Headline */}
@@ -371,7 +385,7 @@ export default function MarketingLandingPage() {
 
             {/* High-Converting Subheading */}
             <p className="mx-auto max-w-2xl text-xs sm:text-base text-slate-600 leading-relaxed font-normal">
-              The high-velocity warehouse operating system engineered for high-volume Bangladesh &amp; omnichannel merchants. Turn phone cameras into sub-second barcode scanners, auto-sync consignments with <strong>Steadfast &amp; Pathao</strong>, and eliminate fake COD delivery disputes with real-time RTO shielding.
+              Warehouse and dispatch management built for high-volume Bangladesh eCommerce merchants. Turn any phone camera into a fast barcode scanner, automatically book consignments with <strong>Steadfast &amp; Pathao</strong>, and verify customer delivery history to stop COD return losses.
             </p>
 
             {/* Action CTAs */}
@@ -417,7 +431,7 @@ export default function MarketingLandingPage() {
             </div>
           </div>
 
-          {/* ── INTERACTIVE LIVE COMMAND CENTER WORKBENCH ────────── */}
+          {/* ── INTERACTIVE DISPATCH & STOCK WORKBENCH ────────── */}
           <div className="relative rounded-2xl border border-slate-200/90 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
             {/* Workbench OS Window Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 bg-slate-900 px-4 py-3 text-white">
@@ -448,18 +462,18 @@ export default function MarketingLandingPage() {
                       : "text-slate-300 hover:text-white hover:bg-slate-700/60"
                   }`}
                 >
-                  Live Dispatch &amp; RTO Shield
+                  Live Dispatch &amp; COD Verification
                 </button>
                 <button
                   type="button"
-                  onClick={() => setHeroTab("telemetry")}
+                  onClick={() => setHeroTab("profit")}
                   className={`btn-tactile px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    heroTab === "telemetry"
+                    heroTab === "profit"
                       ? "bg-orange-600 text-white shadow-xs"
                       : "text-slate-300 hover:text-white hover:bg-slate-700/60"
                   }`}
                 >
-                  Net-Profit &amp; Runway
+                  Net Profit &amp; Runway
                 </button>
                 <button
                   type="button"
@@ -475,7 +489,7 @@ export default function MarketingLandingPage() {
               </div>
             </div>
 
-            {/* ── TAB 1: LIVE DISPATCH & RTO SHIELD ───────────────── */}
+            {/* ── TAB 1: LIVE DISPATCH & COD VERIFICATION ───────────────── */}
             {heroTab === "dispatch" && (
               <div className="p-4 sm:p-6 space-y-4 bg-white animate-in fade-in duration-150">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
@@ -487,12 +501,12 @@ export default function MarketingLandingPage() {
                       </span>
                     </span>
                     <p className="text-[11px] text-slate-500">
-                      Real-time phone heuristic verification, Steadfast/Pathao 1-click booking, and Zebra 4×6 thermal preview.
+                      Customer order history verification, Steadfast/Pathao 1-click booking, and standard 4×6 thermal label preview.
                     </p>
                   </div>
                   <div className="flex items-center gap-2 font-mono text-[11px]">
                     <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      Prevented RTO Loss: ৳14,400+
+                      Prevented Return Loss: ৳14,400+
                     </span>
                   </div>
                 </div>
@@ -505,8 +519,9 @@ export default function MarketingLandingPage() {
                         <span className="font-mono text-xs font-bold text-slate-900">#ORD-9421</span>
                         <span className="font-bold text-xs text-slate-800">Tariqul Islam</span>
                         <span className="text-[11px] font-mono text-slate-500">01712-345678</span>
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-mono text-[10px] font-bold border border-emerald-200">
-                          ✓ Verified Buyer (98% Delivery)
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-mono text-[10px] font-bold border border-emerald-200">
+                          <CheckIcon className="w-3 h-3 text-emerald-600" />
+                          <span>Verified Buyer · 98% Delivery</span>
                         </span>
                       </div>
                       <div className="text-xs text-slate-600 flex flex-wrap items-center gap-3">
@@ -625,8 +640,9 @@ export default function MarketingLandingPage() {
                         <span className="font-mono text-xs font-bold text-rose-900">#ORD-9423</span>
                         <span className="font-bold text-xs text-rose-900">Unverified Recipient</span>
                         <span className="text-[11px] font-mono text-rose-600">01700-000000</span>
-                        <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-mono text-[10px] font-bold border border-rose-300">
-                          ⚠ High RTO Risk (78% Refusal)
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-mono text-[10px] font-bold border border-rose-300">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+                          <span>High Return Risk · 78% Refusal</span>
                         </span>
                       </div>
                       <div className="text-xs text-rose-800 flex flex-wrap items-center gap-3">
@@ -640,7 +656,7 @@ export default function MarketingLandingPage() {
 
                     <div className="shrink-0 flex items-center gap-2">
                       <span className="text-xs font-mono font-bold text-rose-700 bg-white px-3 py-1.5 rounded-lg border border-rose-200">
-                        Shield: Collect ৳150 Delivery Fee Advance
+                        Recommendation: Collect ৳150 delivery fee in advance
                       </span>
                     </div>
                   </div>
@@ -659,9 +675,9 @@ export default function MarketingLandingPage() {
                       <button
                         type="button"
                         onClick={() => setHeroLabelModalOrder(null)}
-                        className="text-xs font-mono font-bold text-slate-500 hover:text-slate-900 underline cursor-pointer"
+                        className="text-xs font-mono font-medium text-slate-500 hover:text-slate-900 transition cursor-pointer"
                       >
-                        Close Preview ✕
+                        Close preview
                       </button>
                     </div>
 
@@ -694,13 +710,13 @@ export default function MarketingLandingPage() {
               </div>
             )}
 
-            {/* ── TAB 2: TRUE NET-PROFIT & RUNWAY TELEMETRY ────────── */}
-            {heroTab === "telemetry" && (
+            {/* ── TAB 2: NET PROFIT & MARGIN BREAKDOWN ────────── */}
+            {heroTab === "profit" && (
               <div className="p-4 sm:p-6 space-y-6 bg-white animate-in fade-in duration-150">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-                      Unit Economics &amp; Trapped Working Capital Analytics
+                      Unit Economics &amp; Working Capital Analytics
                     </h3>
                     <p className="text-[11px] text-slate-500">
                       Real net margins factoring wholesale COGS, 1% COD fees, and return logistics reserves.
@@ -712,8 +728,8 @@ export default function MarketingLandingPage() {
                     className="btn-tactile px-3 py-1.5 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-800 text-xs font-mono font-bold transition cursor-pointer"
                   >
                     {heroSimulatedRtoSavings
-                      ? "✓ RTO Shield Simulated (+৳31,200 Cash)"
-                      : "+ Simulate 15% RTO Reduction Shield"}
+                      ? "Return Protection Active (+৳31,200 Saved)"
+                      : "+ Simulate 15% Return Reduction"}
                   </button>
                 </div>
 
@@ -748,12 +764,12 @@ export default function MarketingLandingPage() {
                   </div>
                 </div>
 
-                {/* Trapped Capital Radar Card */}
+                {/* Slow-Moving Stock Card */}
                 <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 font-mono text-[10px] font-bold">
-                        Trapped Capital Radar
+                        Slow-Moving Stock
                       </span>
                       <span className="text-xs font-bold text-teal-950">৳38,400 Locked in 2 Stagnant SKUs</span>
                     </div>
@@ -815,7 +831,7 @@ export default function MarketingLandingPage() {
                     </div>
                   </div>
 
-                  {/* Scanner Telemetry & Trigger Action */}
+                  {/* Scanner Actions */}
                   <div className="md:col-span-6 space-y-4">
                     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2 font-mono text-xs">
                       <div className="flex justify-between items-center">
@@ -845,14 +861,14 @@ export default function MarketingLandingPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                         </svg>
                         <span>
-                          {heroScanningActive ? "Scanning Barcode Stream…" : "Trigger Smartphone Camera Scan"}
+                          {heroScanningActive ? "Scanning barcode stream…" : "Scan with camera"}
                         </span>
                       </button>
 
                       {heroScanSuccess && (
                         <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-mono font-bold flex items-center gap-2 animate-in fade-in">
                           <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                          <span>Decoded in 140ms ✓ Stock depleted: {heroScannerStock} units · Audit record logged.</span>
+                          <span>Decoded in 140ms · Stock updated: {heroScannerStock} units · Audit log saved.</span>
                         </div>
                       )}
                     </div>
@@ -994,7 +1010,7 @@ export default function MarketingLandingPage() {
               </div>
               <h3 className="text-lg font-bold text-slate-900">Connect Couriers</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Paste your Steadfast, Pathao, or RedX API credentials in Settings. Sub-second webhooks automatically sync consignment status, tracking URLs, and cash collection.
+                Connect your Steadfast, Pathao, or RedX API credentials in Settings. Automated webhooks continuously sync consignment status, tracking links, and cash collection.
               </p>
               <div className="pt-2 flex flex-wrap gap-1.5 font-mono text-[10px]">
                 <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">Steadfast API</span>
@@ -1013,11 +1029,11 @@ export default function MarketingLandingPage() {
               </div>
               <h3 className="text-lg font-bold text-slate-900">Automate &amp; Dispatch</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Scan outgoing parcels with any phone camera, verify customer trust with our COD RTO Shield, and print 4×6 Zebra thermal shipping stickers in 1 tap.
+                Scan outgoing parcels with any phone camera, verify customer delivery history to prevent return losses, and print standard 4×6 thermal shipping labels in 1 tap.
               </p>
               <div className="pt-2 flex flex-wrap gap-1.5 font-mono text-[10px]">
                 <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">Camera Scan</span>
-                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">RTO Fraud Shield</span>
+                <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">COD Return Check</span>
                 <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">4×6 Thermal Label</span>
               </div>
             </div>
@@ -1029,8 +1045,8 @@ export default function MarketingLandingPage() {
       <section id="features" className="py-20 bg-[#f8fafc]">
         <div className="mx-auto max-w-7xl px-4 sm:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100/70 border border-orange-200 px-3 py-1 rounded-full">
-              Engineered For High Volume
+            <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
+              Warehouse Capabilities
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               A Modern Warehouse Operating System
@@ -1227,7 +1243,7 @@ export default function MarketingLandingPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                         </svg>
                         <span className="text-xs font-mono font-bold">DECODED: 0.28s</span>
-                        <span className="text-[10px] font-mono text-emerald-300">Audible Beep Triggered ✓</span>
+                        <span className="text-[10px] font-mono text-emerald-300">Audible confirmation beep</span>
                       </div>
                     ) : (
                       <div className="space-y-1">
@@ -1247,7 +1263,7 @@ export default function MarketingLandingPage() {
                     disabled={simulatedScanState === "scanning"}
                     className="btn-tactile inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-2.5 text-xs font-bold text-white transition active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-orange-600/30 cursor-pointer"
                   >
-                    <span>{simulatedScanState === "scanning" ? "Decoding Stream…" : "Trigger Simulated Scan & Sound"}</span>
+                    <span>{simulatedScanState === "scanning" ? "Decoding Stream…" : "Test simulated scan"}</span>
                   </button>
                 </div>
 
@@ -1297,7 +1313,7 @@ export default function MarketingLandingPage() {
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-xs text-slate-500 bg-white">
-                      Click <strong className="text-slate-800">&quot;Trigger Simulated Scan &amp; Sound&quot;</strong> to test mobile camera decoding speed and synthesizer audio feedback.
+                      Click <strong className="text-slate-800">&quot;Test simulated scan&quot;</strong> to test mobile camera decoding speed and synthesizer audio feedback.
                     </div>
                   )}
                 </div>
@@ -1317,7 +1333,7 @@ export default function MarketingLandingPage() {
                   </div>
 
                   <div className="rounded-xl bg-emerald-50 p-3.5 border border-emerald-200/60 space-y-2 text-slate-800">
-                    <p className="font-bold text-emerald-950">🎉 Order #ORD-9421 Dispatched</p>
+                    <p className="font-bold text-emerald-950">Order #ORD-9421 Dispatched</p>
                     <p className="text-[11px] text-emerald-800 leading-relaxed">
                       Assalamu Alaikum! Your parcel has been packed and handed over to Steadfast Courier.
                     </p>
@@ -1335,8 +1351,9 @@ export default function MarketingLandingPage() {
                   <p className="leading-relaxed">
                     Automatic WhatsApp notifications keep buyers informed the exact second their parcels leave your warehouse, dramatically reducing failed deliveries and return-to-origin (RTO) expenses.
                   </p>
-                  <div className="pt-2 font-mono text-xs text-emerald-700 font-semibold">
-                    ✓ Proven to cut customer support tickets by up to 88%
+                  <div className="flex items-center gap-1.5 pt-2 font-mono text-xs text-emerald-700 font-semibold">
+                    <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Cuts customer tracking inquiries by up to 88%</span>
                   </div>
                 </div>
               </div>
@@ -1439,14 +1456,14 @@ export default function MarketingLandingPage() {
       <section className="py-20 border-t border-slate-200 bg-slate-50/60">
         <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
+            <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
               Why We Are Different
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               Why 2,400+ High-Volume Merchants Chose Us Over Standard CMS &amp; Spreadsheets
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Generic eCommerce plugins only count basic in/out quantities. SmartInventory is a modern warehouse management system engineered to eliminate courier return losses, prevent stockouts, and maximize merchant margins.
+              Generic eCommerce plugins only count basic in/out quantities. SmartInventory is a modern warehouse management system designed to prevent courier return losses, avoid stockouts, and protect your margins.
             </p>
           </div>
 
@@ -1467,10 +1484,16 @@ export default function MarketingLandingPage() {
                       Pre-Dispatch Return &amp; Fraud Guard (RTO)
                     </td>
                     <td className="px-5 py-4 text-slate-500">
-                      ❌ None. 18%–30% COD parcels get returned, costing ৳160+ each.
+                      <div className="flex items-start gap-2">
+                        <CrossIcon className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                        <span>None. 18%–30% COD parcels get returned, costing ৳160+ each.</span>
+                      </div>
                     </td>
                     <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
-                      ✅ Smart risk detection scores address &amp; phone validity before booking to prevent 70%+ return losses.
+                      <div className="flex items-start gap-2">
+                        <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Delivery history checks score customer reliability before booking to prevent return losses.</span>
+                      </div>
                     </td>
                   </tr>
 
@@ -1479,10 +1502,16 @@ export default function MarketingLandingPage() {
                       Automated Restock &amp; Purchase Orders (PO)
                     </td>
                     <td className="px-5 py-4 text-slate-500">
-                      ❌ Manual spreadsheet calculations and guesswork.
+                      <div className="flex items-start gap-2">
+                        <CrossIcon className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                        <span>Manual spreadsheet calculations and guesswork.</span>
+                      </div>
                     </td>
                     <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
-                      ✅ Auto-computes Lead Time ROP and formats 1-click WhatsApp/PDF supplier POs.
+                      <div className="flex items-start gap-2">
+                        <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Calculates reorder points and formats 1-click WhatsApp or PDF supplier POs.</span>
+                      </div>
                     </td>
                   </tr>
 
@@ -1491,22 +1520,34 @@ export default function MarketingLandingPage() {
                       Supplier Challan &amp; Invoice Intake
                     </td>
                     <td className="px-5 py-4 text-slate-500">
-                      ❌ Typing dozens of SKUs and buying costs manually.
+                      <div className="flex items-start gap-2">
+                        <CrossIcon className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                        <span>Typing dozens of SKUs and buying costs manually.</span>
+                      </div>
                     </td>
                     <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
-                      ✅ Intelligent OCR text parser extracts SKUs, costs, and margins with 1-click ingest.
+                      <div className="flex items-start gap-2">
+                        <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Challan text parser extracts SKUs, costs, and margins with 1-click ingest.</span>
+                      </div>
                     </td>
                   </tr>
 
                   <tr className="hover:bg-slate-50/70">
                     <td className="px-5 py-4 font-semibold text-slate-900">
-                      Deadstock Capital Liquidation
+                      Slow-Moving Stock Clearance
                     </td>
                     <td className="px-5 py-4 text-slate-500">
-                      ❌ Stagnant stock sits idle in warehouse unnoticed.
+                      <div className="flex items-start gap-2">
+                        <CrossIcon className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                        <span>Stagnant stock sits idle in warehouse unnoticed.</span>
+                      </div>
                     </td>
                     <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
-                      ✅ Intelligent bundling pairs slow-moving inventory with hero SKUs in discounted bundles to release cash.
+                      <div className="flex items-start gap-2">
+                        <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Intelligent bundling pairs slow-moving inventory with hero SKUs in discounted bundles to release cash.</span>
+                      </div>
                     </td>
                   </tr>
 
@@ -1515,10 +1556,16 @@ export default function MarketingLandingPage() {
                       Native Bangladesh Logistics APIs
                     </td>
                     <td className="px-5 py-4 text-slate-500">
-                      ❌ Broken third-party plugins with manual tracking updates.
+                      <div className="flex items-start gap-2">
+                        <CrossIcon className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                        <span>Broken third-party plugins with manual tracking updates.</span>
+                      </div>
                     </td>
                     <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
-                      ✅ Direct native Steadfast, Pathao &amp; RedX webhooks with automated WhatsApp updates.
+                      <div className="flex items-start gap-2">
+                        <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Direct native Steadfast, Pathao, and RedX webhooks with automated WhatsApp updates.</span>
+                      </div>
                     </td>
                   </tr>
 
@@ -1527,10 +1574,16 @@ export default function MarketingLandingPage() {
                       True Unit Economics &amp; COD Real Net Profit
                     </td>
                     <td className="px-5 py-4 text-slate-500">
-                      ❌ Only shows gross revenue, hiding courier return and packaging losses.
+                      <div className="flex items-start gap-2">
+                        <CrossIcon className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                        <span>Only shows gross revenue, hiding courier return and packaging losses.</span>
+                      </div>
                     </td>
                     <td className="px-5 py-4 font-semibold text-emerald-700 bg-orange-50/30">
-                      ✅ Real-time break-even calculations factoring courier charges, COD fee, and return risk.
+                      <div className="flex items-start gap-2">
+                        <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Real-time break-even calculations factoring courier charges, COD fee, and return risk.</span>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -1540,12 +1593,12 @@ export default function MarketingLandingPage() {
         </div>
       </section>
 
-      {/* ── PRICING MATRIX (3 ACCESSIBLE TIERS) ──────────────────── */}
+      {/* ── PRICING PLANS ──────────────────── */}
       <section id="pricing" className="py-24 sm:py-32 border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-16">
           <div className="text-center max-w-2xl mx-auto space-y-4">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
-              Fair, Transparent &amp; Accessible
+            <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
+              Simple, Transparent Pricing
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               Predictable Plans Built for Bangladesh E-Commerce
@@ -1602,27 +1655,27 @@ export default function MarketingLandingPage() {
 
                 <div className="pt-5 border-t border-slate-200/80 space-y-3 text-xs text-slate-700">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Up to <strong>100 orders</strong> / month</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
-                    <span><strong>100 RTO Risk Checks</strong> / mo</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span><strong>100 Return Risk Checks</strong> / mo</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>In-browser mobile barcode scanner</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Manual order entry &amp; CSV export</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Single-user operator access</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>PostgreSQL RLS tenant security</span>
                   </div>
                 </div>
@@ -1659,31 +1712,31 @@ export default function MarketingLandingPage() {
 
                 <div className="pt-5 border-t border-slate-100 space-y-3 text-xs text-slate-700">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>Unlimited</strong> orders &amp; dispatches</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>Smart COD Return Guard</strong> &amp; RTO Predictor</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>4×6 Thermal Label</strong> &amp; Tax Invoice Generator</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Steadfast &amp; Pathao native API webhooks</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Automated WhatsApp parcel notifications</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>3 User Seats</strong> (Admin &amp; Operators)</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Automated PO Restock generator</span>
                   </div>
                 </div>
@@ -1715,31 +1768,31 @@ export default function MarketingLandingPage() {
 
                 <div className="pt-5 border-t border-slate-200/80 space-y-3 text-xs text-slate-700">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>Everything in Professional</strong></span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
-                    <span><strong>Multi-warehouse</strong> stock orchestration</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span><strong>Multi-warehouse</strong> stock routing</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>Unlimited User Seats</strong> with granular RLS</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
-                    <span>Deadstock Trapped Capital Liquidation engine</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Slow-moving stock clearance tool</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>1-Click WhatsApp B2B Supplier POs</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Dedicated onboarding engineer &amp; 24/7 SLA</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-emerald-600 font-bold text-sm">✓</span>
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Custom API &amp; ERP webhook connectors</span>
                   </div>
                 </div>
@@ -1760,7 +1813,7 @@ export default function MarketingLandingPage() {
       <section id="faq" className="py-20 bg-[#f8fafc]">
         <div className="mx-auto max-w-3xl px-4 sm:px-8 space-y-8">
           <div className="text-center space-y-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
+            <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
               Clear Answers
             </span>
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -1803,8 +1856,8 @@ export default function MarketingLandingPage() {
       <section id="contact" className="py-24 sm:py-32 border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-16">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200 px-3.5 py-1 rounded-full">
-              Direct Advisory &amp; Architecture
+            <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
+              Store Setup &amp; Onboarding
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               Talk With Us · Get Custom Onboarding &amp; Setup
@@ -1841,7 +1894,7 @@ export default function MarketingLandingPage() {
                 </div>
 
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  &ldquo;I personally engineered SmartInventory to solve the painful spreadsheet errors, manual courier copy-pasting, and fake COD orders that bleed merchant margins. Let&apos;s build an automated, zero-loss fulfillment pipeline for your brand.&rdquo;
+                  &ldquo;I designed SmartInventory to solve the painful spreadsheet errors, manual courier copy-pasting, and fake COD orders that bleed merchant margins. Let&apos;s build an automated, zero-loss fulfillment pipeline for your brand.&rdquo;
                 </p>
 
                 <div className="pt-2 border-t border-slate-200/80 space-y-3">
@@ -1902,15 +1955,15 @@ export default function MarketingLandingPage() {
               {/* Advisory Guarantee Points */}
               <div className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-2.5 text-xs text-slate-600">
                 <div className="flex items-start gap-2.5">
-                  <span className="text-emerald-600 font-bold shrink-0 mt-0.5">✓</span>
+                  <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>100% Free architecture review &amp; Excel catalog audit</span>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <span className="text-emerald-600 font-bold shrink-0 mt-0.5">✓</span>
+                  <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>Guidance on connecting Steadfast, Pathao &amp; RedX API keys</span>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <span className="text-emerald-600 font-bold shrink-0 mt-0.5">✓</span>
+                  <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>Zero hard sales push — speak directly with the engineering team</span>
                 </div>
               </div>
@@ -1930,8 +1983,8 @@ export default function MarketingLandingPage() {
 
                 {contactSubmitted ? (
                   <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-6 text-center space-y-3 animate-in fade-in">
-                    <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-xl font-bold">
-                      ✓
+                    <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                      <CheckIcon className="w-6 h-6 text-emerald-700" />
                     </div>
                     <h4 className="text-base font-bold text-emerald-950">
                       Consultation Request Received!

@@ -71,7 +71,7 @@ export default function ExpensesManagementPage() {
   const { businessId, businessName, loading: ctxLoading } = useBusinessContext();
 
   const [expenses, setExpenses] = useState([]);
-  const [telemetry, setTelemetry] = useState({
+  const [expenseSummary, setExpenseSummary] = useState({
     totalExpenses: 0,
     adSpendTotal: 0,
     packagingTotal: 0,
@@ -110,7 +110,9 @@ export default function ExpensesManagementPage() {
       const data = await res.json();
       if (data.success) {
         setExpenses(data.expenses || []);
-        if (data.telemetry) setTelemetry(data.telemetry);
+        if (data.summary) {
+          setExpenseSummary(data.summary);
+        }
       }
     } catch (err) {
       console.warn("Error loading expenses:", err);
@@ -209,10 +211,10 @@ export default function ExpensesManagementPage() {
   }, [expenses, selectedCategoryFilter, searchQuery]);
 
   // Distribution percentages
-  const grandTotal = Math.max(1, telemetry.totalExpenses || 0);
-  const adPercent = Math.round(((telemetry.adSpendTotal || 0) / grandTotal) * 100);
-  const packPercent = Math.round(((telemetry.packagingTotal || 0) / grandTotal) * 100);
-  const rentPercent = Math.round(((telemetry.salariesRentTotal || 0) / grandTotal) * 100);
+  const grandTotal = Math.max(1, expenseSummary.totalExpenses || 0);
+  const adPercent = Math.round(((expenseSummary.adSpendTotal || 0) / grandTotal) * 100);
+  const packPercent = Math.round(((expenseSummary.packagingTotal || 0) / grandTotal) * 100);
+  const rentPercent = Math.round(((expenseSummary.salariesRentTotal || 0) / grandTotal) * 100);
   const utilPercent = Math.max(0, 100 - adPercent - packPercent - rentPercent);
 
   if (ctxLoading || loading) {
@@ -312,95 +314,95 @@ export default function ExpensesManagementPage() {
           </div>
         </div>
 
-        {/* ── 4 FINANCIAL TELEMETRY METRIC CARDS ──────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ── ARCHITECTURAL FINANCIAL METRIC BAR ──────────────── */}
+        <div className="rounded-xl border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Card 1: Total Operating Expenses */}
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Total Operating Outlay
               </span>
-              <span className="p-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-orange-50 border border-orange-200 text-orange-600">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
-              ৳{Math.round(telemetry.totalExpenses || 0).toLocaleString()}
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
+              ৳{Math.round(expenseSummary.totalExpenses || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              Across {telemetry.recordCount || 0} logged operational entries
+            <div className="text-[11px] text-slate-500 font-mono">
+              Across {expenseSummary.recordCount || 0} logged entries
             </div>
           </div>
 
           {/* Card 2: Digital Ad Spend */}
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                Digital Ad Spend (Meta/TikTok)
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
+                Digital Ad Spend
               </span>
-              <span className="p-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-teal-50 border border-teal-200 text-teal-600">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-teal-700 tracking-tight font-mono">
-              ৳{Math.round(telemetry.adSpendTotal || 0).toLocaleString()}
+            <div className="text-2xl sm:text-3xl font-bold text-teal-700 tracking-tight font-mono">
+              ৳{Math.round(expenseSummary.adSpendTotal || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-teal-700 mt-1 font-mono font-semibold">
+            <div className="text-[11px] text-teal-700 font-mono font-medium">
               {adPercent}% of total operational overheads
             </div>
           </div>
 
           {/* Card 3: Packaging & Consumables */}
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Packaging &amp; Poly Bags
               </span>
-              <span className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-slate-100 border border-slate-200 text-slate-600">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-800 tracking-tight font-mono">
-              ৳{Math.round(telemetry.packagingTotal || 0).toLocaleString()}
+            <div className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight font-mono">
+              ৳{Math.round(expenseSummary.packagingTotal || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              Flyers, bubble rolls &amp; security tapes
+            <div className="text-[11px] text-slate-500 font-mono">
+              Flyers, bubble rolls &amp; tapes
             </div>
           </div>
 
           {/* Card 4: Staff Wages & Office Rent */}
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                Salaries, Rent &amp; Chai
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
+                Salaries &amp; Rent
               </span>
-              <span className="p-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-purple-50 border border-purple-200 text-purple-600">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-purple-700 tracking-tight font-mono">
-              ৳{Math.round((telemetry.salariesRentTotal || 0) + (telemetry.utilitiesMiscTotal || 0)).toLocaleString()}
+            <div className="text-2xl sm:text-3xl font-bold text-purple-700 tracking-tight font-mono">
+              ৳{Math.round((expenseSummary.salariesRentTotal || 0) + (expenseSummary.utilitiesMiscTotal || 0)).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              Packing crew, broadband &amp; refreshments
+            <div className="text-[11px] text-slate-500 font-mono">
+              Packing crew, utilities &amp; rent
             </div>
           </div>
         </div>
 
         {/* ── EXPENSE BREAKDOWN VISUAL BAR ────────────────────── */}
-        <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-2.5">
+        <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5">
           <div className="flex items-center justify-between text-xs font-mono">
-            <span className="font-bold text-slate-900 uppercase">Overhead Distribution Matrix</span>
-            <span className="text-slate-500">Total: ৳{Math.round(telemetry.totalExpenses || 0).toLocaleString()}</span>
+            <span className="font-bold text-slate-900 uppercase">Overhead Distribution Breakdown</span>
+            <span className="text-slate-500">Total: ৳{Math.round(expenseSummary.totalExpenses || 0).toLocaleString()}</span>
           </div>
 
           {/* Segmented Progress Bar */}

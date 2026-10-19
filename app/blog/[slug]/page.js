@@ -321,13 +321,13 @@ function BlogPostReaderContent() {
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Founder &amp; Lead Systems Architect at SmartInventory. Specializes in real-time warehouse orchestration, multi-carrier APIs, and high-concurrency PostgreSQL multi-tenancy.
+              Founder &amp; Lead Systems Architect at SmartInventory. Specializes in real-time warehouse fulfillment, multi-carrier logistics APIs, and high-concurrency PostgreSQL architecture.
             </p>
           </div>
         </section>
 
         {/* Bottom Inbound CTA */}
-        <section className="rounded-3xl border border-orange-200 bg-gradient-to-r from-orange-50 via-white to-orange-50/50 p-8 sm:p-10 text-center space-y-4 shadow-xl shadow-slate-200/50">
+        <section className="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 via-white to-orange-50/50 p-8 sm:p-10 text-center space-y-4 shadow-xl shadow-slate-200/50">
           <h3 className="text-xl sm:text-2xl font-black text-slate-900">
             Ready to streamline your warehouse fulfillment?
           </h3>

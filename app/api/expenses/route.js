@@ -86,7 +86,7 @@ async function resolveAuthAndTenant(request) {
 
 /**
  * GET /api/expenses
- * Returns all logged operational expenses and summary telemetry for the caller's workspace.
+ * Returns all logged operational expenses and summary metrics for the caller's workspace.
  */
 export async function GET(request) {
   try {
@@ -122,7 +122,7 @@ export async function GET(request) {
       allExpenses = allExpenses.filter((e) => e.category === category);
     }
 
-    // Telemetry calculations
+    // Summary calculations
     const totalExpenses = allExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
     const adSpendTotal = allExpenses
       .filter((e) => e.category === "ad_spend")
@@ -142,18 +142,20 @@ export async function GET(request) {
       .filter((e) => e.expense_date === todayStr)
       .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
+    const summary = {
+      totalExpenses,
+      adSpendTotal,
+      packagingTotal,
+      salariesRentTotal,
+      utilitiesMiscTotal,
+      todaySpend,
+      recordCount: allExpenses.length,
+    };
+
     return NextResponse.json({
       success: true,
       expenses: allExpenses,
-      telemetry: {
-        totalExpenses,
-        adSpendTotal,
-        packagingTotal,
-        salariesRentTotal,
-        utilitiesMiscTotal,
-        todaySpend,
-        recordCount: allExpenses.length,
-      },
+      summary,
     });
   } catch (err) {
     console.error("GET /api/expenses error:", err);

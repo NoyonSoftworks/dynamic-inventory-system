@@ -7,6 +7,159 @@ import { supabase } from "@/utils/supabase/client";
 import AdminTasksTab from "./components/AdminTasksTab";
 import AdminBlogTab from "./components/AdminBlogTab";
 
+function CheckIcon({ className = "w-4 h-4 text-emerald-600" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+function AlertIcon({ className = "w-4 h-4 text-rose-600" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  );
+}
+
+function BuildingIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+  );
+}
+
+function PackageIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    </svg>
+  );
+}
+
+function TruckIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+    </svg>
+  );
+}
+
+function ZapIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  );
+}
+
+function ActivityIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+  );
+}
+
+function LockIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+  );
+}
+
+function ShieldIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  );
+}
+
+function PhoneIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+    </svg>
+  );
+}
+
+function KeyIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+    </svg>
+  );
+}
+
+function GlobeIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+    </svg>
+  );
+}
+
+function MessageIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    </svg>
+  );
+}
+
+function SearchIcon({ className = "w-4 h-4 text-slate-400" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className = "w-3.5 h-3.5 text-slate-400" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+function RefreshIcon({ className = "w-3.5 h-3.5" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    </svg>
+  );
+}
+
+function CreditCardIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    </svg>
+  );
+}
+
+function TagIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+    </svg>
+  );
+}
+
+function FileTextIcon({ className = "w-4 h-4 text-slate-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  );
+}
+
 const ADMIN_EMAIL = (
   process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
 )
@@ -24,7 +177,7 @@ export default function SuperAdminDashboard() {
   // ── Active Navigation Tab: 'overview' | 'pricing' | 'integrations'
   const [activeTab, setActiveTab] = useState("overview");
 
-  // ── Telemetry & Overview State ─────────────────────────────
+  // ── Store Activity & Overview State ────────────────────────
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -108,7 +261,7 @@ export default function SuperAdminDashboard() {
     const res = await fetch("/api/admin/overview");
     if (!res.ok) {
       const errJson = await res.json().catch(() => null);
-      throw new Error(errJson?.error || "Failed to load telemetry overview.");
+      throw new Error(errJson?.error || "Failed to load platform overview.");
     }
     return await res.json();
   }
@@ -217,19 +370,19 @@ export default function SuperAdminDashboard() {
           setIsAuthorized(true);
         }
 
-        // Fetch telemetry, dynamic settings, and activity footprints
-        const [telemetry] = await Promise.all([
+        // Fetch platform overview, dynamic settings, and activity footprints
+        const [overviewData] = await Promise.all([
           fetchTelemetryData(),
           fetchSaasSettings(),
           fetchActivityLogs(),
         ]);
 
-        if (isMounted && telemetry) {
-          if (telemetry.summary) setSummary(telemetry.summary);
-          if (telemetry.tenants) setTenants(telemetry.tenants);
-          if (telemetry.courierBreakdown)
-            setCourierBreakdown(telemetry.courierBreakdown);
-          if (telemetry.recentOrders) setRecentOrders(telemetry.recentOrders);
+        if (isMounted && overviewData) {
+          if (overviewData.summary) setSummary(overviewData.summary);
+          if (overviewData.tenants) setTenants(overviewData.tenants);
+          if (overviewData.courierBreakdown)
+            setCourierBreakdown(overviewData.courierBreakdown);
+          if (overviewData.recentOrders) setRecentOrders(overviewData.recentOrders);
           setLastRefreshed(new Date().toLocaleTimeString());
         }
       } catch (err) {
@@ -257,20 +410,20 @@ export default function SuperAdminDashboard() {
     setRefreshing(true);
     setError(null);
     try {
-      const [telemetry] = await Promise.all([
+      const [overviewData] = await Promise.all([
         fetchTelemetryData(),
         fetchSaasSettings(),
         fetchActivityLogs(),
       ]);
-      if (telemetry?.summary) setSummary(telemetry.summary);
-      if (telemetry?.tenants) setTenants(telemetry.tenants);
-      if (telemetry?.courierBreakdown)
-        setCourierBreakdown(telemetry.courierBreakdown);
-      if (telemetry?.recentOrders) setRecentOrders(telemetry.recentOrders);
+      if (overviewData?.summary) setSummary(overviewData.summary);
+      if (overviewData?.tenants) setTenants(overviewData.tenants);
+      if (overviewData?.courierBreakdown)
+        setCourierBreakdown(overviewData.courierBreakdown);
+      if (overviewData?.recentOrders) setRecentOrders(overviewData.recentOrders);
       setLastRefreshed(new Date().toLocaleTimeString());
-      triggerToast("success", "Live telemetry synced.");
+      triggerToast("success", "Platform overview refreshed.");
     } catch (err) {
-      setError(err.message || "Failed to refresh telemetry.");
+      setError(err.message || "Failed to refresh platform overview.");
     } finally {
       setRefreshing(false);
     }
@@ -693,7 +846,7 @@ export default function SuperAdminDashboard() {
         {error && (
           <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span>⚠️</span>
+              <AlertIcon className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{error}</span>
             </div>
             <button
@@ -706,106 +859,79 @@ export default function SuperAdminDashboard() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 1: OVERVIEW & TELEMETRY                               */}
+        {/* TAB 1: OVERVIEW & PERFORMANCE METRICS                     */}
         {/* ========================================================= */}
         {activeTab === "overview" && (
           <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Top Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs relative overflow-hidden group hover:border-slate-300 card-lift transition">
+            {/* Top Metric Architectural Bar */}
+            <div className="rounded-xl border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="p-5 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                     Active Tenants
                   </span>
-                  <span className="rounded-lg bg-orange-50 border border-orange-200 p-2 text-orange-600 text-sm">
-                    🏢
-                  </span>
+                  <BuildingIcon className="w-4 h-4 text-slate-400" />
                 </div>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-slate-900 font-mono">
-                    {loading ? "…" : summary.totalTenants}
-                  </div>
-                  <span className="text-[11px] text-slate-500">client stores</span>
+                <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
+                  {loading ? "…" : summary.totalTenants}
                 </div>
-                <p className="mt-2 text-[11px] text-slate-500">
-                  Isolated multi-tenant SaaS accounts
-                </p>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-500 opacity-80" />
+                <div className="text-[11px] text-slate-500 font-mono">
+                  Isolated client store accounts
+                </div>
               </div>
 
-              <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs relative overflow-hidden group hover:border-slate-300 card-lift transition">
+              <div className="p-5 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                     Global Catalog SKUs
                   </span>
-                  <span className="rounded-lg bg-teal-50 border border-teal-200 p-2 text-teal-600 text-sm">
-                    📦
-                  </span>
+                  <PackageIcon className="w-4 h-4 text-slate-400" />
                 </div>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-slate-900 font-mono">
-                    {loading ? "…" : summary.totalSkus.toLocaleString()}
-                  </div>
-                  <span className="text-[11px] text-slate-500">products</span>
+                <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
+                  {loading ? "…" : summary.totalSkus.toLocaleString()}
                 </div>
-                <p className="mt-2 text-[11px] text-slate-500">
-                  Serialized unique barcodes across stores
-                </p>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-teal-700 opacity-80" />
+                <div className="text-[11px] text-slate-500 font-mono">
+                  Unique barcodes across stores
+                </div>
               </div>
 
-              <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs relative overflow-hidden group hover:border-slate-300 card-lift transition">
+              <div className="p-5 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                     Processed Orders
                   </span>
-                  <span className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-emerald-600 text-sm">
-                    🚚
-                  </span>
+                  <TruckIcon className="w-4 h-4 text-slate-400" />
                 </div>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-emerald-600 font-mono">
-                    {loading ? "…" : summary.totalOrders.toLocaleString()}
-                  </div>
-                  <span className="text-[11px] text-slate-500">
-                    ({summary.totalDispatched} Dispatched)
-                  </span>
+                <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
+                  {loading ? "…" : summary.totalOrders.toLocaleString()}
                 </div>
-                <p className="mt-2 text-[11px] text-slate-500">
-                  Total GMV: ৳{summary.totalRevenue.toLocaleString()}
-                </p>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-80" />
+                <div className="text-[11px] text-slate-500 font-mono">
+                  {summary.totalDispatched} dispatched · ৳{summary.totalRevenue.toLocaleString()} GMV
+                </div>
               </div>
 
-              <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-xs relative overflow-hidden group hover:border-slate-300 card-lift transition">
+              <div className="p-5 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Inbound Webhook Streams
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
+                    Webhook Activity
                   </span>
-                  <span className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-emerald-600 text-sm">
-                    ⚡
-                  </span>
+                  <ZapIcon className="w-4 h-4 text-slate-400" />
                 </div>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <div className="text-3xl font-black text-slate-900 font-mono">
-                    {loading ? "…" : summary.totalWebhookHits}
-                  </div>
-                  <span className="text-[11px] text-emerald-700 font-mono font-bold">
-                    Calls Routed
-                  </span>
+                <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
+                  {loading ? "…" : summary.totalWebhookHits}
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-600">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <span>Operational Uptime (99.98% SLA)</span>
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span>99.98% operational uptime</span>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
               </div>
             </div>
 
             {/* Courier Distribution Breakdown */}
-            <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs space-y-4">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                🚚 Multi-Courier Delivery Distribution
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
+              <h2 className="text-xs font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold flex items-center gap-2">
+                <TruckIcon className="w-4 h-4 text-slate-500" />
+                Multi-Courier Delivery Distribution
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {Object.entries(courierBreakdown).map(([courier, count]) => {
@@ -813,15 +939,15 @@ export default function SuperAdminDashboard() {
                   return (
                     <div
                       key={courier}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-1"
+                      className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-1"
                     >
                       <div className="text-xs font-bold text-slate-700">
                         {courier}
                       </div>
-                      <div className="text-xl font-black text-slate-900 font-mono">
+                      <div className="text-xl font-bold text-slate-900 font-mono">
                         {count}
                       </div>
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-[10px] text-slate-500 font-mono">
                         {pct}% share
                       </div>
                     </div>
@@ -831,11 +957,12 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Active Tenants Management Table */}
-            <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
-              <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+              <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <span>🏢</span> Client Workspaces ({tenants.length})
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <BuildingIcon className="w-4 h-4 text-slate-600" />
+                    Client Workspaces ({tenants.length})
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Isolated databases, merchant credentials, and active subscription status.
@@ -911,12 +1038,13 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            {/* Live Order Telemetry Feed */}
-            <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs space-y-4">
+            {/* Live Order Activity Feed */}
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <span>📡</span> Live Order Stream
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <ActivityIcon className="w-4 h-4 text-slate-600" />
+                    Live Order Activity
                   </h2>
                   <p className="text-xs text-slate-500">
                     Real-time cross-tenant order activity and courier dispatch status.
@@ -987,8 +1115,8 @@ export default function SuperAdminDashboard() {
               {/* Form Card */}
               <div className="lg:col-span-7 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
-                    💎 Dynamic Pricing Engine
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
+                    Tier Pricing
                   </span>
                   <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
                     SaaS Subscription &amp; Tier Controls
@@ -1183,13 +1311,16 @@ export default function SuperAdminDashboard() {
 
                 <div className="space-y-2 text-xs text-slate-700">
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Unlimited order volume past {saasSettings.free_order_limit}
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Unlimited order volume past {saasSettings.free_order_limit}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Automated WhatsApp &amp; SMS tracking alerts
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Automated WhatsApp &amp; SMS tracking alerts</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold">✓</span> Multi-user warehouse role permissions
+                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Multi-user warehouse role permissions</span>
                   </div>
                 </div>
               </div>
@@ -1205,8 +1336,8 @@ export default function SuperAdminDashboard() {
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-                    💳 Multi-Gateway Payment Rails
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
+                    Payment Gateways
                   </span>
                   <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
                     Payment Gateway Configurations
@@ -1230,7 +1361,7 @@ export default function SuperAdminDashboard() {
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">💱</span>
+                    <CreditCardIcon className="w-4 h-4 text-slate-600" />
                     <h3 className="text-sm font-bold text-slate-900">Default Currency Mode</h3>
                   </div>
                   <p className="text-xs text-slate-500">
@@ -1270,8 +1401,8 @@ export default function SuperAdminDashboard() {
                 <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-6 space-y-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-lg">
-                        🇧🇩
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600">
+                        <CreditCardIcon className="w-4 h-4 text-emerald-600" />
                       </span>
                       <div>
                         <h3 className="text-base font-bold text-slate-900">SSLCommerz Gateway</h3>
@@ -1387,8 +1518,8 @@ export default function SuperAdminDashboard() {
                 <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-6 space-y-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 border border-teal-200 text-teal-600 text-lg">
-                        🌐
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 border border-teal-200 text-teal-600">
+                        <GlobeIcon className="w-4 h-4 text-teal-600" />
                       </span>
                       <div>
                         <h3 className="text-base font-bold text-slate-900">Stripe Payments</h3>
@@ -1480,8 +1611,8 @@ export default function SuperAdminDashboard() {
               <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-xl">
-                      💬
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600">
+                      <MessageIcon className="w-5 h-5 text-emerald-600" />
                     </span>
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">
@@ -1573,8 +1704,7 @@ export default function SuperAdminDashboard() {
                     disabled={savingSettings}
                     className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 btn-tactile transition disabled:opacity-50"
                   >
-                    <span>💾</span>
-                    <span>Save WhatsApp Config</span>
+                    Save WhatsApp configuration
                   </button>
                 </div>
               </div>
@@ -1583,8 +1713,8 @@ export default function SuperAdminDashboard() {
               <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 text-xl">
-                      📱
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 border border-orange-200 text-orange-600">
+                      <PhoneIcon className="w-5 h-5 text-orange-600" />
                     </span>
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">
@@ -1672,8 +1802,7 @@ export default function SuperAdminDashboard() {
                     disabled={savingSettings}
                     className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50"
                   >
-                    <span>💾</span>
-                    <span>Save SMS Gateway Config</span>
+                    Save SMS configuration
                   </button>
                 </div>
               </div>
@@ -1690,8 +1819,8 @@ export default function SuperAdminDashboard() {
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-800">
-                    🛡️ Zero-Trust Security Clearance
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
+                    Security Settings
                   </span>
                   <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
                     Super Admin Security &amp; Recovery
@@ -1707,7 +1836,8 @@ export default function SuperAdminDashboard() {
                     target="_blank"
                     className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition"
                   >
-                    <span>🔐 Preview Admin Login Page</span>
+                    <LockIcon className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Preview admin login</span>
                     <span>↗</span>
                   </Link>
                 </div>
@@ -1723,7 +1853,8 @@ export default function SuperAdminDashboard() {
                     {ADMIN_EMAIL}
                   </p>
                   <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <span>✓</span> Verified Platform Owner
+                    <CheckIcon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Verified platform owner</span>
                   </p>
                 </div>
 
@@ -1756,7 +1887,7 @@ export default function SuperAdminDashboard() {
               <div className="border-t border-slate-100 pt-6 space-y-5">
                 <div>
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <span>📞</span>
+                    <PhoneIcon className="w-4 h-4 text-slate-600" />
                     <span>Emergency Recovery Contacts</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -1817,7 +1948,6 @@ export default function SuperAdminDashboard() {
                     disabled={savingSettings}
                     className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50 cursor-pointer"
                   >
-                    <span>💾</span>
                     <span>{savingSettings ? "Saving…" : "Save Recovery Contacts"}</span>
                   </button>
                 </div>
@@ -1827,7 +1957,7 @@ export default function SuperAdminDashboard() {
               <div className="border-t border-slate-100 pt-6 space-y-5">
                 <div>
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <span>🔑</span>
+                    <KeyIcon className="w-4 h-4 text-slate-600" />
                     <span>Update Super Admin Password</span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
@@ -1879,7 +2009,7 @@ export default function SuperAdminDashboard() {
                       disabled={changingPassword || !newAdminPassword}
                       className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-slate-900/20 hover:bg-slate-800 btn-tactile transition disabled:opacity-50 cursor-pointer"
                     >
-                      <span>🔒</span>
+                      <LockIcon className="w-3.5 h-3.5 text-white" />
                       <span>{changingPassword ? "Updating Password…" : "Update Super Admin Password"}</span>
                     </button>
                   </div>
@@ -1889,7 +2019,6 @@ export default function SuperAdminDashboard() {
               {/* Self-Service Reset & Security Architecture Info */}
               <div className="rounded-2xl border border-teal-200 bg-teal-50/70 p-5 space-y-2 text-xs text-teal-900">
                 <div className="flex items-center gap-2 font-bold text-teal-950">
-                  <span>ℹ️</span>
                   <span>Self-Service Recovery Mechanism</span>
                 </div>
                 <p className="leading-relaxed text-teal-800">
@@ -1916,8 +2045,8 @@ export default function SuperAdminDashboard() {
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
-                    🐾 Immutable Ledger
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
+                    Audit Logs
                   </span>
                   <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
                     Activity Footprints &amp; Audit Trail
@@ -1934,7 +2063,7 @@ export default function SuperAdminDashboard() {
                     disabled={logsLoading}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition disabled:opacity-50"
                   >
-                    <span className={logsLoading ? "animate-spin" : ""}>🔄</span>
+                    <RefreshIcon className={`w-3.5 h-3.5 ${logsLoading ? "animate-spin" : ""}`} />
                     <span>{logsLoading ? "Syncing Logs…" : "Refresh Footprints"}</span>
                   </button>
                 </div>
@@ -1946,11 +2075,11 @@ export default function SuperAdminDashboard() {
                 <div className="flex flex-wrap items-center gap-1.5">
                   {[
                     { id: "ALL", label: "All Activities" },
-                    { id: "ORDER_DISPATCHED", label: "🚚 Dispatched" },
-                    { id: "SETTINGS_UPDATED", label: "⚙️ Settings" },
-                    { id: "PRODUCT_CREATED", label: "📦 Catalog" },
-                    { id: "BULK_IMPORT", label: "⚡ Bulk CSV" },
-                    { id: "COURIER_CONFIGURED", label: "🔌 Couriers" },
+                    { id: "ORDER_DISPATCHED", label: "Dispatched" },
+                    { id: "SETTINGS_UPDATED", label: "Settings" },
+                    { id: "PRODUCT_CREATED", label: "Catalog" },
+                    { id: "BULK_IMPORT", label: "Bulk CSV" },
+                    { id: "COURIER_CONFIGURED", label: "Couriers" },
                   ].map((pill) => (
                     <button
                       key={pill.id}
@@ -1970,7 +2099,7 @@ export default function SuperAdminDashboard() {
                 {/* Search Box */}
                 <div className="relative w-full md:w-72">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs">
-                    🔍
+                    <SearchIcon className="w-3.5 h-3.5 text-slate-400" />
                   </span>
                   <input
                     type="text"
@@ -1985,7 +2114,7 @@ export default function SuperAdminDashboard() {
                       onClick={() => setLogSearchQuery("")}
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 text-xs"
                     >
-                      ✕
+                      <CloseIcon className="w-3.5 h-3.5 text-slate-400" />
                     </button>
                   )}
                 </div>
@@ -2127,7 +2256,7 @@ export default function SuperAdminDashboard() {
                             colSpan="6"
                             className="px-6 py-12 text-center text-xs text-slate-500"
                           >
-                            <span className="text-2xl block mb-2">🐾</span>
+                            <FileTextIcon className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                             No activity footprints found.
                             <div className="mt-1 text-[11px] text-slate-400">
                               As actions (orders, dispatches, settings changes) take place, they will stream here live.

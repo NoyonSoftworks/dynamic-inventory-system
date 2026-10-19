@@ -16,6 +16,14 @@ function useOrigin() {
   );
 }
 
+function CloseIcon({ className = "w-3.5 h-3.5" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
 const ROLES = ["admin", "operator", "viewer"];
 
 const COURIER_OPTIONS = [
@@ -176,7 +184,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
           .eq("id", existingSettingId);
 
         if (updateErr) throw updateErr;
-        showToast("success", `✓ ${selectedCourier} API credentials updated successfully!`);
+        showToast("success", `${selectedCourier} API credentials updated successfully.`);
       } else {
         const insertPayload = {
           courier_name: selectedCourier,
@@ -210,7 +218,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
         if (newRow?.id) {
           setExistingSettingId(newRow.id);
         }
-        showToast("success", `✓ ${selectedCourier} API connected successfully!`);
+        showToast("success", `${selectedCourier} API connected successfully.`);
       }
     } catch (err) {
       showToast("error", err.message || "Failed to save courier credentials.");
@@ -235,11 +243,11 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
     if (type === "url") {
       setCopiedUrl(true);
       setTimeout(() => setCopiedUrl(false), 2000);
-      showToast("success", "✓ Webhook URL copied to clipboard!");
+      showToast("success", "Webhook URL copied to clipboard.");
     } else {
       setCopiedKey(true);
       setTimeout(() => setCopiedKey(false), 2000);
-      showToast("success", "✓ Secret API Key copied to clipboard!");
+      showToast("success", "Secret API key copied to clipboard.");
     }
   };
 
@@ -483,9 +491,10 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             </div>
             <button
               onClick={() => setToast(null)}
-              className="text-xs opacity-60 hover:opacity-100 font-bold ml-2"
+              className="text-slate-400 hover:text-slate-600 transition ml-2"
+              aria-label="Dismiss notification"
             >
-              ✕
+              <CloseIcon className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -548,7 +557,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${selectedCourierObj.color}`}
                     >
-                      {existingSettingId ? "✓ Credentials Saved" : "Not Configured"}
+                      {existingSettingId ? "Credentials saved" : "Not configured"}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
@@ -673,7 +682,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                     onClick={() => handleCopy(webhookUrl, "url")}
                     className="rounded-xl bg-slate-900 hover:bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition shrink-0"
                   >
-                    {copiedUrl ? "✓ Copied" : "Copy URL"}
+                    {copiedUrl ? "Copied" : "Copy URL"}
                   </button>
                 </div>
               </div>
@@ -694,7 +703,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
                     onClick={() => handleCopy(webhookKey, "key")}
                     className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 transition shrink-0"
                   >
-                    {copiedKey ? "✓ Copied" : "Copy Key"}
+                    {copiedKey ? "Copied" : "Copy Key"}
                   </button>
                 </div>
               </div>

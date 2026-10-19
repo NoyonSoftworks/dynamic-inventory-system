@@ -66,23 +66,27 @@ export default function GlobalError({ error, reset }) {
             onClick={() => reset()}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 btn-tactile transition"
           >
-            <span>🔄</span>
-            <span>Try Again</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Try again</span>
           </button>
 
           <Link
             href="/dashboard/products"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-5 py-3 text-xs sm:text-sm font-semibold text-slate-700 btn-tactile transition"
           >
-            <span>📦</span>
-            <span>Return to Dashboard</span>
+            <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span>Return to dashboard</span>
           </Link>
 
           <button
             onClick={() => window.location.reload()}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-3 text-xs sm:text-sm font-semibold text-slate-600 transition"
           >
-            <span>Hard Refresh</span>
+            <span>Hard refresh</span>
           </button>
         </div>
 
@@ -92,7 +96,7 @@ export default function GlobalError({ error, reset }) {
             onClick={() => setShowDetails(!showDetails)}
             className="inline-flex items-center gap-1.5 text-[11px] font-mono text-slate-500 hover:text-slate-700 transition"
           >
-            <span>{showDetails ? "Hide technical diagnostic log ▲" : "View technical diagnostic log ▼"}</span>
+            <span>{showDetails ? "Hide technical diagnostic log" : "View technical diagnostic log"}</span>
           </button>
 
           {showDetails && (
@@ -105,7 +109,7 @@ export default function GlobalError({ error, reset }) {
                   onClick={copyErrorDetails}
                   className="text-[10px] font-mono rounded px-2 py-0.5 border border-slate-700 bg-slate-800 text-slate-300 hover:text-white transition"
                 >
-                  {copied ? "Copied! ✓" : "Copy Log"}
+                  {copied ? "Copied" : "Copy log"}
                 </button>
               </div>
 

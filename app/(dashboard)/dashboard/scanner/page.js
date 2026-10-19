@@ -505,7 +505,7 @@ export default function SmartScannerPage() {
               <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-3 z-30">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
                 <p className="text-xs font-mono text-slate-300 font-semibold">
-                  Starting Optical Sensor…
+                  Starting camera…
                 </p>
               </div>
             )}
@@ -513,10 +513,15 @@ export default function SmartScannerPage() {
             {/* Permission Denied / Camera Error Screen */}
             {permissionError && (
               <div className="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center space-y-4 z-30">
-                <div className="text-4xl">📷</div>
+                <div className="w-12 h-12 rounded-xl bg-slate-800 text-slate-300 flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-white">
-                    Camera Access Required
+                    Camera access required
                   </h3>
                   <p className="text-xs text-rose-300 max-w-xs leading-relaxed">
                     {permissionError}
@@ -526,7 +531,7 @@ export default function SmartScannerPage() {
                   onClick={() => startScanner(facingMode)}
                   className="rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-orange-600/30 hover:bg-orange-500 transition"
                 >
-                  Request Permission Again
+                  Try camera again
                 </button>
               </div>
             )}
@@ -666,7 +671,7 @@ export default function SmartScannerPage() {
                   </div>
                 </div>
 
-                {/* Stock Telemetry Card */}
+                {/* Stock Summary Card */}
                 <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="h-8 w-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 shadow-2xs">

@@ -128,7 +128,7 @@ export default function MerchantDashboard() {
 
       showToast(
         "success",
-        "🎉 Success! 5 sample products and 3 test orders loaded. Explore your dashboard!"
+        "Starter data loaded. 5 sample products and 3 test orders are now in your workspace."
       );
       await loadDashboardData();
     } catch (err) {
@@ -234,7 +234,11 @@ export default function MerchantDashboard() {
         {isDenied && (
           <div className="rounded-2xl border border-rose-300 bg-rose-50/90 p-4 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded-xl bg-rose-100 text-rose-700 text-lg">⚠️</span>
+              <span className="p-2 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </span>
               <div>
                 <p className="text-xs sm:text-sm font-bold">
                   Super Admin Access Denied
@@ -318,94 +322,94 @@ export default function MerchantDashboard() {
           </div>
         </div>
 
-        {/* ── 4 STORE TELEMETRY KPI CARDS ─────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+        {/* ── ARCHITECTURAL METRIC BAR ─────────────────── */}
+        <div className="rounded-xl border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Inventory Asset Value
               </span>
-              <span className="p-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-slate-50 text-slate-500 border border-slate-200">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
               ৳{Math.round(metrics.totalInventoryAssetValue).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              Across {metrics.totalStockUnits.toLocaleString()} total units in warehouse
+            <div className="text-[11px] text-slate-500 font-mono">
+              Across {metrics.totalStockUnits.toLocaleString()} units in warehouse
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Gross Merch Value (GMV)
               </span>
-              <span className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-emerald-600 tracking-tight font-mono">
               ৳{Math.round(metrics.totalGmv).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
+            <div className="text-[11px] text-slate-500 font-mono">
               From {metrics.ordersCount} recent consignments
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Courier Delivery SLA
               </span>
-              <span className="p-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="p-1 rounded-md bg-teal-50 text-teal-600 border border-teal-200">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-teal-700 tracking-tight font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-teal-700 tracking-tight font-mono">
               {metrics.courierSla}%
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
+            <div className="text-[11px] text-slate-500 font-mono">
               Doorstep fulfillment reliability
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+          <div className="p-5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                 Runway Depletion Alerts
               </span>
               <span
-                className={`p-1.5 rounded-lg border ${
+                className={`p-1 rounded-md border ${
                   metrics.outOfStockCount > 0 || metrics.lowStockCount > 0
                     ? "bg-rose-50 border-rose-200 text-rose-600"
                     : "bg-emerald-50 border-emerald-200 text-emerald-600"
                 }`}
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </span>
             </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-rose-600 tracking-tight font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-rose-600 tracking-tight font-mono">
               {metrics.outOfStockCount + metrics.lowStockCount} SKUs
             </div>
-            <div className="text-[11px] text-slate-500 mt-1 font-mono">
+            <div className="text-[11px] text-slate-500 font-mono">
               {metrics.outOfStockCount} zero stock, {metrics.lowStockCount} near exhaustion
             </div>
           </div>
         </div>
 
         {/* ── MONTHLY COST & LOSS SAVINGS PROTECTED (FINANCIAL TRANSPARENCY) ── */}
-        <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/40 p-5 sm:p-6 shadow-2xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-emerald-100">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-2xs text-xs font-bold">
@@ -414,8 +418,8 @@ export default function MerchantDashboard() {
                 <h2 className="text-sm font-bold text-slate-900 tracking-tight">
                   Cost &amp; Loss Savings Protected This Month
                 </h2>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
-                  VERIFIED SAVINGS
+                <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-emerald-700 font-semibold">
+                  Verified Savings
                 </span>
               </div>
               <p className="text-xs text-slate-600">
@@ -437,15 +441,17 @@ export default function MerchantDashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
             {/* Metric 1: RTO Courier Losses Blocked */}
-            <div className="p-4 rounded-xl border border-emerald-200/80 bg-white/90 shadow-2xs space-y-2 card-lift">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 text-xs">
-                    🛡️
+                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-100 text-emerald-700">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
                   </span>
                   RTO Return Losses Blocked
                 </span>
-                <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                <span className="text-xs font-mono font-bold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200">
                   +৳12,400
                 </span>
               </div>
@@ -461,15 +467,17 @@ export default function MerchantDashboard() {
             </div>
 
             {/* Metric 2: Hardware Costs Eliminated */}
-            <div className="p-4 rounded-xl border border-teal-200/80 bg-white/90 shadow-2xs space-y-2 card-lift">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-teal-100 text-teal-700 text-xs">
-                    📱
+                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-teal-100 text-teal-700">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
                   </span>
                   Hardware Costs Eliminated
                 </span>
-                <span className="text-xs font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                <span className="text-xs font-mono font-bold text-teal-700 bg-white px-2 py-0.5 rounded border border-teal-200">
                   +৳3,500
                 </span>
               </div>
@@ -485,15 +493,17 @@ export default function MerchantDashboard() {
             </div>
 
             {/* Metric 3: Operational Labor Saved */}
-            <div className="p-4 rounded-xl border border-orange-200/80 bg-white/90 shadow-2xs space-y-2 card-lift">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-orange-100 text-orange-700 text-xs">
-                    ⏱️
+                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-orange-100 text-orange-700">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </span>
                   Operational Hours Saved
                 </span>
-                <span className="text-xs font-mono font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                <span className="text-xs font-mono font-bold text-orange-700 bg-white px-2 py-0.5 rounded border border-orange-200">
                   ~18 Hours
                 </span>
               </div>
@@ -598,13 +608,13 @@ export default function MerchantDashboard() {
               </Link>
             </div>
 
-            {/* Recommendation 2: RTO Fraud Guard */}
+            {/* Recommendation 2: Return Fraud Guard */}
             <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/60 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 text-[10px] font-mono font-bold uppercase">
-                  RTO Loss Guard
+                  Return Loss Guard
                 </span>
-                <span className="text-[10px] text-teal-700 font-mono">Courier RTO Shield</span>
+                <span className="text-[10px] text-teal-700 font-mono">Courier Return Check</span>
               </div>
               <h3 className="text-xs font-bold text-teal-950">
                 Pre-Dispatch Risk Filter is Active
@@ -703,7 +713,7 @@ export default function MerchantDashboard() {
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">RTO Shield</span>
+              <span className="text-xs font-bold text-slate-900 block">Return Check</span>
               <span className="text-[10px] text-slate-500 font-mono">Fraud Prevention</span>
             </div>
           </Link>
@@ -754,7 +764,7 @@ export default function MerchantDashboard() {
           </Link>
         </div>
 
-        {/* ── COURIER TELEMETRY & LIVE DISPATCH STREAM ─────────── */}
+        {/* ── COURIER PERFORMANCE & LIVE DISPATCH STREAM ─────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Multi-Courier Performance */}
           <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
@@ -882,14 +892,24 @@ export default function MerchantDashboard() {
               : "bg-emerald-50 border-emerald-200 text-emerald-800"
           }`}
         >
-          <span className="text-sm">{toast.type === "error" ? "⚠️" : "🎉"}</span>
+          {toast.type === "error" ? (
+            <svg className="w-4 h-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
           <span className="text-xs font-semibold">{toast.text}</span>
           <button
             type="button"
             onClick={() => setToast(null)}
-            className="ml-2 text-slate-400 hover:text-slate-700 text-xs font-bold"
+            className="ml-2 text-slate-400 hover:text-slate-700 transition"
           >
-            ✕
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
       )}
