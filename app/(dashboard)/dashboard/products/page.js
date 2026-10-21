@@ -171,8 +171,8 @@ export default function ProductsListPage() {
   }, [products]);
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] py-6 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">
-      <div className="mx-auto max-w-7xl space-y-4">
+    <main className="min-h-screen bg-[#F8FAFC] pb-20 font-sans text-slate-900">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── Page Header ────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
@@ -242,7 +242,7 @@ export default function ProductsListPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by product name or base SKU…"
-              className="block w-full rounded-md border border-slate-200 bg-slate-50/50 pl-9 pr-4 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
+              className="block w-full h-9 rounded-md border border-slate-200 bg-white pl-9 pr-4 text-[13px] text-slate-900 placeholder:text-slate-400 focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/20 focus:outline-none transition"
             />
             {searchTerm && (
               <button
@@ -261,7 +261,7 @@ export default function ProductsListPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="rounded-md border border-slate-200 bg-slate-50/50 px-2.5 py-1.5 text-xs text-slate-700 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-700 focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/20 focus:outline-none transition"
             >
               <option value="ALL">All Categories</option>
               {categories.map((c) => (
@@ -275,7 +275,7 @@ export default function ProductsListPage() {
             <select
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value)}
-              className="rounded-md border border-slate-200 bg-slate-50/50 px-2.5 py-1.5 text-xs text-slate-700 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-700 focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/20 focus:outline-none transition"
             >
               <option value="ALL">All Stock Status</option>
               <option value="IN_STOCK">In Stock Only</option>
@@ -454,7 +454,7 @@ export default function ProductsListPage() {
                         </td>
 
                         {/* 6. Actions */}
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
                           <div className="inline-flex items-center justify-end gap-1.5">
                             {/* Print Labels Button */}
                             <Link

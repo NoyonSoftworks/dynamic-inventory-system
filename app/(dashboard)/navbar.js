@@ -204,16 +204,16 @@ export default function Navbar() {
               href="/dashboard/products"
               className="flex items-center gap-2 sm:gap-2.5 group focus:outline-none"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white shadow-xs group-hover:scale-105 transition-all">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EA580C] text-white shadow-xs group-hover:bg-[#D94E07] transition-all">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
               <div className="flex flex-col leading-tight">
-                <span className="font-bold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors truncate max-w-[130px] sm:max-w-[200px]">
+                <span className="font-semibold text-sm tracking-tight text-slate-900 group-hover:text-[#EA580C] transition-colors truncate max-w-[130px] sm:max-w-[200px]">
                   {workspaceDisplayName}
                 </span>
-                <span className="text-[10px] text-orange-600 font-semibold tracking-wide uppercase">
+                <span className="text-[10px] text-[#EA580C] font-semibold tracking-wide uppercase">
                   {appBrandName}
                 </span>
               </div>
@@ -229,13 +229,13 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`btn-tactile flex flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap shrink-0 transition-all duration-150 ${
+                    className={`btn-tactile flex flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-[13px] font-medium whitespace-nowrap shrink-0 transition-all duration-150 ${
                       active
-                        ? "bg-orange-600 text-white font-semibold shadow-xs"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                        ? "bg-orange-50 text-[#EA580C] border border-orange-200/70 font-semibold shadow-xs"
+                        : "border border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
                     }`}
                   >
-                    <span className={active ? "text-white" : "text-slate-400"}>
+                    <span className={active ? "text-[#EA580C]" : "text-slate-400"}>
                       {link.icon}
                     </span>
                     <span className="shrink-0">{link.label}</span>
@@ -285,7 +285,7 @@ export default function Navbar() {
                   className="btn-tactile flex items-center gap-1.5 sm:gap-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 p-1 sm:px-2.5 sm:py-1.5 shadow-2xs transition focus:outline-none"
                   aria-expanded={profileOpen}
                 >
-                  <div className="h-6 w-6 rounded-md bg-orange-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs shrink-0">
+                  <div className="h-6 w-6 rounded-md bg-[#EA580C] text-white flex items-center justify-center font-semibold text-xs uppercase shadow-xs shrink-0">
                     {(userEmail[0] || "U").toUpperCase()}
                   </div>
 
@@ -513,13 +513,13 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition ${
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition ${
                     active
-                      ? "bg-orange-600 text-white font-semibold shadow-xs"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      ? "bg-orange-50 text-[#EA580C] border border-orange-200/70 font-semibold shadow-xs"
+                      : "border border-transparent text-slate-600 hover:bg-slate-100/70 hover:text-slate-900"
                   }`}
                 >
-                  <span className={active ? "text-white" : "text-slate-400"}>
+                  <span className={active ? "text-[#EA580C]" : "text-slate-400"}>
                     {link.icon}
                   </span>
                   <span>{link.label}</span>

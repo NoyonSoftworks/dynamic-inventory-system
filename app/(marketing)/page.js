@@ -257,12 +257,12 @@ export default function MarketingLandingPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans antialiased selection:bg-orange-500/20 selection:text-orange-900">
       {/* ── TOP HEADER (Clean White Bar with Physical Border) ───── */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-2xs">
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md shadow-2xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-8 h-16">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-600 text-white font-bold text-sm shadow-xs transition-transform group-hover:scale-105">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EA580C] text-white font-semibold text-sm shadow-xs transition-transform group-hover:scale-105">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
@@ -270,23 +270,23 @@ export default function MarketingLandingPage() {
               <span className="text-base font-semibold tracking-tight text-slate-900">
                 {APP_SHORT_NAME}
               </span>
-              <span className="text-[10px] font-mono font-medium text-orange-600 -mt-0.5 hidden sm:block">
+              <span className="text-[10px] font-mono font-medium text-[#EA580C] -mt-0.5 hidden sm:block">
                 Warehouse &amp; Courier OS
               </span>
             </div>
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600">
-            <a href="#how-it-works" className="hover:text-orange-600 transition">How It Works</a>
-            <a href="#features" className="hover:text-orange-600 transition">Features</a>
-            <a href="#simulator" className="hover:text-orange-600 transition">Terminal</a>
-            <a href="#pricing" className="hover:text-orange-600 transition">Pricing</a>
-            <Link href="/blog" className="hover:text-orange-600 transition">Blog</Link>
-            <a href="#contact" className="hover:text-orange-600 transition">Contact</a>
+          <nav className="hidden md:flex items-center gap-7 text-[13px] font-medium text-slate-600">
+            <a href="#how-it-works" className="hover:text-slate-900 transition">How It Works</a>
+            <a href="#features" className="hover:text-slate-900 transition">Features</a>
+            <a href="#simulator" className="hover:text-slate-900 transition">Terminal</a>
+            <a href="#pricing" className="hover:text-slate-900 transition">Pricing</a>
+            <Link href="/blog" className="hover:text-slate-900 transition">Blog</Link>
+            <a href="#contact" className="hover:text-slate-900 transition">Contact</a>
             <Link
               href="/demo"
-              className="text-orange-600 hover:text-orange-700 font-medium transition flex items-center gap-1.5 bg-orange-50 px-2.5 py-1 rounded-md border border-orange-200"
+              className="text-orange-700 hover:text-orange-800 font-medium transition flex items-center gap-1.5 bg-orange-50/80 px-2.5 py-1 rounded-md border border-orange-200/70"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               <span>Live sandbox</span>
@@ -326,14 +326,14 @@ export default function MarketingLandingPage() {
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className="btn-tactile hidden sm:inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+                    className="btn-tactile hidden sm:inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition shadow-2xs"
                   >
                     Super Admin
                   </Link>
                 )}
                 <Link
                   href="/dashboard/products"
-                  className="btn-tactile inline-flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2 text-xs font-bold text-white transition shadow-sm shadow-orange-600/25"
+                  className="btn-tactile inline-flex items-center gap-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] px-3.5 py-1.5 text-[13px] font-medium text-white transition shadow-sm"
                 >
                   <span>Dashboard</span>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -345,13 +345,19 @@ export default function MarketingLandingPage() {
               <div className="flex items-center gap-2 sm:gap-3">
                 <Link
                   href="/login"
-                  className="rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
+                  className="rounded-md px-3 py-1.5 text-[13px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
                 >
                   Sign In
                 </Link>
                 <Link
+                  href="/demo"
+                  className="btn-tactile hidden sm:inline-flex items-center gap-1 rounded-md bg-[#0F172A] hover:bg-slate-800 px-3 py-1.5 text-[13px] font-medium text-white transition shadow-2xs"
+                >
+                  Live Demo
+                </Link>
+                <Link
                   href="/login"
-                  className="btn-tactile inline-flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2 text-xs font-bold text-white transition shadow-sm shadow-orange-600/25"
+                  className="btn-tactile inline-flex items-center gap-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] px-3.5 py-1.5 text-[13px] font-medium text-white transition shadow-sm"
                 >
                   <span>Get Started Free</span>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -432,62 +438,66 @@ export default function MarketingLandingPage() {
           </div>
 
           {/* ── INTERACTIVE DISPATCH & STOCK WORKBENCH ────────── */}
-          <div className="relative rounded-2xl border border-slate-200/90 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
-            {/* Workbench OS Window Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 bg-slate-900 px-4 py-3 text-white">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block" />
-                  <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block" />
-                  <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block" />
+          <div className="rounded-xl border border-slate-200/90 bg-slate-100/70 p-2 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12)]">
+            <div className="relative rounded-lg border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+              {/* Workbench OS Window Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full bg-slate-300 inline-block border border-slate-400/30" />
+                    <span className="h-3 w-3 rounded-full bg-slate-300 inline-block border border-slate-400/30" />
+                    <span className="h-3 w-3 rounded-full bg-slate-300 inline-block border border-slate-400/30" />
+                  </div>
+                  <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
+                  <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 font-mono text-[11px]">
+                    <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>app.smartinventory.io/dashboard</span>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 font-mono text-[10px] font-medium border border-emerald-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    System Online
+                  </span>
                 </div>
-                <div className="h-4 w-[1px] bg-slate-700 hidden sm:block" />
-                <span className="font-mono text-xs text-slate-300 font-bold hidden sm:inline">
-                  SmartInventory · Warehouse Dispatch Console
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/80 px-2 py-0.5 text-emerald-400 font-mono text-[10px] font-bold border border-emerald-800">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  System Online
-                </span>
-              </div>
 
-              {/* 3 Interactive Tab Switches */}
-              <div className="flex items-center gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 font-sans">
-                <button
-                  type="button"
-                  onClick={() => setHeroTab("dispatch")}
-                  className={`btn-tactile px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    heroTab === "dispatch"
-                      ? "bg-orange-600 text-white shadow-xs"
-                      : "text-slate-300 hover:text-white hover:bg-slate-700/60"
-                  }`}
-                >
-                  Live Dispatch &amp; COD Verification
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setHeroTab("profit")}
-                  className={`btn-tactile px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    heroTab === "profit"
-                      ? "bg-orange-600 text-white shadow-xs"
-                      : "text-slate-300 hover:text-white hover:bg-slate-700/60"
-                  }`}
-                >
-                  Net Profit &amp; Runway
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setHeroTab("scanner")}
-                  className={`btn-tactile px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    heroTab === "scanner"
-                      ? "bg-orange-600 text-white shadow-xs"
-                      : "text-slate-300 hover:text-white hover:bg-slate-700/60"
-                  }`}
-                >
-                  Phone Camera Scanner
-                </button>
+                {/* 3 Interactive Tab Switches (Real Segmented Control) */}
+                <div className="flex items-center gap-1 bg-slate-200/70 p-1 rounded-lg font-sans">
+                  <button
+                    type="button"
+                    onClick={() => setHeroTab("dispatch")}
+                    className={`btn-tactile px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+                      heroTab === "dispatch"
+                        ? "bg-white text-slate-900 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                    }`}
+                  >
+                    Live Dispatch &amp; COD Verification
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroTab("profit")}
+                    className={`btn-tactile px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+                      heroTab === "profit"
+                        ? "bg-white text-slate-900 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                    }`}
+                  >
+                    Net Profit &amp; Runway
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroTab("scanner")}
+                    className={`btn-tactile px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+                      heroTab === "scanner"
+                        ? "bg-white text-slate-900 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                    }`}
+                  >
+                    Phone Camera Scanner
+                  </button>
+                </div>
               </div>
-            </div>
 
             {/* ── TAB 1: LIVE DISPATCH & COD VERIFICATION ───────────────── */}
             {heroTab === "dispatch" && (
@@ -876,6 +886,7 @@ export default function MarketingLandingPage() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </section>
@@ -1150,42 +1161,42 @@ export default function MarketingLandingPage() {
         </div>
       </section>
 
-      {/* ── INTERACTIVE TERMINAL SIMULATOR ───────────────────────── */}
-      <section id="simulator" className="py-20 border-y border-slate-200 bg-white">
+      {/* ── INTERACTIVE TERMINAL SIMULATOR (HIGH-CONTRAST DARK SLATE SHOWCASE) ── */}
+      <section id="simulator" className="py-20 border-y border-slate-800 bg-[#0F172A] text-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-8">
           <div className="text-center max-w-xl mx-auto mb-10 space-y-2">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-orange-700 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
+            <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-[#EA580C]">
               Interactive Execution
             </span>
-            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
               Test Real-World Fulfillment Operations
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600">
+            <p className="text-xs sm:text-sm text-slate-400">
               Simulate barcode camera decoding with audible sound, WhatsApp buyer notifications, and carrier API payloads.
             </p>
           </div>
 
-          <div className="card-lift rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden hover:border-orange-500/40 transition">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden">
             {/* Terminal Window Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 px-5 py-3.5 bg-slate-50 gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 px-5 py-3.5 bg-slate-950 gap-3">
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
-                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
-                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
-                <span className="ml-2 font-mono text-xs font-semibold text-slate-600">
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                <span className="ml-2 font-mono text-xs font-medium text-slate-400">
                   fulfillment-pipeline.sh · Active Simulator
                 </span>
               </div>
 
               {/* Tab Selector */}
-              <div className="flex items-center p-1 rounded-xl bg-slate-200/80">
+              <div className="flex items-center p-1 rounded-lg bg-slate-800/80 font-sans">
                 <button
                   type="button"
                   onClick={() => setActiveTab("scanner")}
-                  className={`btn-tactile px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`btn-tactile px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
                     activeTab === "scanner"
-                      ? "bg-white text-orange-600 shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-white text-slate-950 shadow-xs"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   Camera Scanner
@@ -1193,10 +1204,10 @@ export default function MarketingLandingPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("whatsapp")}
-                  className={`btn-tactile px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`btn-tactile px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
                     activeTab === "whatsapp"
-                      ? "bg-white text-orange-600 shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-white text-slate-950 shadow-xs"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   WhatsApp Dispatch
@@ -1204,10 +1215,10 @@ export default function MarketingLandingPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("courier")}
-                  className={`btn-tactile px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`btn-tactile px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
                     activeTab === "courier"
-                      ? "bg-white text-orange-600 shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-white text-slate-950 shadow-xs"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   Carrier API
@@ -1217,10 +1228,10 @@ export default function MarketingLandingPage() {
 
             {/* TAB 1: SCANNER */}
             {activeTab === "scanner" && (
-              <div className="p-6 sm:p-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-50/50">
-                <div className="rounded-2xl border border-slate-200 bg-white p-6 flex flex-col items-center justify-center min-h-[280px] text-center space-y-4 shadow-2xs">
+              <div className="p-6 sm:p-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-900/60">
+                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6 flex flex-col items-center justify-center min-h-[280px] text-center space-y-4 shadow-2xs">
                   {/* Camera Viewfinder Mockup */}
-                  <div className="relative h-40 w-64 rounded-xl border-2 border-dashed border-orange-400/80 bg-slate-900 flex flex-col items-center justify-center p-4 overflow-hidden shadow-inner">
+                  <div className="relative h-40 w-64 rounded-xl border-2 border-dashed border-orange-500/80 bg-slate-900 flex flex-col items-center justify-center p-4 overflow-hidden shadow-inner">
                     {/* Sweeping Laser Line when scanning */}
                     {simulatedScanState === "scanning" && (
                       <div className="laser-sweep" />
@@ -1235,19 +1246,19 @@ export default function MarketingLandingPage() {
                     {simulatedScanState === "scanning" ? (
                       <div className="flex flex-col items-center gap-2 text-orange-400">
                         <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs font-mono font-bold tracking-wider">Decoding Video Stream…</span>
+                        <span className="text-xs font-mono font-medium tracking-wider">Decoding Video Stream…</span>
                       </div>
                     ) : simulatedScanState === "found" ? (
                       <div className="flex flex-col items-center gap-1 text-emerald-400">
                         <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span className="text-xs font-mono font-bold">DECODED: 0.28s</span>
+                        <span className="text-xs font-mono font-medium">DECODED: 0.28s</span>
                         <span className="text-[10px] font-mono text-emerald-300">Audible confirmation beep</span>
                       </div>
                     ) : (
                       <div className="space-y-1">
-                        <span className="text-xs font-mono font-bold text-slate-300 block">
+                        <span className="text-xs font-mono font-medium text-slate-300 block">
                           [ Point Camera at Barcode ]
                         </span>
                         <span className="text-[10px] font-mono text-slate-500 block">
@@ -1261,41 +1272,41 @@ export default function MarketingLandingPage() {
                     type="button"
                     onClick={handleTriggerDemoScan}
                     disabled={simulatedScanState === "scanning"}
-                    className="btn-tactile inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-2.5 text-xs font-bold text-white transition active:scale-[0.98] disabled:opacity-50 shadow-sm shadow-orange-600/30 cursor-pointer"
+                    className="btn-tactile inline-flex items-center gap-2 rounded-lg bg-[#EA580C] hover:bg-[#D94E07] px-4 py-2 text-xs font-semibold text-white transition active:scale-[0.98] disabled:opacity-50 shadow-sm cursor-pointer"
                   >
                     <span>{simulatedScanState === "scanning" ? "Decoding Stream…" : "Test simulated scan"}</span>
                   </button>
                 </div>
 
                 <div className="space-y-3">
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-400">
                     Decoded SKU Record &amp; Actions
                   </span>
 
                   {simulatedScanState === "found" && scannedSku ? (
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-sm animate-in fade-in">
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-4 shadow-sm animate-in fade-in">
                       <div className="flex items-start justify-between">
                         <div>
-                          <span className="px-2.5 py-0.5 rounded-md bg-orange-100 text-orange-800 font-mono text-xs font-bold border border-orange-200">
+                          <span className="px-2.5 py-0.5 rounded-md bg-orange-950 text-orange-400 font-mono text-xs font-medium border border-orange-800">
                             {scannedSku.sku}
                           </span>
-                          <h4 className="text-base font-bold text-slate-900 mt-2">
+                          <h4 className="text-base font-semibold text-white mt-2">
                             {scannedSku.name}
                           </h4>
-                          <p className="text-xs text-slate-500 mt-0.5">{scannedSku.category} · {scannedSku.warehouse}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">{scannedSku.category} · {scannedSku.warehouse}</p>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 text-xs font-mono">
-                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-slate-500 text-[10px] uppercase font-bold">Available Stock</span>
-                          <div className="text-xl font-bold text-emerald-600 mt-0.5">
+                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800 text-xs font-mono">
+                        <div className="p-3 rounded-lg bg-slate-900 border border-slate-800">
+                          <span className="text-slate-400 text-[10px] uppercase font-medium">Available Stock</span>
+                          <div className="text-xl font-semibold text-emerald-400 mt-0.5">
                             {scannedSku.stock} units
                           </div>
                         </div>
-                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-slate-500 text-[10px] uppercase font-bold">Unit Retail</span>
-                          <div className="text-xl font-bold text-slate-900 mt-0.5">
+                        <div className="p-3 rounded-lg bg-slate-900 border border-slate-800">
+                          <span className="text-slate-400 text-[10px] uppercase font-medium">Unit Retail</span>
+                          <div className="text-xl font-semibold text-white mt-0.5">
                             {currency === "BDT" ? `৳${scannedSku.priceBdt.toLocaleString()}` : `$${scannedSku.priceUsd}`}
                           </div>
                         </div>
@@ -1305,15 +1316,15 @@ export default function MarketingLandingPage() {
                         <button
                           type="button"
                           onClick={() => setActiveTab("whatsapp")}
-                          className="btn-tactile flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center transition"
+                          className="btn-tactile flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium text-center transition"
                         >
                           Dispatch via Steadfast →
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-xs text-slate-500 bg-white">
-                      Click <strong className="text-slate-800">&quot;Test simulated scan&quot;</strong> to test mobile camera decoding speed and synthesizer audio feedback.
+                    <div className="rounded-2xl border border-dashed border-slate-800 p-8 text-center text-xs text-slate-400 bg-slate-950">
+                      Click <strong className="text-slate-200">&quot;Test simulated scan&quot;</strong> to test mobile camera decoding speed and synthesizer audio feedback.
                     </div>
                   )}
                 </div>
@@ -1322,37 +1333,37 @@ export default function MarketingLandingPage() {
 
             {/* TAB 2: WHATSAPP */}
             {activeTab === "whatsapp" && (
-              <div className="p-6 sm:p-10 flex flex-col md:flex-row items-center justify-center gap-8 bg-slate-50/50">
-                <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-4 space-y-3 text-xs shadow-sm">
+              <div className="p-6 sm:p-10 flex flex-col md:flex-row items-center justify-center gap-8 bg-slate-900/60">
+                <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-white p-4 space-y-3 text-xs shadow-xl text-slate-900">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                      <span className="font-bold text-slate-900">Merchant Store Bot (Verified)</span>
+                      <span className="font-semibold text-slate-900">Merchant Store Bot (Verified)</span>
                     </div>
                     <span className="text-[10px] text-slate-400 font-mono">10:48 AM</span>
                   </div>
 
                   <div className="rounded-xl bg-emerald-50 p-3.5 border border-emerald-200/60 space-y-2 text-slate-800">
-                    <p className="font-bold text-emerald-950">Order #ORD-9421 Dispatched</p>
+                    <p className="font-semibold text-emerald-950">Order #ORD-9421 Dispatched</p>
                     <p className="text-[11px] text-emerald-800 leading-relaxed">
                       Assalamu Alaikum! Your parcel has been packed and handed over to Steadfast Courier.
                     </p>
-                    <div className="pt-1 font-mono text-[11px] text-emerald-700 font-bold bg-white p-2 rounded-lg border border-emerald-200">
+                    <div className="pt-1 font-mono text-[11px] text-emerald-700 font-semibold bg-white p-2 rounded-lg border border-emerald-200">
                       Tracking: steadfast.com.bd/t/SF-94821-BD<br />
                       COD Payable: {currency === "BDT" ? "৳2,500" : "$20.50"}
                     </div>
                   </div>
                 </div>
 
-                <div className="max-w-md space-y-3 text-xs text-slate-600">
-                  <h4 className="text-lg font-bold text-slate-900">
+                <div className="max-w-md space-y-3 text-xs text-slate-300">
+                  <h4 className="text-lg font-semibold text-white">
                     Zero-Friction Buyer Communications
                   </h4>
-                  <p className="leading-relaxed">
+                  <p className="leading-relaxed text-slate-300">
                     Automatic WhatsApp notifications keep buyers informed the exact second their parcels leave your warehouse, dramatically reducing failed deliveries and return-to-origin (RTO) expenses.
                   </p>
-                  <div className="flex items-center gap-1.5 pt-2 font-mono text-xs text-emerald-700 font-semibold">
-                    <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                  <div className="flex items-center gap-1.5 pt-2 font-mono text-xs text-emerald-400 font-semibold">
+                    <CheckIcon className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Cuts customer tracking inquiries by up to 88%</span>
                   </div>
                 </div>
@@ -1361,8 +1372,8 @@ export default function MarketingLandingPage() {
 
             {/* TAB 3: COURIER API */}
             {activeTab === "courier" && (
-              <div className="p-6 font-mono text-xs text-slate-800 overflow-x-auto bg-slate-900 text-slate-100">
-                <div className="text-slate-400 mb-2 font-semibold">// Direct server-to-server POST to Steadfast API (/api/courier/steadfast)</div>
+              <div className="p-6 font-mono text-xs overflow-x-auto bg-slate-950 text-slate-100">
+                <div className="text-slate-400 mb-2 font-medium">// Direct server-to-server POST to Steadfast API (/api/courier/steadfast)</div>
                 <pre className="leading-relaxed text-emerald-400">
 {`{
   "invoice": "ORD-9421",
@@ -1636,7 +1647,7 @@ export default function MarketingLandingPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
             {/* Tier 1: Starter / Small Business */}
-            <div className="rounded-lg border border-slate-200 bg-slate-50/40 p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:border-slate-300 transition shadow-2xs">
+            <div className="rounded-lg border border-slate-200 bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:border-slate-300 transition shadow-2xs">
               <div className="space-y-4">
                 <div>
                   <span className="text-xs font-medium text-slate-500 uppercase font-mono tracking-wider">
@@ -1683,20 +1694,20 @@ export default function MarketingLandingPage() {
 
               <Link
                 href="/login"
-                className="block w-full text-center rounded-md border border-slate-300 bg-white hover:bg-slate-100 py-2.5 text-xs font-medium text-slate-800 transition shadow-2xs"
+                className="btn-tactile block w-full text-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 py-2.5 text-[13px] font-medium text-slate-800 transition shadow-2xs"
               >
                 Start 100-Order Free Trial
               </Link>
             </div>
 
             {/* Tier 2: Professional / Growth (MOST POPULAR) */}
-            <div className="rounded-lg border-2 border-orange-500 bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 relative shadow-sm">
+            <div className="rounded-lg border border-slate-200 ring-2 ring-[#EA580C] bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 relative shadow-md">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-orange-700 uppercase tracking-wider font-mono">
+                  <span className="text-xs font-medium text-[#EA580C] uppercase tracking-wider font-mono">
                     Professional / Growth
                   </span>
-                  <span className="text-[10px] font-mono font-medium uppercase bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full border border-orange-200">
+                  <span className="text-[10px] font-mono font-medium uppercase bg-orange-100 text-[#EA580C] px-2.5 py-0.5 rounded-full border border-orange-200">
                     Most Popular
                   </span>
                 </div>
@@ -1744,14 +1755,14 @@ export default function MarketingLandingPage() {
 
               <Link
                 href={user ? "/dashboard/billing" : "/login"}
-                className="block w-full text-center rounded-md bg-[#EA580C] hover:bg-[#D94E07] py-2.5 text-xs sm:text-sm font-medium text-white transition shadow-2xs"
+                className="btn-tactile block w-full text-center rounded-md bg-[#EA580C] hover:bg-[#D94E07] py-2.5 text-[13px] font-medium text-white transition shadow-sm"
               >
                 {user ? "Upgrade in Dashboard →" : "Start 100-Order Free Trial →"}
               </Link>
             </div>
 
             {/* Tier 3: Scale / Enterprise */}
-            <div className="rounded-lg border border-slate-200 bg-slate-50/40 p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:border-slate-300 transition shadow-2xs">
+            <div className="rounded-lg border border-slate-200 bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:border-slate-300 transition shadow-2xs">
               <div className="space-y-4">
                 <span className="text-xs font-medium text-slate-500 uppercase font-mono tracking-wider">
                   Scale / Enterprise
@@ -1800,7 +1811,7 @@ export default function MarketingLandingPage() {
 
               <a
                 href="#contact"
-                className="btn-tactile block w-full text-center rounded-xl border border-slate-300 bg-white hover:bg-slate-100 py-3 text-xs font-bold text-slate-800 transition shadow-2xs"
+                className="btn-tactile block w-full text-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 py-2.5 text-[13px] font-medium text-slate-800 transition shadow-2xs"
               >
                 Schedule Enterprise Consultation
               </a>

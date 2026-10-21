@@ -231,7 +231,7 @@ export default function ExpensesManagementPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20 font-sans">
+    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 pb-20 font-sans">
       {/* ── Toast Notification ───────────────────────────────── */}
       {toastMessage && (
         <div
@@ -250,7 +250,7 @@ export default function ExpensesManagementPage() {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-4">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── HEADER SECTION ──────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
@@ -500,7 +500,7 @@ export default function ExpensesManagementPage() {
 
               {/* Platform / Vendor */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 font-mono mb-1">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-700 font-mono mb-1">
                   Platform / Vendor
                 </label>
                 <input
@@ -508,19 +508,19 @@ export default function ExpensesManagementPage() {
                   placeholder="e.g. Meta Ads, Islampur Market"
                   value={platform}
                   onChange={(e) => setPlatform(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] transition"
                 />
               </div>
 
               {/* Payment Method */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 font-mono mb-1">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-700 font-mono mb-1">
                   Payment Method
                 </label>
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] transition"
                 >
                   <option value="bKash Merchant">bKash Merchant</option>
                   <option value="Nagad">Nagad</option>
@@ -532,14 +532,14 @@ export default function ExpensesManagementPage() {
 
               {/* Expense Date */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 font-mono mb-1">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-700 font-mono mb-1">
                   Transaction Date
                 </label>
                 <input
                   type="date"
                   value={expenseDate}
                   onChange={(e) => setExpenseDate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] transition"
                 />
               </div>
 
@@ -548,7 +548,7 @@ export default function ExpensesManagementPage() {
                 <button
                   type="submit"
                   disabled={submitting || !amount}
-                  className="btn-tactile w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs shadow-orange-600/20 flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
+                  className="w-full h-9 rounded-md bg-[#EA580C] hover:bg-[#D94E07] text-white font-medium text-[13px] shadow-2xs flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
                 >
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
@@ -565,14 +565,14 @@ export default function ExpensesManagementPage() {
                 placeholder="Optional notes: e.g. 'Campaign #Boishakhi-CBO', '500 custom branded packaging flyers'…"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-1.5 px-3 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] transition"
               />
             </div>
           </form>
         </div>
 
         {/* ── EXPENSE LEDGER TABLE ────────────────────────────── */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+        <div className="rounded-lg border border-slate-200 bg-white shadow-2xs overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Category Filter Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -709,7 +709,7 @@ export default function ExpensesManagementPage() {
                         </td>
 
                         {/* Delete Action */}
-                        <td className="py-3.5 px-4 text-right">
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => handleDeleteExpense(item.id)}

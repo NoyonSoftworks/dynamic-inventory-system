@@ -265,7 +265,7 @@ export default function CourierReconciliationPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20 font-sans">
+    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 pb-20 font-sans">
       {/* ── Courier Claim Modal ──────────────────────────────── */}
       {claimModalOpen && selectedRecordForClaim && (
         <CourierClaimModal
@@ -307,7 +307,7 @@ export default function CourierReconciliationPage() {
         className="hidden"
       />
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-4">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── PAGE HEADER ────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
@@ -442,7 +442,7 @@ export default function CourierReconciliationPage() {
                   key={courier.id}
                   type="button"
                   onClick={() => setSelectedCourier(courier.id)}
-                  className={`btn-tactile px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 ${
+                  className={`h-9 px-3 rounded-md text-[13px] font-medium transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
                     selectedCourier === courier.id
                       ? "bg-slate-900 text-white shadow-xs"
                       : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200"
@@ -471,10 +471,10 @@ export default function CourierReconciliationPage() {
                 placeholder="Search Consignment, Tracking, Phone…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                className="w-full h-9 rounded-md border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-[13px] text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C]"
               />
               <svg
-                className="pointer-events-none absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400"
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -493,9 +493,9 @@ export default function CourierReconciliationPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setSelectedStatusTab(tab.id)}
-                  className={`btn-tactile text-xs font-semibold px-3 py-1 rounded-lg transition whitespace-nowrap ${
+                  className={`text-xs font-medium px-3 py-1.5 rounded-md transition whitespace-nowrap cursor-pointer ${
                     active
-                      ? "bg-orange-600 text-white shadow-2xs font-bold"
+                      ? "bg-orange-50 text-[#EA580C] border border-orange-200/70 font-semibold shadow-xs"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
@@ -507,7 +507,7 @@ export default function CourierReconciliationPage() {
         </div>
 
         {/* ── HIGH-PRECISION RECONCILIATION TABLE ──────────────── */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+        <div className="rounded-lg border border-slate-200 bg-white shadow-2xs overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-teal-500" />
@@ -646,7 +646,7 @@ export default function CourierReconciliationPage() {
                         </td>
 
                         {/* Audit Action */}
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
                           {isShortPaid || isStuck ? (
                             <button
                               type="button"

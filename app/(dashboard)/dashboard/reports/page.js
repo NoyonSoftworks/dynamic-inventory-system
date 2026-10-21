@@ -345,7 +345,7 @@ export default function InventoryRunwayReport() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20 font-sans">
+    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 pb-20 font-sans">
       {/* ── Purchase Order Modal (Module 3) ────────────────────── */}
       {poModalOpen && (
         <PurchaseOrderModal
@@ -364,7 +364,7 @@ export default function InventoryRunwayReport() {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-4">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── TOP HEADER SECTION ───────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
@@ -626,7 +626,7 @@ export default function InventoryRunwayReport() {
         </div>
 
         {/* ── FILTER & SEARCH TOOLBAR ────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200 bg-white shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-slate-200 bg-white shadow-2xs">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
               { id: "ALL", label: "All SKUs" },
@@ -639,9 +639,9 @@ export default function InventoryRunwayReport() {
                 key={id}
                 type="button"
                 onClick={() => setRiskFilter(id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold btn-tactile transition ${
+                className={`h-9 px-3 rounded-md text-[13px] font-medium transition cursor-pointer ${
                   riskFilter === id
-                    ? "bg-orange-600 text-white shadow-2xs"
+                    ? "bg-slate-900 text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
@@ -656,10 +656,10 @@ export default function InventoryRunwayReport() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter by product or category…"
-              className="w-full sm:w-64 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 pl-8 text-xs text-slate-900 placeholder-slate-400 font-mono focus:border-orange-500 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
+              className="w-full sm:w-72 h-9 rounded-md border border-slate-200 bg-white px-3 pl-8 text-[13px] text-slate-900 placeholder-slate-400 font-mono focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/20 focus:outline-none transition"
             />
             <svg
-              className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none"
+              className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -670,7 +670,7 @@ export default function InventoryRunwayReport() {
         </div>
 
         {/* ── STOCK RUNWAY & RESTOCK TABLE (WITH MODULE 3 PO TRIGGER) ─── */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+        <div className="rounded-lg border border-slate-200 bg-white shadow-2xs overflow-hidden">
           <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between text-xs font-mono text-slate-600 bg-slate-50">
             <span className="font-bold text-slate-900">
               STOCK RUNWAY &amp; RESTOCK FORECAST ({filteredForecast.length} SKUs)
@@ -802,7 +802,7 @@ export default function InventoryRunwayReport() {
                         </td>
 
                         {/* MODULE 3: 1-Click PO Trigger */}
-                        <td className="px-4 py-3.5 text-right font-mono">
+                        <td className="px-4 py-3.5 text-right font-mono whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => {

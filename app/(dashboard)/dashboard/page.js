@@ -228,8 +228,8 @@ export default function MerchantDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 pb-20">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── ACCESS DENIED ALERT ─────────────────── */}
         {isDenied && (
           <div className="rounded-lg border border-rose-300 bg-rose-50/90 p-4 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
