@@ -145,24 +145,24 @@ Logged via SmartInventory Financial Reconciliation Engine.`;
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-lg bg-slate-50 border border-slate-200 font-mono">
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Expected COD</span>
-              <span className="text-sm font-black text-slate-900">৳{Number(record.order_amount).toLocaleString()}</span>
+              <span className="text-[10px] text-slate-500 uppercase font-medium block">Expected COD</span>
+              <span className="text-sm font-semibold font-mono text-slate-900">৳{Number(record.order_amount).toLocaleString()}</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Courier Payout</span>
-              <span className="text-sm font-black text-slate-700">৳{Number(record.payout_amount).toLocaleString()}</span>
+              <span className="text-[10px] text-slate-500 uppercase font-medium block">Courier Payout</span>
+              <span className="text-sm font-semibold font-mono text-slate-700">৳{Number(record.payout_amount).toLocaleString()}</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Discrepancy</span>
-              <span className={`text-sm font-black ${record.variance < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+              <span className="text-[10px] text-slate-500 uppercase font-medium block">Discrepancy</span>
+              <span className={`text-sm font-semibold font-mono ${record.variance < 0 ? "text-rose-600" : "text-emerald-600"}`}>
                 {record.variance < 0 ? `-৳${Math.abs(record.variance).toLocaleString()}` : "৳0"}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">In Transit</span>
-              <span className={`text-sm font-black ${record.days_in_transit >= 7 ? "text-amber-600" : "text-slate-800"}`}>
+              <span className="text-[10px] text-slate-500 uppercase font-medium block">In Transit</span>
+              <span className={`text-sm font-semibold font-mono ${record.days_in_transit >= 7 ? "text-amber-600" : "text-slate-800"}`}>
                 {record.days_in_transit || 0} Days
               </span>
             </div>

@@ -211,7 +211,7 @@ function BlogPostReaderContent() {
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-[40px] font-black tracking-tight text-slate-900 leading-[1.25]">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-slate-900 leading-[1.25]">
             {post.title}
           </h1>
 
@@ -327,26 +327,26 @@ function BlogPostReaderContent() {
         </section>
 
         {/* Bottom Inbound CTA */}
-        <section className="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 via-white to-orange-50/50 p-8 sm:p-10 text-center space-y-4 shadow-xl shadow-slate-200/50">
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+        <section className="rounded-lg border border-slate-200 bg-slate-50 p-6 sm:p-8 text-center space-y-3">
+          <h3 className="text-xl font-semibold text-slate-900">
             Ready to streamline your warehouse fulfillment?
           </h3>
           <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
             Turn any mobile phone into a barcode scanner and dispatch parcels with Steadfast in one click. 100 free orders included every month.
           </p>
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
             <Link
               href="/demo"
-              className="rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-5 py-2.5 text-xs font-semibold text-slate-700 transition btn-tactile hover:-translate-y-0.5"
+              className="rounded-md border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-medium text-slate-700 transition"
             >
-              Interactive Sandbox
+              Interactive sandbox
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 px-6 py-2.5 text-xs font-bold text-white transition shadow-md shadow-orange-600/20 btn-tactile hover:-translate-y-0.5 active:scale-[0.98] group"
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] px-4 py-2 text-xs font-medium text-white transition shadow-2xs"
             >
-              <span>Start Free Trial</span>
-              <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+              <span>Start free trial</span>
+              <span>→</span>
             </Link>
           </div>
         </section>

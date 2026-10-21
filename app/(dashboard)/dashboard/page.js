@@ -232,18 +232,18 @@ export default function MerchantDashboard() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         {/* ── ACCESS DENIED ALERT ─────────────────── */}
         {isDenied && (
-          <div className="rounded-2xl border border-rose-300 bg-rose-50/90 p-4 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="rounded-lg border border-rose-300 bg-rose-50/90 p-4 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+              <span className="p-2 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </span>
               <div>
-                <p className="text-xs sm:text-sm font-bold">
+                <p className="text-sm font-semibold">
                   Super Admin Access Denied
                 </p>
-                <p className="text-[11px] text-rose-700">
+                <p className="text-xs text-rose-700 mt-0.5">
                   Signed in as <span className="font-mono underline">{userEmail || "Customer"}</span>. The Super Admin Console is strictly restricted to the Platform Owner (<span className="font-semibold">{ADMIN_EMAIL}</span>).
                 </p>
               </div>
@@ -251,7 +251,7 @@ export default function MerchantDashboard() {
             <div className="flex items-center gap-2 shrink-0">
               <Link
                 href="/login?redirect=/admin"
-                className="btn-tactile px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs"
+                className="px-3.5 py-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] text-white text-[13px] font-medium transition shadow-2xs"
               >
                 Sign In as Platform Owner
               </Link>
@@ -259,59 +259,50 @@ export default function MerchantDashboard() {
           </div>
         )}
 
-        {/* ── TOP STORE BANNER & GREETING ──────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        {/* ── SINGLE-ROW CLEAN HEADER ──────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
-              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-orange-600 font-semibold">Store Operations</span>
-              <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[10px] border border-emerald-200">
-                LIVE STORE PULSE
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              Store Overview &amp; Warehouse Pulse
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+              Store Overview
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               Live inventory valuation, delivery reliability, and automated courier dispatches.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handleSeedDemoData}
               disabled={isSeeding}
-              className="btn-tactile inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 py-2 text-xs font-bold transition shadow-2xs cursor-pointer disabled:opacity-60"
+              className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-[13px] font-medium px-3 py-1.5 rounded-md transition shadow-2xs inline-flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
               title="Populate 5 sample products and 3 test orders"
             >
               {isSeeding && (
-                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-teal-700 border-t-transparent" />
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-600 border-t-transparent" />
               )}
-              <span>{isSeeding ? "Loading Demo..." : "Load Demo Data"}</span>
+              <span>{isSeeding ? "Loading sample data…" : "Load sample data"}</span>
             </button>
 
             <Link
               href="/dashboard/ai-hub"
-              className="btn-tactile inline-flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white px-3.5 py-2 text-xs font-bold shadow-xs shadow-orange-600/20 transition"
+              className="bg-[#EA580C] hover:bg-[#D94E07] text-white text-[13px] font-medium px-3.5 py-1.5 rounded-md transition shadow-2xs inline-flex items-center gap-1.5"
             >
-              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span>Smart Operations Hub</span>
-              <span className="px-1.5 py-0.2 rounded bg-white/20 text-[10px] font-mono">5 Tools</span>
+              <span>Operations Hub</span>
             </Link>
 
             <button
               type="button"
               onClick={loadDashboardData}
               disabled={refreshing}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 btn-tactile transition shadow-2xs disabled:opacity-50"
-              title="Refresh Store Data"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition shadow-2xs disabled:opacity-50"
+              title="Refresh store data"
             >
               <svg
-                className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-orange-600" : ""}`}
+                className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[#EA580C]" : ""}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -322,12 +313,12 @@ export default function MerchantDashboard() {
           </div>
         </div>
 
-        {/* ── ARCHITECTURAL METRIC BAR ─────────────────── */}
-        <div className="rounded-xl border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="p-5 space-y-1.5">
+        {/* ── UNIFIED METRIC STRIP ─────────────────── */}
+        <div className="rounded-lg border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-4">
+          <div className="p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Inventory Asset Value
+              <span className="text-xs font-medium text-slate-500">
+                Inventory asset value
               </span>
               <span className="p-1 rounded-md bg-slate-50 text-slate-500 border border-slate-200">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -335,18 +326,18 @@ export default function MerchantDashboard() {
                 </svg>
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
+            <div className="text-xl font-semibold font-mono text-slate-900 mt-1">
               ৳{Math.round(metrics.totalInventoryAssetValue).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
-              Across {metrics.totalStockUnits.toLocaleString()} units in warehouse
+            <div className="text-[11px] text-slate-500 mt-1 font-mono">
+              Across <span className="text-slate-700 font-medium">{metrics.totalStockUnits.toLocaleString()}</span> units in warehouse
             </div>
           </div>
 
-          <div className="p-5 space-y-1.5">
+          <div className="p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Gross Merch Value (GMV)
+              <span className="text-xs font-medium text-slate-500">
+                Gross merchandise value
               </span>
               <span className="p-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -354,18 +345,18 @@ export default function MerchantDashboard() {
                 </svg>
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-emerald-600 tracking-tight font-mono">
+            <div className="text-xl font-semibold font-mono text-slate-900 mt-1">
               ৳{Math.round(metrics.totalGmv).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
-              From {metrics.ordersCount} recent consignments
+            <div className="text-[11px] text-slate-500 mt-1 font-mono">
+              From <span className="text-slate-700 font-medium">{metrics.ordersCount}</span> recent consignments
             </div>
           </div>
 
-          <div className="p-5 space-y-1.5">
+          <div className="p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Courier Delivery SLA
+              <span className="text-xs font-medium text-slate-500">
+                Courier delivery SLA
               </span>
               <span className="p-1 rounded-md bg-teal-50 text-teal-600 border border-teal-200">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -373,18 +364,18 @@ export default function MerchantDashboard() {
                 </svg>
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-teal-700 tracking-tight font-mono">
+            <div className="text-xl font-semibold font-mono text-slate-900 mt-1">
               {metrics.courierSla}%
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
+            <div className="text-[11px] text-slate-500 mt-1 font-mono">
               Doorstep fulfillment reliability
             </div>
           </div>
 
-          <div className="p-5 space-y-1.5">
+          <div className="p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Runway Depletion Alerts
+              <span className="text-xs font-medium text-slate-500">
+                Runway depletion alerts
               </span>
               <span
                 className={`p-1 rounded-md border ${
@@ -398,122 +389,124 @@ export default function MerchantDashboard() {
                 </svg>
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-rose-600 tracking-tight font-mono">
-              {metrics.outOfStockCount + metrics.lowStockCount} SKUs
+            <div className="text-xl font-semibold font-mono text-slate-900 mt-1">
+              <span className={metrics.outOfStockCount + metrics.lowStockCount > 0 ? "text-rose-600" : "text-slate-900"}>
+                {metrics.outOfStockCount + metrics.lowStockCount} SKUs
+              </span>
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
+            <div className="text-[11px] text-slate-500 mt-1 font-mono">
               {metrics.outOfStockCount} zero stock, {metrics.lowStockCount} near exhaustion
             </div>
           </div>
         </div>
 
         {/* ── MONTHLY COST & LOSS SAVINGS PROTECTED (FINANCIAL TRANSPARENCY) ── */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-2xs text-xs font-bold">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-600 text-white shadow-2xs text-xs font-medium">
                   ৳
                 </span>
-                <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                  Cost &amp; Loss Savings Protected This Month
+                <h2 className="text-sm font-semibold text-slate-900 tracking-tight">
+                  Cost &amp; loss savings protected this month
                 </h2>
-                <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-emerald-700 font-semibold">
-                  Verified Savings
+                <span className="text-xs text-emerald-700 font-medium">
+                  Verified savings
                 </span>
               </div>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-slate-500">
                 Direct money kept in your business through proactive phone COD verification, zero-hardware mobile scanning, and automated dispatches.
               </p>
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              <div className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white shadow-xs">
-                <span className="text-[10px] font-mono block uppercase tracking-wider text-emerald-100 font-semibold">
-                  Net Money Saved
+              <div className="px-3 py-1.5 rounded-md bg-emerald-600 text-white shadow-2xs">
+                <span className="text-[10px] block text-emerald-100 font-medium">
+                  Net money saved
                 </span>
-                <span className="text-base sm:text-lg font-black font-mono">
+                <span className="text-base font-semibold font-mono">
                   +৳15,900
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Metric 1: RTO Courier Losses Blocked */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 shadow-2xs space-y-2">
+            <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-slate-900">
                   <span className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-100 text-emerald-700">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   </span>
-                  RTO Return Losses Blocked
+                  RTO return losses blocked
                 </span>
-                <span className="text-xs font-mono font-bold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200">
+                <span className="text-xs font-mono font-medium text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200">
                   +৳12,400
                 </span>
               </div>
               <p className="text-[11px] text-slate-600 leading-relaxed">
-                <strong className="text-slate-800 font-semibold">8 high-risk COD orders intercepted</strong> before courier pickup. Saved ৳140–৳160 return shipping fees and parcel transit damage per failed delivery.
+                <strong className="text-slate-800 font-medium">8 high-risk COD orders intercepted</strong> before courier pickup. Saved ৳140–৳160 return shipping fees and parcel transit damage per failed delivery.
               </p>
-              <div className="pt-1 flex items-center justify-between text-[10px] font-mono text-slate-500">
+              <div className="pt-1 flex items-center justify-between text-[11px] text-slate-500">
                 <span>Steadfast &amp; Pathao RTO Guard</span>
-                <Link href="/dashboard/ai-hub" className="text-emerald-700 font-bold hover:underline">
-                  Check Order Risk →
+                <Link href="/dashboard/ai-hub" className="text-emerald-700 font-medium hover:underline">
+                  Check order risk →
                 </Link>
               </div>
             </div>
 
             {/* Metric 2: Hardware Costs Eliminated */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 shadow-2xs space-y-2">
+            <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-slate-900">
                   <span className="flex h-5 w-5 items-center justify-center rounded-md bg-teal-100 text-teal-700">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                   </span>
-                  Hardware Costs Eliminated
+                  Hardware costs eliminated
                 </span>
-                <span className="text-xs font-mono font-bold text-teal-700 bg-white px-2 py-0.5 rounded border border-teal-200">
+                <span className="text-xs font-mono font-medium text-teal-700 bg-white px-2 py-0.5 rounded-md border border-teal-200">
                   +৳3,500
                 </span>
               </div>
               <p className="text-[11px] text-slate-600 leading-relaxed">
-                <strong className="text-slate-800 font-semibold">Zero special hardware required.</strong> Used smartphone camera as a laser scanner gun and standard A4 home printer packing slips instead of expensive Zebra printers.
+                <strong className="text-slate-800 font-medium">Zero special hardware required.</strong> Used smartphone camera as a laser scanner gun and standard A4 home printer packing slips instead of expensive Zebra printers.
               </p>
-              <div className="pt-1 flex items-center justify-between text-[10px] font-mono text-slate-500">
-                <span>Built-in Camera Scanner</span>
-                <Link href="/dashboard/scanner" className="text-teal-700 font-bold hover:underline">
-                  Launch Camera Scanner →
+              <div className="pt-1 flex items-center justify-between text-[11px] text-slate-500">
+                <span>Built-in camera scanner</span>
+                <Link href="/dashboard/scanner" className="text-teal-700 font-medium hover:underline">
+                  Launch camera scanner →
                 </Link>
               </div>
             </div>
 
             {/* Metric 3: Operational Labor Saved */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 shadow-2xs space-y-2">
+            <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-slate-900">
                   <span className="flex h-5 w-5 items-center justify-center rounded-md bg-orange-100 text-orange-700">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </span>
-                  Operational Hours Saved
+                  Operational hours saved
                 </span>
-                <span className="text-xs font-mono font-bold text-orange-700 bg-white px-2 py-0.5 rounded border border-orange-200">
-                  ~18 Hours
+                <span className="text-xs font-mono font-medium text-orange-700 bg-white px-2 py-0.5 rounded-md border border-orange-200">
+                  ~18 hours
                 </span>
               </div>
               <p className="text-[11px] text-slate-600 leading-relaxed">
-                <strong className="text-slate-800 font-semibold">1-click batch dispatch.</strong> Automated consignment booking, live stock deduction, and WhatsApp supplier restock replaced tedious Excel copy-pasting.
+                <strong className="text-slate-800 font-medium">1-click batch dispatch.</strong> Automated consignment booking, live stock deduction, and WhatsApp supplier restock replaced tedious Excel copy-pasting.
               </p>
-              <div className="pt-1 flex items-center justify-between text-[10px] font-mono text-slate-500">
-                <span>Auto-Reconciled Orders</span>
-                <Link href="/bulk-orders" className="text-orange-700 font-bold hover:underline">
-                  View Bulk Orders →
+              <div className="pt-1 flex items-center justify-between text-[11px] text-slate-500">
+                <span>Auto-reconciled orders</span>
+                <Link href="/bulk-orders" className="text-orange-700 font-medium hover:underline">
+                  View bulk orders →
                 </Link>
               </div>
             </div>
@@ -522,41 +515,41 @@ export default function MerchantDashboard() {
 
         {/* ── ONBOARDING QUICK-START (FOR NEW STORES WITH 0 PRODUCTS) ── */}
         {products.length === 0 && (
-          <div className="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 via-white to-orange-50/40 p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
+          <div className="rounded-lg border border-orange-200 bg-orange-50/40 p-5 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
             <div className="space-y-1">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 font-mono text-[10px] font-bold">
-                Zero-Config Quick Start · Step 1 of 3
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 text-[11px] font-medium">
+                Quick start · Step 1 of 3
               </span>
-              <h2 className="text-base font-bold text-slate-900">Welcome to your new warehouse &amp; store overview!</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Welcome to your store overview</h2>
               <p className="text-xs text-slate-600 max-w-xl">
-                Get up and running in 10 seconds. You can load our 5 verified sample products and test orders right away, or start fresh with your own products and CSV import.
+                Get up and running in seconds. Load sample products and test orders right away, or start fresh with your own products and CSV import.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={handleSeedDemoData}
                 disabled={isSeeding}
-                className="btn-tactile px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-xs inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                className="px-3.5 py-1.5 rounded-md bg-teal-600 hover:bg-teal-500 text-white font-medium text-[13px] shadow-2xs inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60 transition"
               >
                 {isSeeding ? (
                   <>
                     <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Loading Sample Store…</span>
+                    <span>Loading sample data…</span>
                   </>
                 ) : (
-                  <span>Load 5 Sample Products &amp; Orders</span>
+                  <span>Load sample data</span>
                 )}
               </button>
               <Link
                 href="/dashboard/products/add"
-                className="btn-tactile px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs"
+                className="px-3.5 py-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] text-white font-medium text-[13px] shadow-2xs transition"
               >
-                + Add Product
+                + Add product
               </Link>
               <Link
                 href="/dashboard/products/import"
-                className="btn-tactile px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs"
+                className="px-3.5 py-1.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-[13px] shadow-2xs transition"
               >
                 Upload Excel / CSV
               </Link>
@@ -565,33 +558,33 @@ export default function MerchantDashboard() {
         )}
 
         {/* ── SMART INSIGHTS & DAILY ACTIONS FEED ──────────────── */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-orange-600" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-                Smart Insights &amp; Daily Actions
+              <span className="h-2 w-2 rounded-full bg-[#EA580C]" />
+              <h2 className="text-xs font-semibold text-slate-900">
+                Insights &amp; daily actions
               </h2>
             </div>
             <Link
               href="/dashboard/ai-hub"
-              className="text-xs font-bold text-orange-600 hover:text-orange-500 flex items-center gap-1 group"
+              className="text-xs font-medium text-[#EA580C] hover:text-[#D94E07] flex items-center gap-1 group"
             >
-              <span>Open Operations Hub</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              <span>Operations Hub</span>
+              <span className="group-hover:translate-x-0.5 transition-transform">→</span>
             </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Recommendation 1: Restock */}
-            <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/60 space-y-2">
+            <div className="p-3.5 rounded-lg border border-rose-200 bg-rose-50/60 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-mono font-bold uppercase">
-                  Imminent Stockout
+                <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-medium">
+                  Imminent stockout
                 </span>
-                <span className="text-[10px] text-rose-600 font-mono">Lead Time: 5 Days</span>
+                <span className="text-[10px] text-rose-600 font-mono">Lead time: 5 days</span>
               </div>
-              <h3 className="text-xs font-bold text-rose-950">
+              <h3 className="text-xs font-semibold text-rose-950">
                 {metrics.lowStockCount + metrics.outOfStockCount > 0
                   ? `${metrics.lowStockCount + metrics.outOfStockCount} items require immediate supplier reorder`
                   : "All inventory runways have safe buffer coverage"}
@@ -601,55 +594,55 @@ export default function MerchantDashboard() {
               </p>
               <Link
                 href="/dashboard/ai-hub"
-                className="inline-flex items-center gap-1 text-xs font-bold text-rose-700 hover:text-rose-900 pt-1"
+                className="inline-flex items-center gap-1 text-xs font-medium text-rose-700 hover:text-rose-900 pt-1"
               >
-                <span>Generate Supplier PO</span>
+                <span>Generate supplier PO</span>
                 <span>→</span>
               </Link>
             </div>
 
             {/* Recommendation 2: Return Fraud Guard */}
-            <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/60 space-y-2">
+            <div className="p-3.5 rounded-lg border border-teal-200 bg-teal-50/60 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 text-[10px] font-mono font-bold uppercase">
-                  Return Loss Guard
+                <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 text-[10px] font-medium">
+                  Return loss guard
                 </span>
-                <span className="text-[10px] text-teal-700 font-mono">Courier Return Check</span>
+                <span className="text-[10px] text-teal-700 font-mono">Courier return check</span>
               </div>
-              <h3 className="text-xs font-bold text-teal-950">
-                Pre-Dispatch Risk Filter is Active
+              <h3 className="text-xs font-semibold text-teal-950">
+                Pre-dispatch risk filter is active
               </h3>
               <p className="text-[11px] text-teal-800 leading-relaxed">
                 Filter customer phone numbers and addresses before booking courier dispatches to avoid ৳140+ return fees per failed parcel.
               </p>
               <Link
                 href="/dashboard/ai-hub"
-                className="inline-flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-900 pt-1"
+                className="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-900 pt-1"
               >
-                <span>Run Consignment Check</span>
+                <span>Run consignment check</span>
                 <span>→</span>
               </Link>
             </div>
 
             {/* Recommendation 3: Smart Invoice Intake */}
-            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/60 space-y-2">
+            <div className="p-3.5 rounded-lg border border-blue-200 bg-blue-50/60 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-mono font-bold uppercase">
-                  Speed Intake
+                <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-medium">
+                  Fast intake
                 </span>
-                <span className="text-[10px] text-blue-700 font-mono">Challan Reader</span>
+                <span className="text-[10px] text-blue-700 font-mono">Challan reader</span>
               </div>
-              <h3 className="text-xs font-bold text-blue-950">
-                Batch Challan Ingestion
+              <h3 className="text-xs font-semibold text-blue-950">
+                Batch challan ingestion
               </h3>
               <p className="text-[11px] text-blue-800 leading-relaxed">
                 Received a shipment? Paste raw supplier challan text to auto-generate SKUs, compute margin markups, and log intake stock instantly.
               </p>
               <Link
                 href="/dashboard/ai-hub"
-                className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 pt-1"
+                className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900 pt-1"
               >
-                <span>Parse Supplier Challan</span>
+                <span>Parse supplier challan</span>
                 <span>→</span>
               </Link>
             </div>
@@ -660,106 +653,106 @@ export default function MerchantDashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
           <Link
             href="/dashboard/reconciliation"
-            className="p-3.5 rounded-2xl border border-rose-200 bg-rose-50/40 hover:border-rose-400 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
+            className="p-3 rounded-lg border border-rose-200 bg-rose-50/40 hover:border-rose-400 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-9 w-9 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700 shadow-2xs">
+            <div className="h-8 w-8 rounded-md bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-700 shadow-2xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">COD Recon</span>
-              <span className="text-[10px] text-rose-700 font-mono">Discrepancy Audit</span>
+              <span className="text-xs font-semibold text-slate-900 block">COD Recon</span>
+              <span className="text-[10px] text-rose-700 font-mono">Discrepancy audit</span>
             </div>
           </Link>
 
           <Link
             href="/dashboard/expenses"
-            className="p-3.5 rounded-2xl border border-teal-200 bg-teal-50/40 hover:border-teal-400 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
+            className="p-3 rounded-lg border border-teal-200 bg-teal-50/40 hover:border-teal-400 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-9 w-9 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-700 shadow-2xs">
+            <div className="h-8 w-8 rounded-md bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-700 shadow-2xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Expenses &amp; Ads</span>
-              <span className="text-[10px] text-teal-700 font-mono">Overhead Splitter</span>
+              <span className="text-xs font-semibold text-slate-900 block">Expenses &amp; Ads</span>
+              <span className="text-[10px] text-teal-700 font-mono">Overhead splitter</span>
             </div>
           </Link>
 
           <Link
             href="/dashboard/scanner"
-            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
+            className="p-3 rounded-lg border border-slate-200 bg-white hover:border-[#EA580C]/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-9 w-9 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600 shadow-2xs">
+            <div className="h-8 w-8 rounded-md bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600 shadow-2xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Camera Scan</span>
-              <span className="text-[10px] text-slate-500 font-mono">Optical Barcode</span>
+              <span className="text-xs font-semibold text-slate-900 block">Camera Scan</span>
+              <span className="text-[10px] text-slate-500 font-mono">Optical barcode</span>
             </div>
           </Link>
 
           <Link
             href="/dashboard/ai-hub"
-            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
+            className="p-3 rounded-lg border border-slate-200 bg-white hover:border-[#EA580C]/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-9 w-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shadow-2xs">
+            <div className="h-8 w-8 rounded-md bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shadow-2xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Return Check</span>
-              <span className="text-[10px] text-slate-500 font-mono">Fraud Prevention</span>
+              <span className="text-xs font-semibold text-slate-900 block">Return Check</span>
+              <span className="text-[10px] text-slate-500 font-mono">Risk screening</span>
             </div>
           </Link>
 
           <Link
             href="/bulk-orders"
-            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
+            className="p-3 rounded-lg border border-slate-200 bg-white hover:border-[#EA580C]/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-9 w-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 shadow-2xs">
+            <div className="h-8 w-8 rounded-md bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 shadow-2xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Orders</span>
-              <span className="text-[10px] text-slate-500 font-mono">Courier Dispatch</span>
+              <span className="text-xs font-semibold text-slate-900 block">Orders</span>
+              <span className="text-[10px] text-slate-500 font-mono">Courier dispatch</span>
             </div>
           </Link>
 
           <Link
             href="/dashboard/products/add"
-            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
+            className="p-3 rounded-lg border border-slate-200 bg-white hover:border-[#EA580C]/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition"
           >
-            <div className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-2xs">
+            <div className="h-8 w-8 rounded-md bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-2xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Add Product</span>
-              <span className="text-[10px] text-slate-500 font-mono">New SKU Intake</span>
+              <span className="text-xs font-semibold text-slate-900 block">Add Product</span>
+              <span className="text-[10px] text-slate-500 font-mono">New SKU intake</span>
             </div>
           </Link>
 
           <Link
             href="/reports"
-            className="p-3.5 rounded-2xl border border-slate-200 bg-white hover:border-orange-500/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition col-span-2 sm:col-span-1"
+            className="p-3 rounded-lg border border-slate-200 bg-white hover:border-[#EA580C]/50 shadow-2xs card-lift flex flex-col items-center text-center gap-1.5 transition col-span-2 sm:col-span-1"
           >
-            <div className="h-9 w-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shadow-2xs">
+            <div className="h-8 w-8 rounded-md bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shadow-2xs">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Stock Runway</span>
-              <span className="text-[10px] text-slate-500 font-mono">Depletion Alert</span>
+              <span className="text-xs font-semibold text-slate-900 block">Stock Runway</span>
+              <span className="text-[10px] text-slate-500 font-mono">Depletion alert</span>
             </div>
           </Link>
         </div>
@@ -767,16 +760,16 @@ export default function MerchantDashboard() {
         {/* ── COURIER PERFORMANCE & LIVE DISPATCH STREAM ─────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Multi-Courier Performance */}
-          <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
+          <div className="lg:col-span-5 rounded-lg border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-xs font-bold uppercase font-mono text-slate-900">
-                  Courier Fulfillment SLAs
+                <h3 className="text-xs font-semibold text-slate-900">
+                  Courier fulfillment SLAs
                 </h3>
-                <span className="text-[11px] text-slate-400 font-mono">Steadfast / Pathao / RedX</span>
+                <span className="text-[11px] text-slate-500 font-mono">Steadfast / Pathao / RedX</span>
               </div>
-              <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-mono text-[10px] font-bold">
-                API SYNCED
+              <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-mono text-[10px] font-medium">
+                API Synced
               </span>
             </div>
 
@@ -784,13 +777,13 @@ export default function MerchantDashboard() {
               {courierStats.map((c, i) => (
                 <div key={i} className="space-y-1.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-900">{c.name}</span>
+                    <span className="font-medium text-slate-900">{c.name}</span>
                     <div className="flex items-center gap-2 font-mono">
                       <span className="text-slate-500">{c.count} parcels ({c.pct}%)</span>
-                      <span className="text-emerald-600 font-bold">{c.sla} SLA</span>
+                      <span className="text-emerald-600 font-semibold">{c.sla} SLA</span>
                     </div>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
                     <div className={`h-full ${c.color}`} style={{ width: `${c.pct}%` }} />
                   </div>
                 </div>
@@ -803,19 +796,19 @@ export default function MerchantDashboard() {
               </span>
               <Link
                 href="/dashboard/settings?tab=couriers"
-                className="text-orange-600 font-bold hover:underline font-mono text-[11px]"
+                className="text-[#EA580C] font-medium hover:underline text-[11px]"
               >
-                Manage API Keys →
+                Manage API keys →
               </Link>
             </div>
           </div>
 
           {/* Live Recent Transactions / Orders Stream */}
-          <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div className="lg:col-span-7 rounded-lg border border-slate-200 bg-white shadow-2xs overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold uppercase font-mono text-slate-900">
-                  Live Consignment &amp; Stock Activity
+                <h3 className="text-xs font-semibold text-slate-900">
+                  Live consignment &amp; stock activity
                 </h3>
                 <span className="text-[11px] text-slate-500 font-mono">
                   Recent {transactions.length} stock transactions
@@ -824,15 +817,15 @@ export default function MerchantDashboard() {
 
               <Link
                 href="/operations"
-                className="text-xs font-bold text-orange-600 hover:text-orange-500"
+                className="text-xs font-medium text-[#EA580C] hover:text-[#D94E07]"
               >
-                View All Operations →
+                View all operations →
               </Link>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs divide-y divide-slate-100">
-                <thead className="bg-slate-50 font-mono text-[10px] uppercase font-bold text-slate-500">
+                <thead className="bg-slate-50 font-mono text-[11px] uppercase tracking-wider font-medium text-slate-500">
                   <tr>
                     <th className="px-4 py-2.5">Action</th>
                     <th className="px-4 py-2.5 font-mono">Quantity</th>
@@ -852,7 +845,7 @@ export default function MerchantDashboard() {
                       <tr key={tx.id} className="hover:bg-slate-50/80">
                         <td className="px-4 py-2.5">
                           <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[10px] font-bold ${
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[10px] font-medium ${
                               tx.transaction_type === "OUT"
                                 ? "bg-orange-50 text-orange-700 border border-orange-200"
                                 : "bg-emerald-50 text-emerald-700 border border-emerald-200"
@@ -861,7 +854,7 @@ export default function MerchantDashboard() {
                             {tx.transaction_type === "OUT" ? "DISPATCH" : "INTAKE"}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 font-mono font-bold text-slate-900">
+                        <td className="px-4 py-2.5 font-mono font-semibold text-slate-900">
                           {tx.transaction_type === "OUT" ? `-${tx.quantity}` : `+${tx.quantity}`}
                         </td>
                         <td className="px-4 py-2.5 text-slate-600 truncate max-w-[200px]">
@@ -886,7 +879,7 @@ export default function MerchantDashboard() {
       {/* ── Toast Notification ───────────────────────────────── */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-lg transition-all animate-in slide-in-from-bottom-3 ${
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border shadow-sm transition-all animate-in slide-in-from-bottom-3 ${
             toast.type === "error"
               ? "bg-rose-50 border-rose-200 text-rose-800"
               : "bg-emerald-50 border-emerald-200 text-emerald-800"

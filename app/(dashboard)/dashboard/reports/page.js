@@ -364,20 +364,15 @@ export default function InventoryRunwayReport() {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-4">
         {/* ── TOP HEADER SECTION ───────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
-              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-orange-600 font-semibold">Unit Economics &amp; Runway</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
               Profit Intelligence &amp; Stock Runways
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              True net margins, COGS deduction, trapped capital liquidation, and 1-click supplier POs.
+              Net margins, COGS deduction, trapped capital, and supplier reorders.
             </p>
           </div>
 
@@ -390,27 +385,27 @@ export default function InventoryRunwayReport() {
                   setPoItems(criticalItems);
                   setPoModalOpen(true);
                 }}
-                className="btn-tactile inline-flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white px-3.5 py-2 text-xs font-bold shadow-xs shadow-orange-600/20 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] text-white px-3.5 py-1.5 text-[13px] font-medium shadow-2xs transition cursor-pointer"
                 title="Batch generate Purchase Order for all critical items"
               >
                 <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-                <span>Batch PO ({criticalItems.length} Critical SKUs)</span>
+                <span>Batch PO ({criticalItems.length} critical SKUs)</span>
               </button>
             )}
 
             {/* Timeframe Selector */}
-            <div className="flex items-center p-1 rounded-xl bg-white border border-slate-200 shadow-2xs">
+            <div className="flex items-center p-0.5 rounded-md bg-white border border-slate-200 shadow-2xs">
               {TIMEFRAMES.map(({ id, label }) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => setSelectedDays(id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold btn-tactile transition ${
+                  className={`px-2.5 py-1 rounded-sm text-xs font-medium transition ${
                     selectedDays === id
-                      ? "bg-orange-600 text-white shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      ? "bg-[#EA580C] text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   }`}
                 >
                   {label}
@@ -421,7 +416,7 @@ export default function InventoryRunwayReport() {
             <button
               type="button"
               onClick={handleExportCsv}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 btn-tactile transition"
+              className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition"
               title="Export report as CSV"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -434,7 +429,7 @@ export default function InventoryRunwayReport() {
               type="button"
               onClick={loadData}
               disabled={refreshing}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 btn-tactile transition shadow-2xs disabled:opacity-50"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition shadow-2xs disabled:opacity-50"
               title="Refresh dataset"
             >
               <svg
@@ -451,115 +446,79 @@ export default function InventoryRunwayReport() {
 
         {/* ── MODULE 2: TRUE TAKE-HOME NET PROFIT & UNIT ECONOMICS STRIP ─── */}
         <div className="space-y-3">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          <div className="rounded-lg border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-5">
             {/* Card 1: Gross Merchandise Value */}
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-                  Gross Sales (GMV)
-                </span>
-                <span className="p-1 rounded-md bg-orange-50 border border-orange-200 text-orange-600">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </span>
-              </div>
-              <div className="mt-2 text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-mono">
+            <div className="p-4 space-y-1">
+              <span className="text-xs font-medium text-slate-500">
+                Gross sales (GMV)
+              </span>
+              <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
                 ৳{Math.round(financialMetrics.totalGmv).toLocaleString()}
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5 font-mono">
+              <div className="text-[11px] text-slate-500 font-mono mt-1">
                 {financialMetrics.orderCount} customer orders
               </div>
             </div>
 
             {/* Card 2: Estimated Cost of Goods Sold (COGS) */}
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-                  COGS (Wholesale)
-                </span>
-                <span className="p-1 rounded-md bg-slate-100 border border-slate-200 text-slate-600">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                </span>
-              </div>
-              <div className="mt-2 text-xl sm:text-2xl font-black text-slate-700 tracking-tight font-mono">
+            <div className="p-4 space-y-1">
+              <span className="text-xs font-medium text-slate-500">
+                COGS (Wholesale)
+              </span>
+              <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
                 ৳{Math.round(financialMetrics.estimatedCogs).toLocaleString()}
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5 font-mono">
+              <div className="text-[11px] text-slate-500 font-mono mt-1">
                 Stock replenishment cost
               </div>
             </div>
 
             {/* Card 3: Digital Ad Spend (Meta & TikTok) */}
-            <div className="p-4 rounded-2xl border border-teal-200 bg-teal-50/30 shadow-2xs card-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-teal-800 font-bold">
-                  Digital Ad Spend
-                </span>
-                <span className="p-1 rounded-md bg-teal-100 border border-teal-200 text-teal-700">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                  </svg>
-                </span>
-              </div>
-              <div className="mt-2 text-xl sm:text-2xl font-black text-teal-700 tracking-tight font-mono">
+            <div className="p-4 space-y-1">
+              <span className="text-xs font-medium text-slate-500">
+                Digital ad spend
+              </span>
+              <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
                 ৳{Math.round(financialMetrics.realAdSpend).toLocaleString()}
               </div>
-              <div className="text-[10px] text-teal-600 mt-0.5 font-mono">
+              <div className="text-[11px] text-slate-500 font-mono mt-1">
                 Meta &amp; TikTok campaigns
               </div>
             </div>
 
             {/* Card 4: Operating Overheads & Courier Fees */}
-            <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-                  Overhead &amp; COD Fees
-                </span>
-                <span className="p-1 rounded-md bg-purple-50 border border-purple-200 text-purple-600">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </span>
-              </div>
-              <div className="mt-2 text-xl sm:text-2xl font-black text-purple-700 tracking-tight font-mono">
+            <div className="p-4 space-y-1">
+              <span className="text-xs font-medium text-slate-500">
+                Overhead &amp; COD fees
+              </span>
+              <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
                 ৳{Math.round(financialMetrics.codFees + financialMetrics.packagingBuffer).toLocaleString()}
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5 font-mono">
+              <div className="text-[11px] text-slate-500 font-mono mt-1">
                 1% COD + packaging + rent/wages
               </div>
             </div>
 
             {/* Card 5: True Take-Home Net Profit */}
-            <div className="p-4 rounded-2xl border border-emerald-300 bg-emerald-50/50 shadow-2xs card-lift">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-800 font-bold">
-                  Take-Home Net Profit
-                </span>
-                <span className="p-1 rounded-md bg-emerald-100 border border-emerald-300 text-emerald-700">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              </div>
-              <div className="mt-2 text-xl sm:text-2xl font-black text-emerald-700 tracking-tight font-mono">
+            <div className="p-4 space-y-1">
+              <span className="text-xs font-medium text-slate-500">
+                Take-home net profit
+              </span>
+              <div className="text-xl font-semibold text-emerald-600 tracking-tight font-mono mt-1">
                 ৳{Math.round(financialMetrics.estimatedNetProfit).toLocaleString()}
               </div>
-              <div className="text-[10px] text-emerald-800 mt-0.5 font-mono font-bold">
-                {financialMetrics.netMarginPercent}% Final Net Margin
+              <div className="text-[11px] text-emerald-700 font-mono font-medium mt-1">
+                {financialMetrics.netMarginPercent}% final margin
               </div>
             </div>
           </div>
 
           {/* Ledger Audit Connection Strip */}
-          <div className="p-3 rounded-xl bg-slate-900 text-slate-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="p-3 rounded-lg bg-slate-900 text-slate-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
               <span className="text-[11px] font-mono">
-                <span className="text-white font-bold">Take-Home Formula:</span> Gross Sales (৳{Math.round(financialMetrics.totalGmv).toLocaleString()}) − COGS (৳{Math.round(financialMetrics.estimatedCogs).toLocaleString()}) − Ad Spend (৳{Math.round(financialMetrics.realAdSpend).toLocaleString()}) − Overheads (৳{Math.round(financialMetrics.packagingBuffer).toLocaleString()}) = <span className="text-emerald-400 font-bold">৳{Math.round(financialMetrics.estimatedNetProfit).toLocaleString()} Real Cash</span>
+                <span className="text-white font-medium">Take-Home Formula:</span> Gross Sales (৳{Math.round(financialMetrics.totalGmv).toLocaleString()}) − COGS (৳{Math.round(financialMetrics.estimatedCogs).toLocaleString()}) − Ad Spend (৳{Math.round(financialMetrics.realAdSpend).toLocaleString()}) − Overheads (৳{Math.round(financialMetrics.packagingBuffer).toLocaleString()}) = <span className="text-emerald-400 font-medium">৳{Math.round(financialMetrics.estimatedNetProfit).toLocaleString()} Cash</span>
               </span>
             </div>
 
@@ -600,7 +559,7 @@ export default function InventoryRunwayReport() {
                 <span className="text-[10px] font-mono text-slate-400 uppercase font-bold block">
                   Trapped Working Capital
                 </span>
-                <span className="text-xl font-black font-mono text-amber-600">
+                <span className="text-xl font-semibold font-mono text-amber-600">
                   ৳{deadstockRadar.trappedWorkingCapital.toLocaleString()}
                 </span>
               </div>
@@ -608,9 +567,9 @@ export default function InventoryRunwayReport() {
               <button
                 type="button"
                 onClick={() => setBundlePlanOpen(!bundlePlanOpen)}
-                className="btn-tactile px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700 transition"
+                className="px-3 py-1.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 transition"
               >
-                {bundlePlanOpen ? "Hide Action Plan" : "1-Click Liquidation Plan"}
+                {bundlePlanOpen ? "Hide Action Plan" : "Liquidation Plan"}
               </button>
             </div>
           </div>
@@ -622,10 +581,10 @@ export default function InventoryRunwayReport() {
                 {deadstockRadar.bundlePlans.map((plan) => (
                   <div
                     key={plan.id}
-                    className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2 card-lift"
+                    className="p-4 rounded-lg border border-slate-200 bg-slate-50/70 space-y-2"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold uppercase text-orange-600">
+                      <span className="text-[10px] font-mono font-medium uppercase text-orange-600">
                         {plan.discountLabel} Liquidation
                       </span>
                       <span className="text-[10px] font-mono text-slate-500">
@@ -633,7 +592,7 @@ export default function InventoryRunwayReport() {
                       </span>
                     </div>
 
-                    <h4 className="text-xs font-bold text-slate-900 leading-snug">
+                    <h4 className="text-xs font-semibold text-slate-900 leading-snug">
                       {plan.title}
                     </h4>
 
@@ -646,7 +605,7 @@ export default function InventoryRunwayReport() {
                         <span className="text-[10px] font-mono text-slate-400 block uppercase">
                           Cash Flow Released
                         </span>
-                        <span className="font-mono font-black text-emerald-700">
+                        <span className="font-mono font-semibold text-emerald-700">
                           ৳{plan.cashReleased.toLocaleString()}
                         </span>
                       </div>
@@ -654,7 +613,7 @@ export default function InventoryRunwayReport() {
                       <button
                         type="button"
                         onClick={() => triggerToast(`Bundle action plan for "${plan.title}" activated!`)}
-                        className="btn-tactile px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px]"
+                        className="px-3 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-medium text-[11px] transition"
                       >
                         Activate Bundle
                       </button>

@@ -257,16 +257,11 @@ export default function AuditFootprintsPage() {
 
   return (
     <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-4">
         {/* ── TOP HEADER SECTION ───────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
-              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-orange-600 font-semibold">Security &amp; Audit Logs</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
               Activity Footprints &amp; Audit Trail
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -279,7 +274,7 @@ export default function AuditFootprintsPage() {
               type="button"
               onClick={handleExportCsv}
               disabled={filteredLogs.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 btn-tactile transition disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition disabled:opacity-40"
               title="Export filtered records as CSV"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -292,7 +287,7 @@ export default function AuditFootprintsPage() {
               type="button"
               onClick={fetchFootprints}
               disabled={refreshing}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 btn-tactile transition shadow-2xs disabled:opacity-50"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition shadow-2xs disabled:opacity-50"
               title="Refresh audit trail"
             >
               <svg
@@ -308,19 +303,12 @@ export default function AuditFootprintsPage() {
         </div>
 
         {/* ── METRIC TILES ───────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                Total Audit Events
-              </span>
-              <span className="p-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </span>
-            </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
+        <div className="rounded-lg border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-4">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Total audit events
+            </span>
+            <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
               {metrics.total}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -328,37 +316,23 @@ export default function AuditFootprintsPage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                Billing &amp; Payments
-              </span>
-              <span className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-              </span>
-            </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Billing &amp; payments
+            </span>
+            <div className="text-xl font-semibold text-emerald-600 tracking-tight font-mono mt-1">
               {metrics.paymentLogs}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
-              Checkout &amp; subscription events
+              Checkout &amp; plan changes
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                Dispatches &amp; Orders
-              </span>
-              <span className="p-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1m-6 0a1 1 0 11-2 0 1 1 0 012 0zm10 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                </svg>
-              </span>
-            </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-teal-700 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Dispatches &amp; orders
+            </span>
+            <div className="text-xl font-semibold text-teal-700 tracking-tight font-mono mt-1">
               {metrics.dispatchLogs}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -366,18 +340,11 @@ export default function AuditFootprintsPage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                Client Network IPs
-              </span>
-              <span className="p-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-600">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-3-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-3 3-3m-9 9a9 9 0 019-9" />
-                </svg>
-              </span>
-            </div>
-            <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Client network IPs
+            </span>
+            <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
               {metrics.uniqueIps}
             </div>
             <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -387,7 +354,7 @@ export default function AuditFootprintsPage() {
         </div>
 
         {/* ── FILTER & SEARCH TOOLBAR ────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200 bg-white shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border border-slate-200 bg-white shadow-2xs">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
               { id: "ALL", label: "All Events" },

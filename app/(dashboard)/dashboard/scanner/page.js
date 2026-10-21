@@ -493,7 +493,7 @@ export default function SmartScannerPage() {
                   {/* Animated Emerald Laser Sweep Bar */}
                   <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-laser" />
 
-                  <span className="text-[10px] font-mono tracking-widest text-emerald-400 bg-slate-950/80 px-2.5 py-0.5 rounded-full uppercase font-bold">
+                  <span className="text-[10px] font-mono tracking-wider text-emerald-400 bg-slate-950/80 px-2 py-0.5 rounded-md uppercase font-medium">
                     Align Barcode in Slot
                   </span>
                 </div>

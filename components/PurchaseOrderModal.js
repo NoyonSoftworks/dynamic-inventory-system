@@ -257,10 +257,10 @@ Please confirm reception, packing date, and dispatch tracking details. Thank you
             {/* Document Header */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-6 border-b-2 border-slate-900 gap-4">
               <div>
-                <span className="px-2 py-0.5 rounded border border-black font-mono font-black text-[10px] uppercase">
+                <span className="px-2 py-0.5 rounded border border-black font-mono font-medium text-[10px] uppercase">
                   PURCHASE REQUISITION
                 </span>
-                <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900 mt-1">
+                <h1 className="text-xl font-semibold uppercase tracking-tight text-slate-900 mt-1">
                   {businessName}
                 </h1>
                 <p className="text-xs text-slate-600 font-mono mt-0.5">
@@ -269,7 +269,7 @@ Please confirm reception, packing date, and dispatch tracking details. Thank you
               </div>
 
               <div className="text-left sm:text-right font-mono">
-                <div className="text-base font-black text-slate-900">
+                <div className="text-base font-semibold text-slate-900">
                   {poNumber}
                 </div>
                 <div className="text-xs text-slate-600">
@@ -342,12 +342,12 @@ Please confirm reception, packing date, and dispatch tracking details. Thank you
             <div className="flex justify-between items-center pt-2 border-t-2 border-slate-900 font-mono">
               <div>
                 <span className="text-xs text-slate-500 block">Total Consignment Units</span>
-                <span className="text-lg font-black text-slate-900">{totalOrderUnits} pcs</span>
+                <span className="text-lg font-semibold font-mono text-slate-900">{totalOrderUnits} pcs</span>
               </div>
 
               <div className="text-right">
                 <span className="text-xs text-slate-500 block">Total Purchase Order Value</span>
-                <span className="text-xl font-black text-orange-600">
+                <span className="text-xl font-semibold font-mono text-orange-600">
                   ৳{totalOrderOutlay.toLocaleString()}
                 </span>
               </div>

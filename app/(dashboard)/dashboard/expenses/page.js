@@ -250,37 +250,30 @@ export default function ExpensesManagementPage() {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-4">
         {/* ── HEADER SECTION ──────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
-              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-orange-600 font-semibold">True Net-Profit Engine</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-slate-900 font-semibold">Operating Overheads</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              Operational Expense &amp; Ad-Spend Splitter
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+              Expenses &amp; Ad Spend
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Record Meta &amp; TikTok ads, poly mailers, staff salaries, and office utilities to protect real take-home cash.
+              Track Meta ads, packaging, staff salaries, and operating overheads.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Timeframe Switcher */}
-            <div className="flex items-center p-1 rounded-xl bg-white border border-slate-200 shadow-2xs">
+            <div className="flex items-center p-0.5 rounded-md bg-white border border-slate-200 shadow-2xs">
               {TIMEFRAMES.map((tf) => (
                 <button
                   key={tf.id}
                   type="button"
                   onClick={() => setTimeframe(tf.id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold btn-tactile transition ${
+                  className={`px-2.5 py-1 rounded-sm text-xs font-medium transition ${
                     timeframe === tf.id
-                      ? "bg-orange-600 text-white shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      ? "bg-[#EA580C] text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   }`}
                 >
                   {tf.label}
@@ -290,16 +283,16 @@ export default function ExpensesManagementPage() {
 
             <Link
               href="/dashboard/reports"
-              className="btn-tactile inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-2xs transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-medium shadow-2xs transition"
             >
-              <span>Net-Profit Runway →</span>
+              <span>Net profit reports →</span>
             </Link>
 
             <button
               type="button"
               onClick={loadExpensesData}
               disabled={refreshing}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 btn-tactile transition shadow-2xs disabled:opacity-50"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition shadow-2xs disabled:opacity-50"
               title="Refresh ledger"
             >
               <svg
@@ -315,84 +308,55 @@ export default function ExpensesManagementPage() {
         </div>
 
         {/* ── ARCHITECTURAL FINANCIAL METRIC BAR ──────────────── */}
-        <div className="rounded-xl border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-4">
           {/* Card 1: Total Operating Expenses */}
-          <div className="p-5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Total Operating Outlay
-              </span>
-              <span className="p-1 rounded-md bg-orange-50 border border-orange-200 text-orange-600">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Total operating spend
+            </span>
+            <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
               ৳{Math.round(expenseSummary.totalExpenses || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
+            <div className="text-[11px] text-slate-500 font-mono mt-1">
               Across {expenseSummary.recordCount || 0} logged entries
             </div>
           </div>
 
           {/* Card 2: Digital Ad Spend */}
-          <div className="p-5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Digital Ad Spend
-              </span>
-              <span className="p-1 rounded-md bg-teal-50 border border-teal-200 text-teal-600">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                </svg>
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-teal-700 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Digital ad spend
+            </span>
+            <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
               ৳{Math.round(expenseSummary.adSpendTotal || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-teal-700 font-mono font-medium">
-              {adPercent}% of total operational overheads
+            <div className="text-[11px] text-slate-500 font-mono mt-1">
+              {adPercent}% of total overheads
             </div>
           </div>
 
           {/* Card 3: Packaging & Consumables */}
-          <div className="p-5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Packaging &amp; Poly Bags
-              </span>
-              <span className="p-1 rounded-md bg-slate-100 border border-slate-200 text-slate-600">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Packaging &amp; materials
+            </span>
+            <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
               ৳{Math.round(expenseSummary.packagingTotal || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
-              Flyers, bubble rolls &amp; tapes
+            <div className="text-[11px] text-slate-500 font-mono mt-1">
+              Flyers, bubble rolls &amp; tape
             </div>
           </div>
 
           {/* Card 4: Staff Wages & Office Rent */}
-          <div className="p-5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Salaries &amp; Rent
-              </span>
-              <span className="p-1 rounded-md bg-purple-50 border border-purple-200 text-purple-600">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-purple-700 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Salaries &amp; rent
+            </span>
+            <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
               ৳{Math.round((expenseSummary.salariesRentTotal || 0) + (expenseSummary.utilitiesMiscTotal || 0)).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
+            <div className="text-[11px] text-slate-500 font-mono mt-1">
               Packing crew, utilities &amp; rent
             </div>
           </div>

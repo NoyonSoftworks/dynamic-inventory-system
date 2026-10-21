@@ -573,7 +573,7 @@ export default function SuperAdminDashboard() {
               <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
               403 Access Denied
             </div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
               Platform Owner Restricted
             </h1>
             <p className="text-xs text-slate-600 leading-relaxed">
@@ -652,7 +652,7 @@ export default function SuperAdminDashboard() {
           <div>
             <div className="flex items-center gap-2.5 mb-1.5">
               <span className="inline-flex rounded-full h-2 w-2 bg-orange-500" />
-              <span className="text-[11px] font-mono uppercase tracking-widest text-orange-700 font-bold bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-orange-700 font-medium bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md">
                 Platform Control Plane · Super Administrator
               </span>
             </div>
@@ -1118,7 +1118,7 @@ export default function SuperAdminDashboard() {
                   <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                     Tier Pricing
                   </span>
-                  <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+                  <h2 className="mt-2 text-xl font-semibold text-slate-900 tracking-tight">
                     SaaS Subscription &amp; Tier Controls
                   </h2>
                   <p className="mt-1 text-xs text-slate-500 leading-relaxed">
@@ -1272,10 +1272,10 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-xl font-black text-slate-900">Pro Enterprise Plan</h3>
+                  <h3 className="text-lg font-semibold text-slate-900">Pro Enterprise Plan</h3>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl font-black text-slate-900 font-mono">
+                      <span className="text-3xl font-semibold text-slate-900 font-mono">
                         ${Number(saasSettings.pro_plan_price).toFixed(2)}
                       </span>
                       <span className="text-xs text-slate-500 font-medium">/ month (USD)</span>
@@ -1339,7 +1339,7 @@ export default function SuperAdminDashboard() {
                   <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                     Payment Gateways
                   </span>
-                  <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+                  <h2 className="mt-2 text-xl font-semibold text-slate-900 tracking-tight">
                     Payment Gateway Configurations
                   </h2>
                   <p className="mt-1 text-xs text-slate-500">
@@ -1822,7 +1822,7 @@ export default function SuperAdminDashboard() {
                   <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                     Security Settings
                   </span>
-                  <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+                  <h2 className="mt-2 text-xl font-semibold text-slate-900 tracking-tight">
                     Super Admin Security &amp; Recovery
                   </h2>
                   <p className="mt-1 text-xs text-slate-500">
@@ -2048,7 +2048,7 @@ export default function SuperAdminDashboard() {
                   <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
                     Audit Logs
                   </span>
-                  <h2 className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+                  <h2 className="mt-2 text-xl font-semibold text-slate-900 tracking-tight">
                     Activity Footprints &amp; Audit Trail
                   </h2>
                   <p className="mt-1 text-xs text-slate-500">

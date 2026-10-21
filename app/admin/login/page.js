@@ -558,11 +558,11 @@ function AdminLoginForm() {
       <div className="w-full max-w-md space-y-6">
         {/* Top Control Plane Branding */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full bg-orange-950/60 border border-orange-500/40 px-3.5 py-1 text-[11px] font-mono font-bold tracking-widest text-orange-400 uppercase shadow-inner">
-            <span className="h-2 w-2 rounded-full bg-orange-500" />
-            Master Control Plane
+          <div className="inline-flex items-center gap-2 rounded-md bg-orange-950/40 border border-orange-500/30 px-2.5 py-0.5 text-xs font-mono text-orange-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+            Admin Portal
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center justify-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white flex items-center justify-center gap-2">
             <span>Platform Owner Login</span>
           </h1>
           <p className="text-xs text-slate-400 max-w-xs mx-auto">
@@ -606,7 +606,7 @@ function AdminLoginForm() {
               <p className="text-[11px] leading-relaxed text-rose-300/90">
                 Too many consecutive failed attempts detected. Access is temporarily locked.
               </p>
-              <div className="pt-1 font-mono text-sm font-black text-rose-200">
+              <div className="pt-1 font-mono text-sm font-semibold text-rose-200">
                 Unlock in: {Math.floor(lockoutRemaining / 60)}m {lockoutRemaining % 60}s
               </div>
             </div>

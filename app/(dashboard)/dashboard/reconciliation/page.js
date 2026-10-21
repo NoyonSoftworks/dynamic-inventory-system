@@ -307,22 +307,15 @@ export default function CourierReconciliationPage() {
         className="hidden"
       />
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-4">
         {/* ── PAGE HEADER ────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
-              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-orange-600 font-semibold">Fintech Intelligence</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-slate-900 font-semibold">COD Reconciliation</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              Courier &amp; COD Payment Reconciliation Ledger
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+              Courier &amp; COD Reconciliation
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Automated settlement audit for Steadfast, Pathao &amp; RedX. Detect missing cash, hidden return deductions, and stuck parcels.
+              Audit Steadfast, Pathao &amp; RedX payouts and catch missing cash.
             </p>
           </div>
 
@@ -332,19 +325,19 @@ export default function CourierReconciliationPage() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="btn-tactile inline-flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white px-3.5 py-2 text-xs font-bold shadow-xs shadow-orange-600/20 transition cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] text-white px-3.5 py-1.5 text-[13px] font-medium shadow-2xs transition cursor-pointer disabled:opacity-50"
             >
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              <span>{uploading ? "Ingesting Statement…" : "Upload Settlement CSV"}</span>
+              <span>{uploading ? "Ingesting statement…" : "Upload settlement CSV"}</span>
             </button>
 
             {/* Template & Demo Buttons */}
             <button
               type="button"
               onClick={handleDownloadTemplate}
-              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs btn-tactile transition"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[13px] font-medium shadow-2xs transition"
               title="Download standardized reconciliation CSV template"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -356,20 +349,20 @@ export default function CourierReconciliationPage() {
             <button
               type="button"
               onClick={handleLoadDemoSettlement}
-              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs btn-tactile transition"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[13px] font-medium shadow-2xs transition"
               title="Load sample Steadfast, Pathao & RedX settlement test cases"
             >
               <svg className="w-3.5 h-3.5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span>Load Demo Data</span>
+              <span>Load sample data</span>
             </button>
 
             <button
               type="button"
               onClick={loadReconciliationData}
               disabled={refreshing}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 btn-tactile transition shadow-2xs disabled:opacity-50"
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition shadow-2xs disabled:opacity-50"
               title="Refresh ledger"
             >
               <svg
@@ -385,91 +378,62 @@ export default function CourierReconciliationPage() {
         </div>
 
         {/* ── ARCHITECTURAL RECONCILIATION SUMMARY BAR ───────────────── */}
-        <div className="rounded-xl border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-4">
           {/* Card 1: Total Settled & Paid */}
-          <div className="p-5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Settled &amp; Deposited COD
-              </span>
-              <span className="p-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M5 13l4 4L19 7" />
-                </svg>
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-emerald-600 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Settled &amp; deposited COD
+            </span>
+            <div className="text-xl font-semibold text-emerald-600 tracking-tight font-mono mt-1">
               ৳{Math.round(reconciliationSummary.totalSettledAmount || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
+            <div className="text-[11px] text-slate-500 font-mono mt-1">
               {reconciliationSummary.settledCount || 0} consignments remitted
             </div>
           </div>
 
           {/* Card 2: Pending Courier Payout */}
-          <div className="p-5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Pending Courier Payouts
-              </span>
-              <span className="p-1 rounded-md bg-amber-50 text-amber-600 border border-amber-200">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-amber-600 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Pending courier payouts
+            </span>
+            <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
               ৳{Math.round(reconciliationSummary.pendingPayoutAmount || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-mono">
-              {reconciliationSummary.pendingCount || 0} parcels awaiting disbursement
+            <div className="text-[11px] text-slate-500 font-mono mt-1">
+              {reconciliationSummary.pendingCount || 0} awaiting disbursement
             </div>
           </div>
 
           {/* Card 3: Short-Paid & Mismatched Variance */}
-          <div className="p-5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-rose-800 font-semibold">
-                Short-Paid Discrepancies
-              </span>
-              <span className="p-1 rounded-md bg-rose-50 text-rose-600 border border-rose-200">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-rose-600 tracking-tight font-mono">
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Short-paid discrepancies
+            </span>
+            <div className="text-xl font-semibold text-rose-600 tracking-tight font-mono mt-1">
               -৳{Math.round(reconciliationSummary.shortPaidVariance || 0).toLocaleString()}
             </div>
-            <div className="text-[11px] text-rose-700 font-mono font-medium">
-              {reconciliationSummary.shortPaidCount || 0} orders short-paid · Claim recoverable
+            <div className="text-[11px] text-rose-700 font-mono mt-1">
+              {reconciliationSummary.shortPaidCount || 0} orders short-paid
             </div>
           </div>
 
           {/* Card 4: Stuck & Lost Parcels (>7 Days) */}
-          <div className="p-5 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                Stuck In-Transit (&gt;7 Days)
-              </span>
-              <span className="p-1 rounded-md bg-purple-50 text-purple-600 border border-purple-200">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </span>
+          <div className="p-4 space-y-1">
+            <span className="text-xs font-medium text-slate-500">
+              Stuck in-transit (&gt;7 days)
+            </span>
+            <div className="text-xl font-semibold text-purple-700 tracking-tight font-mono mt-1">
+              {reconciliationSummary.stuckCount || 0} parcels
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-purple-700 tracking-tight font-mono">
-              {reconciliationSummary.stuckCount || 0} <span className="text-sm font-semibold text-slate-500">Parcels</span>
-            </div>
-            <div className="text-[11px] text-slate-500 font-mono">
-              ৳{Math.round(reconciliationSummary.stuckAtRiskValue || 0).toLocaleString()} trapped goods at risk
+            <div className="text-[11px] text-slate-500 font-mono mt-1">
+              ৳{Math.round(reconciliationSummary.stuckAtRiskValue || 0).toLocaleString()} at risk
             </div>
           </div>
         </div>
 
         {/* ── COURIER PARTNER PRESET SELECTOR & FILTER BAR ────── */}
-        <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-4">
+        <div className="p-3.5 rounded-lg border border-slate-200 bg-white shadow-2xs space-y-3">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             {/* Courier Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
@@ -644,45 +608,45 @@ export default function CourierReconciliationPage() {
                         </td>
 
                         {/* Discrepancy Variance */}
-                        <td className="py-3.5 px-4 text-right font-mono font-bold">
+                        <td className="py-3 px-4 text-right font-mono font-medium">
                           {r.variance < 0 ? (
-                            <span className="inline-block px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 text-xs font-black">
-                              -৳{Math.abs(r.variance).toLocaleString()} Short
+                            <span className="inline-block px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 text-xs font-semibold font-mono">
+                              -৳{Math.abs(r.variance).toLocaleString()} short
                             </span>
                           ) : r.variance > 0 ? (
-                            <span className="text-teal-600">+৳{r.variance.toLocaleString()}</span>
+                            <span className="text-teal-600 font-semibold font-mono">+৳{r.variance.toLocaleString()}</span>
                           ) : (
-                            <span className="text-emerald-600">৳0 Exact</span>
+                            <span className="text-emerald-600 font-medium font-mono">৳0 exact</span>
                           )}
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-3.5 px-4 text-center">
+                        <td className="py-3 px-4 text-center">
                           {isSettled ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                              Settled &amp; Paid
+                              Settled &amp; paid
                             </span>
                           ) : isShortPaid ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-100 text-rose-800 border border-rose-300">
                               <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                              Short-Paid Mismatch
+                              Short-paid mismatch
                             </span>
                           ) : isStuck ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-300">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-purple-100 text-purple-800 border border-purple-300">
                               <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
                               Stuck {r.days_in_transit}d
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-100 text-amber-800 border border-amber-200">
                               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                              Pending Payout
+                              Pending payout
                             </span>
                           )}
                         </td>
 
                         {/* Audit Action */}
-                        <td className="py-3.5 px-4 text-right">
+                        <td className="py-3 px-4 text-right">
                           {isShortPaid || isStuck ? (
                             <button
                               type="button"
@@ -690,12 +654,12 @@ export default function CourierReconciliationPage() {
                                 setSelectedRecordForClaim(r);
                                 setClaimModalOpen(true);
                               }}
-                              className="btn-tactile inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-[11px] shadow-2xs transition"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs shadow-2xs transition"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                               </svg>
-                              <span>Raise Claim</span>
+                              Claim dispute
                             </button>
                           ) : (
                             <button
@@ -704,9 +668,9 @@ export default function CourierReconciliationPage() {
                                 setSelectedRecordForClaim(r);
                                 setClaimModalOpen(true);
                               }}
-                              className="btn-tactile inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition"
                             >
-                              <span>View Audit</span>
+                              <span>View audit</span>
                             </button>
                           )}
                         </td>

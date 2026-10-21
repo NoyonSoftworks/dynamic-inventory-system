@@ -278,15 +278,15 @@ export default function AdminTasksTab({ triggerToast }) {
   const completedCount = tasks.filter((t) => t.status === "COMPLETED").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* ── HEADER & DISPATCH ACTIONS ────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-lg bg-white border border-slate-200 shadow-2xs">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-semibold">
-            <span className="h-2 w-2 rounded-full bg-orange-500 inline-block" />
-            Logistics &amp; Operations Command
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-50 border border-orange-200 text-orange-700 text-xs font-medium">
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 inline-block" />
+            Operations Command
           </div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
             Team Task Delegation &amp; Workload Tracker
           </h2>
           <p className="text-xs text-slate-500 max-w-xl">
@@ -294,30 +294,30 @@ export default function AdminTasksTab({ triggerToast }) {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleGenerateAiTasks}
             disabled={aiLoading}
-            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 btn-tactile transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-teal-600 hover:bg-teal-500 px-3.5 py-1.5 text-[13px] font-medium text-white shadow-2xs transition disabled:opacity-50"
           >
-            <span>{aiLoading ? "Analyzing..." : "Auto-Suggest Tasks"}</span>
+            <span>{aiLoading ? "Analyzing..." : "Auto-suggest tasks"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 btn-tactile transition-all"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] px-3.5 py-1.5 text-[13px] font-medium text-white shadow-2xs transition"
           >
             <span>+</span>
-            <span>Assign New Task</span>
+            <span>Assign new task</span>
           </button>
 
           <button
             type="button"
             onClick={fetchTasks}
             disabled={refreshing}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition"
+            className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition"
             title="Refresh Task List"
           >
             {refreshing ? "…" : "↻"}
@@ -326,35 +326,35 @@ export default function AdminTasksTab({ triggerToast }) {
       </div>
 
       {/* ── KPI METRICS CARDS ────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-          <div className="text-[11px] font-mono uppercase text-slate-500">Total Tasks</div>
-          <div className="mt-1 text-2xl font-black text-slate-900 font-mono">{totalCount}</div>
-          <div className="text-[10px] text-slate-500 font-mono mt-0.5">Assigned Operations</div>
+      <div className="rounded-lg border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 sm:grid-cols-5">
+        <div className="p-4 space-y-1">
+          <span className="text-xs font-medium text-slate-500">Total tasks</span>
+          <div className="text-xl font-semibold font-mono text-slate-900 mt-1">{totalCount}</div>
+          <div className="text-[11px] text-slate-500 font-mono mt-0.5">Assigned operations</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 shadow-2xs">
-          <div className="text-[11px] font-mono uppercase text-amber-800 font-bold">Pending</div>
-          <div className="mt-1 text-2xl font-black text-amber-900 font-mono">{pendingCount}</div>
-          <div className="text-[10px] text-amber-700 font-mono mt-0.5">Awaiting Operator</div>
+        <div className="p-4 space-y-1">
+          <span className="text-xs font-medium text-slate-500">Pending</span>
+          <div className="text-xl font-semibold font-mono text-amber-700 mt-1">{pendingCount}</div>
+          <div className="text-[11px] text-slate-500 font-mono mt-0.5">Awaiting operator</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-orange-50/60 border border-orange-200 shadow-2xs">
-          <div className="text-[11px] font-mono uppercase text-orange-800 font-bold">In Progress</div>
-          <div className="mt-1 text-2xl font-black text-orange-900 font-mono">{inProgressCount}</div>
-          <div className="text-[10px] text-orange-700 font-mono mt-0.5">Actively Handled</div>
+        <div className="p-4 space-y-1">
+          <span className="text-xs font-medium text-slate-500">In progress</span>
+          <div className="text-xl font-semibold font-mono text-orange-600 mt-1">{inProgressCount}</div>
+          <div className="text-[11px] text-slate-500 font-mono mt-0.5">Actively handled</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-rose-50/60 border border-rose-200 shadow-2xs">
-          <div className="text-[11px] font-mono uppercase text-rose-800 font-bold">Critical Priority</div>
-          <div className="mt-1 text-2xl font-black text-rose-900 font-mono">{criticalCount}</div>
-          <div className="text-[10px] text-rose-700 font-mono mt-0.5">Urgent Attention</div>
+        <div className="p-4 space-y-1">
+          <span className="text-xs font-medium text-slate-500">Critical priority</span>
+          <div className="text-xl font-semibold font-mono text-rose-600 mt-1">{criticalCount}</div>
+          <div className="text-[11px] text-slate-500 font-mono mt-0.5">Urgent attention</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 shadow-2xs">
-          <div className="text-[11px] font-mono uppercase text-emerald-800 font-bold">Completed</div>
-          <div className="mt-1 text-2xl font-black text-emerald-900 font-mono">{completedCount}</div>
-          <div className="text-[10px] text-emerald-700 font-mono mt-0.5">Resolved &amp; Logged</div>
+        <div className="p-4 space-y-1">
+          <span className="text-xs font-medium text-slate-500">Completed</span>
+          <div className="text-xl font-semibold font-mono text-emerald-600 mt-1">{completedCount}</div>
+          <div className="text-[11px] text-slate-500 font-mono mt-0.5">Resolved &amp; logged</div>
         </div>
       </div>
 

@@ -166,7 +166,7 @@ export default function MarkdownRenderer({ content }) {
         <h2
           key={elementKey++}
           id={id}
-          className="text-xl sm:text-2xl font-black text-slate-900 mt-10 mb-4 pb-2.5 border-b border-slate-200 flex items-center gap-2 group scroll-mt-24"
+          className="text-xl sm:text-2xl font-semibold text-slate-900 mt-10 mb-4 pb-2.5 border-b border-slate-200 flex items-center gap-2 group scroll-mt-24"
         >
           <a
             href={`#${id}`}

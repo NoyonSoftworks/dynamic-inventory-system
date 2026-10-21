@@ -399,45 +399,40 @@ export default function BulkOrdersPage() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         {/* ── TOP HEADER SECTION ───────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
-              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-orange-600 font-semibold">Orders &amp; COD Verification</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              Orders &amp; Consignment Management
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+              Orders &amp; Consignments
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Automated COD return prediction, 4×6 courier label generation, and batch daily order intake.
+              Automated COD return prediction and shipping label printing.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             {/* View Mode Switcher */}
-            <div className="p-1 rounded-xl bg-white border border-slate-200 shadow-2xs flex">
+            <div className="p-0.5 rounded-md bg-slate-100 border border-slate-200 flex">
               <button
                 type="button"
                 onClick={() => setActiveTab("orders_queue")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold btn-tactile transition ${
+                className={`px-3 py-1 rounded-md text-[13px] font-medium transition ${
                   activeTab === "orders_queue"
-                    ? "bg-orange-600 text-white shadow-2xs"
+                    ? "bg-white text-slate-900 shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Inbound Orders &amp; Return Verification
+                Inbound orders
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("manual_bulk")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold btn-tactile transition ${
+                className={`px-3 py-1 rounded-md text-[13px] font-medium transition ${
                   activeTab === "manual_bulk"
-                    ? "bg-orange-600 text-white shadow-2xs"
+                    ? "bg-white text-slate-900 shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Manual SKU Deduction
+                Manual deduction
               </button>
             </div>
           </div>
@@ -446,7 +441,7 @@ export default function BulkOrdersPage() {
         {/* ── Toast Notification ─────────────────────────────────── */}
         {toast && (
           <div
-            className={`rounded-xl border px-4 py-3 text-xs flex items-center gap-2.5 ${
+            className={`rounded-md border px-3.5 py-2.5 text-xs flex items-center gap-2.5 ${
               toast.type === "success"
                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                 : "border-rose-200 bg-rose-50 text-rose-900"
@@ -466,39 +461,39 @@ export default function BulkOrdersPage() {
         {/* ======================================================= */}
         {activeTab === "orders_queue" && (
           <div className="space-y-6">
-            {/* 4 Executive RTO Risk & Return Check KPI Tiles */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+            {/* Unified Metric Strip */}
+            <div className="rounded-lg border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-4">
+              <div className="p-4 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                    Inbound Order Queue
+                  <span className="text-xs font-medium text-slate-500">
+                    Inbound order queue
                   </span>
-                  <span className="p-1.5 rounded-lg bg-orange-50 border border-orange-200 text-orange-600">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <span className="p-1 rounded-md bg-orange-50 border border-orange-200 text-[#EA580C]">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                   </span>
                 </div>
-                <div className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
-                  {rtoMetrics.totalCount} Orders
+                <div className="text-xl font-semibold text-slate-900 tracking-tight font-mono mt-1">
+                  {rtoMetrics.totalCount} orders
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1 font-mono">
                   Live dispatch stream
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+              <div className="p-4 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                    Est. RTO Loss Prevented
+                  <span className="text-xs font-medium text-slate-500">
+                    Est. RTO loss prevented
                   </span>
-                  <span className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <span className="p-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-600">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   </span>
                 </div>
-                <div className="mt-3 text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight font-mono">
+                <div className="text-xl font-semibold text-emerald-600 tracking-tight font-mono mt-1">
                   ৳{rtoMetrics.estimatedLossPrevented.toLocaleString()}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1 font-mono">
@@ -506,41 +501,41 @@ export default function BulkOrdersPage() {
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+              <div className="p-4 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                    High RTO Risk Queue
+                  <span className="text-xs font-medium text-slate-500">
+                    High RTO risk queue
                   </span>
-                  <span className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <span className="p-1 rounded-md bg-rose-50 border border-rose-200 text-rose-600">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                   </span>
                 </div>
-                <div className="mt-3 text-2xl sm:text-3xl font-black text-rose-600 tracking-tight font-mono">
-                  {rtoMetrics.highRiskCount} Orders
+                <div className="text-xl font-semibold text-rose-600 tracking-tight font-mono mt-1">
+                  {rtoMetrics.highRiskCount} flagged
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1 font-mono">
                   Requires phone confirmation
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs card-lift">
+              <div className="p-4 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                    Verified Safe Buyers
+                  <span className="text-xs font-medium text-slate-500">
+                    Verified safe buyers
                   </span>
-                  <span className="p-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-600">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <span className="p-1 rounded-md bg-teal-50 border border-teal-200 text-teal-600">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
                 </div>
-                <div className="mt-3 text-2xl sm:text-3xl font-black text-teal-700 tracking-tight font-mono">
-                  {rtoMetrics.verifiedCount} Orders
+                <div className="text-xl font-semibold text-teal-700 tracking-tight font-mono mt-1">
+                  {rtoMetrics.verifiedCount} orders
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1 font-mono">
-                  95%+ Delivery fulfillment rate
+                  Ready for instant courier booking
                 </div>
               </div>
             </div>
@@ -588,19 +583,19 @@ export default function BulkOrdersPage() {
             </div>
 
             {/* Orders Queue Table with Visual Risk Badges */}
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between text-xs font-mono text-slate-600">
-                <span className="font-bold text-slate-900">
-                  DISPATCH CONSIGNMENT QUEUE ({filteredOrders.length})
+            <div className="rounded-lg border border-slate-200 bg-white shadow-2xs overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+                <span className="font-semibold text-slate-900">
+                  Consignment queue ({filteredOrders.length})
                 </span>
                 <span className="text-[11px] text-slate-500">
-                  Click &quot;Print Label / Invoice&quot; to output Zebra 4×6 or A4 receipt
+                  Click &quot;Label / Invoice&quot; to print 4×6 thermal or A4 sheet
                 </span>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full divide-y divide-slate-200 text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] font-mono tracking-wider font-bold">
+                  <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-mono tracking-wider font-medium">
                     <tr>
                       <th className="px-4 py-3">Consignment / Date</th>
                       <th className="px-4 py-3">Buyer &amp; Delivery Destination</th>
@@ -625,10 +620,10 @@ export default function BulkOrdersPage() {
                           <tr key={o.id} className="hover:bg-slate-50/80 transition-colors">
                             {/* Consignment ID & Courier */}
                             <td className="px-4 py-3.5">
-                              <span className="font-mono font-bold text-slate-900 block text-xs">
+                              <span className="font-mono font-medium text-slate-900 block text-xs">
                                 {o.consignment_id || `ORD-${String(o.id).slice(0, 7)}`}
                               </span>
-                              <span className="text-[10px] text-orange-600 font-mono block">
+                              <span className="text-[10px] text-[#EA580C] font-mono block">
                                 {o.courier_name || "Steadfast Courier"}
                               </span>
                               <span className="text-[10px] text-slate-400 font-mono">
@@ -638,7 +633,7 @@ export default function BulkOrdersPage() {
 
                             {/* Customer Name, Phone & Address */}
                             <td className="px-4 py-3.5 max-w-xs">
-                              <div className="font-bold text-slate-900 text-xs">
+                              <div className="font-semibold text-slate-900 text-xs">
                                 {o.customer_name || "Valued Buyer"}
                               </div>
                               <div className="font-mono text-slate-700 text-[11px]">
@@ -651,7 +646,7 @@ export default function BulkOrdersPage() {
 
                             {/* COD Amount */}
                             <td className="px-4 py-3.5 font-mono">
-                              <span className="text-slate-900 font-black text-sm block">
+                              <span className="text-slate-900 font-semibold font-mono text-sm block">
                                 ৳{(Number(o.total_amount) || 0).toLocaleString()}
                               </span>
                               <span className="text-[10px] text-slate-400 font-mono">
@@ -663,9 +658,9 @@ export default function BulkOrdersPage() {
                             <td className="px-4 py-3.5">
                               {isHighRisk && (
                                 <div className="space-y-1">
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
                                     <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                                    High RTO Risk (Call to Confirm)
+                                    High RTO risk (Call to confirm)
                                   </span>
                                   {o.risk.flags.length > 0 && (
                                     <p className="text-[10px] text-rose-600 font-mono">
@@ -677,9 +672,9 @@ export default function BulkOrdersPage() {
 
                               {isVerified && (
                                 <div className="space-y-1">
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                    Verified Buyer (95%+ Success)
+                                    Verified safe buyer (95%+)
                                   </span>
                                   <p className="text-[10px] text-emerald-700 font-mono">
                                     Clean order history
@@ -689,9 +684,9 @@ export default function BulkOrdersPage() {
 
                               {!isHighRisk && !isVerified && (
                                 <div className="space-y-1">
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-teal-50 text-teal-700 border border-teal-200">
                                     <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
-                                    New Customer (Standard Check)
+                                    Standard delivery check
                                   </span>
                                   <p className="text-[10px] text-slate-400 font-mono">
                                     First order in workspace
@@ -709,7 +704,7 @@ export default function BulkOrdersPage() {
                                   setSelectedOrderForPrint(o);
                                   setPrintModalOpen(true);
                                 }}
-                                className="btn-tactile inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium text-[13px] shadow-2xs transition"
                                 title="Print Zebra 4x6 Label or A4 Invoice"
                               >
                                 <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -726,7 +721,7 @@ export default function BulkOrdersPage() {
                                   )}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="btn-tactile inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition"
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-medium text-[13px] transition"
                                   title="Send WhatsApp Delivery Confirmation"
                                 >
                                   <span>WhatsApp</span>
@@ -748,11 +743,11 @@ export default function BulkOrdersPage() {
         {/* VIEW 2: MANUAL BULK SKU DEDUCTION (PRESERVED)           */}
         {/* ======================================================= */}
         {activeTab === "manual_bulk" && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">
-                  Direct Multi-SKU Inventory Deduction
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Direct multi-SKU inventory deduction
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Record offline wholesale or POS sales transactions simultaneously to deduct stock counts.
@@ -762,21 +757,21 @@ export default function BulkOrdersPage() {
               <button
                 type="button"
                 onClick={addRow}
-                className="btn-tactile px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 text-xs font-bold"
+                className="px-3 py-1.5 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[13px] font-medium transition shadow-2xs"
               >
-                + Add Another Row
+                + Add row
               </button>
             </div>
 
             {/* Rows Table */}
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {rows.map((row, i) => (
-                <div key={i} className="flex flex-col sm:flex-row items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <div key={i} className="flex flex-col sm:flex-row items-center gap-2 p-2.5 rounded-md bg-slate-50 border border-slate-200">
                   <div className="w-full sm:flex-1">
                     <select
                       value={row.productId}
                       onChange={(e) => updateRow(i, "productId", e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
                     >
                       <option value="">Select Catalog Product…</option>
                       {products.map((p) => (
@@ -792,7 +787,7 @@ export default function BulkOrdersPage() {
                       value={row.variantId}
                       onChange={(e) => updateRow(i, "variantId", e.target.value)}
                       disabled={!row.productId}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-orange-500 disabled:opacity-50"
+                      className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-orange-500 disabled:opacity-50"
                     >
                       <option value="">
                         {!row.productId ? "Select product first" : "Select SKU Variant…"}
@@ -812,7 +807,7 @@ export default function BulkOrdersPage() {
                       placeholder="Qty"
                       value={row.quantity}
                       onChange={(e) => updateRow(i, "quantity", e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500"
                     />
                   </div>
 
@@ -820,7 +815,7 @@ export default function BulkOrdersPage() {
                     type="button"
                     onClick={() => removeRow(i)}
                     disabled={rows.length <= 1}
-                    className="p-2 text-slate-400 hover:text-rose-600 transition disabled:opacity-30 inline-flex items-center justify-center"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 transition disabled:opacity-30 inline-flex items-center justify-center"
                     title="Remove row"
                   >
                     <CloseIcon className="w-3.5 h-3.5" />
@@ -834,9 +829,9 @@ export default function BulkOrdersPage() {
                 type="button"
                 onClick={handleProcessManualRows}
                 disabled={loading}
-                className="btn-tactile px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 rounded-md bg-[#EA580C] hover:bg-[#D94E07] text-white font-medium text-[13px] shadow-2xs transition disabled:opacity-50 cursor-pointer"
               >
-                {loading ? "Processing Batch…" : "Confirm & Deduct Inventory Stock"}
+                {loading ? "Processing batch…" : "Confirm & deduct stock"}
               </button>
             </div>
           </div>

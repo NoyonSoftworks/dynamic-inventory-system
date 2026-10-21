@@ -24,19 +24,19 @@ export default function NotFound() {
             </svg>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-orange-700">
+          <div className="inline-flex items-center gap-1.5 rounded-md bg-orange-50 border border-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-700">
             <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-            404 · Page Not Located
+            404 · Page not found
           </div>
         </div>
 
         {/* Headline & Friendly Message */}
         <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Resource does not exist
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
+            Page not found
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-            The requested inventory route or document could not be found. It may have been moved, deleted, or the URL might be mistyped.
+            The requested page or document could not be found. It may have been moved, deleted, or the URL might be mistyped.
           </p>
         </div>
 

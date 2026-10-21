@@ -217,35 +217,30 @@ function OperationsPageContent() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50/60 py-8 px-4 sm:px-6 lg:px-8 font-sans text-zinc-900">
-      <div className="mx-auto max-w-4xl space-y-6">
+    <main className="min-h-screen bg-[#f8fafc] py-6 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">
+      <div className="mx-auto max-w-4xl space-y-4">
         {/* ── Header ───────────────────────────────── */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
-              <span>Operations</span>
-              <span>/</span>
-              <span className="text-zinc-900 font-medium">Stock Adjustments</span>
-            </div>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
               Stock Operations
             </h1>
-            <p className="mt-1 text-xs text-zinc-500">
-              Restock incoming shipments or record manual stock deductions for SKU variants.
+            <p className="text-xs text-slate-500 mt-0.5">
+              Restock incoming shipments and record stock adjustments.
             </p>
           </div>
           <Link
             href="/dashboard/products"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-xs hover:bg-zinc-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition"
           >
-            ← Return to Catalog
+            ← Return to catalog
           </Link>
         </div>
 
         {/* ── Toast ────────────────────────────────── */}
         {toast && (
           <div
-            className={`rounded-xl border px-4 py-3 text-xs flex items-center gap-2.5 ${
+            className={`rounded-md border px-3 py-2 text-xs flex items-center gap-2 ${
               toast.type === "success"
                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                 : "border-rose-200 bg-rose-50 text-rose-900"
@@ -267,20 +262,20 @@ function OperationsPageContent() {
         {/* ── Form Card ────────────────────────────── */}
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs space-y-5"
+          className="rounded-lg border border-slate-200 bg-white p-5 shadow-2xs space-y-4"
         >
           {/* Row 1: Product + Variant */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Product
               </label>
               <select
                 value={selectedProductId}
                 onChange={(e) => setSelectedProductId(e.target.value)}
-                className="block w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs text-zinc-900 shadow-xs focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none transition"
+                className="block w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
               >
-                <option value="">— Select Catalog Product —</option>
+                <option value="">Select catalog product</option>
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name} {p.category ? `(${p.category})` : ""}
@@ -290,18 +285,18 @@ function OperationsPageContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Variant
               </label>
               <select
                 value={selectedVariantId}
                 onChange={(e) => setSelectedVariantId(e.target.value)}
                 disabled={!selectedProductId}
-                className="block w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs text-zinc-900 shadow-xs focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="block w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 <option value="">
                   {selectedProductId
-                    ? "— Select SKU Variant —"
+                    ? "Select SKU variant"
                     : "Select a product first"}
                 </option>
                 {variants.map((v) => (
@@ -315,13 +310,13 @@ function OperationsPageContent() {
 
           {/* Stock Info Card */}
           {selectedVariant && (
-            <div className="rounded-xl bg-zinc-50 border border-zinc-200 p-4 flex flex-wrap items-center gap-6">
+            <div className="rounded-md bg-slate-50 border border-slate-200 p-3.5 flex flex-wrap items-center gap-6">
               <div>
-                <p className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">Current Stock</p>
+                <p className="text-xs font-medium text-slate-500">Current stock</p>
                 <p
-                  className={`text-xl font-bold font-mono mt-0.5 ${
+                  className={`text-lg font-semibold font-mono mt-0.5 ${
                     selectedVariant.stock_quantity > 0
-                      ? "text-zinc-900"
+                      ? "text-slate-900"
                       : "text-rose-600"
                   }`}
                 >
@@ -329,18 +324,18 @@ function OperationsPageContent() {
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">Unit Price</p>
-                <p className="text-base font-semibold font-mono text-zinc-900 mt-0.5">
-                  ${Number(selectedVariant.price).toFixed(2)}
+                <p className="text-xs font-medium text-slate-500">Unit price</p>
+                <p className="text-lg font-semibold font-mono text-slate-900 mt-0.5">
+                  ৳{Number(selectedVariant.price).toLocaleString()}
                 </p>
               </div>
               {selectedVariant.attributes &&
                 Object.entries(selectedVariant.attributes).map(([k, val]) => (
                   <div key={k}>
-                    <p className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
+                    <p className="text-xs font-medium text-slate-500">
                       {k}
                     </p>
-                    <p className="text-xs font-semibold text-zinc-800 mt-0.5">{val}</p>
+                    <p className="text-xs font-medium text-slate-800 mt-0.5">{val}</p>
                   </div>
                 ))}
             </div>
@@ -349,16 +344,16 @@ function OperationsPageContent() {
           {/* Row 2: Action + Quantity + Note */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
-                Operation Type
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Operation type
               </label>
-              <div className="flex rounded-xl overflow-hidden border border-slate-200 p-0.5 bg-slate-100">
+              <div className="flex rounded-md overflow-hidden border border-slate-200 p-0.5 bg-slate-100">
                 <button
                   type="button"
                   onClick={() => setAction("IN")}
-                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
+                  className={`flex-1 rounded-sm py-1 text-xs font-medium transition ${
                     action === "IN"
-                      ? "bg-emerald-600 text-white shadow-xs"
+                      ? "bg-emerald-600 text-white shadow-2xs"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -367,9 +362,9 @@ function OperationsPageContent() {
                 <button
                   type="button"
                   onClick={() => setAction("OUT")}
-                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
+                  className={`flex-1 rounded-sm py-1 text-xs font-medium transition ${
                     action === "OUT"
-                      ? "bg-rose-600 text-white shadow-xs"
+                      ? "bg-rose-600 text-white shadow-2xs"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -379,8 +374,8 @@ function OperationsPageContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                Quantity Units
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Quantity units
               </label>
               <input
                 type="number"
@@ -388,13 +383,13 @@ function OperationsPageContent() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0"
-                className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 font-mono shadow-xs placeholder:text-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
+                className="block w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 font-mono shadow-2xs placeholder:text-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                Reference Note{" "}
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Reference note{" "}
                 <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <input
@@ -402,7 +397,7 @@ function OperationsPageContent() {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="e.g. PO-8839 / Warehouse transfer"
-                className="block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
+                className="block w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 focus:outline-none transition"
               />
             </div>
           </div>
@@ -411,10 +406,10 @@ function OperationsPageContent() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full rounded-xl py-2.5 text-xs font-bold text-white shadow-xs focus:ring-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition ${
+            className={`w-full rounded-md py-2 text-[13px] font-medium text-white shadow-2xs focus:ring-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition ${
               action === "IN"
-                ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 focus:ring-emerald-500/30"
-                : "bg-rose-600 hover:bg-rose-700 shadow-rose-600/20 focus:ring-rose-500/30"
+                ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500/30"
+                : "bg-rose-600 hover:bg-rose-700 focus:ring-rose-500/30"
             }`}
           >
             {loading ? (
@@ -422,38 +417,38 @@ function OperationsPageContent() {
                 <Spinner size={16} /> Processing…
               </span>
             ) : action === "IN" ? (
-              "Confirm Restock Intake"
+              "Confirm restock intake"
             ) : (
-              "Confirm Stock Deduction"
+              "Confirm stock deduction"
             )}
           </button>
         </form>
 
         {/* ── Recent Activity ──────────────────────── */}
         {recent.length > 0 && (
-          <div className="rounded-2xl border border-zinc-200 bg-white shadow-xs overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-zinc-100">
-              <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-500">
-                Recent Stock Operations
+          <div className="rounded-lg border border-slate-200 bg-white shadow-2xs overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-slate-200">
+              <h2 className="text-xs font-medium text-slate-700">
+                Recent stock operations
               </h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-zinc-100 text-xs text-left">
-                <thead className="bg-zinc-50/60 font-mono text-zinc-500 uppercase tracking-wider">
+              <table className="min-w-full divide-y divide-slate-100 text-xs text-left">
+                <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600">
                   <tr>
                     {["Timestamp", "Product", "Variant", "Operation", "Units", "Reference Note", "Consignment Label"].map(
                       (h) => (
-                        <th key={h} className="px-5 py-3 font-medium">
+                        <th key={h} className="px-4 py-2.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">
                           {h}
                         </th>
                       )
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 bg-white">
+                <tbody className="divide-y divide-slate-100 bg-white">
                   {recent.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-zinc-50/80 transition-colors">
-                      <td className="whitespace-nowrap px-5 py-3 font-mono text-[11px] text-zinc-500">
+                    <tr key={tx.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-[11px] text-slate-500">
                         {new Date(tx.created_at).toLocaleString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -461,19 +456,19 @@ function OperationsPageContent() {
                           minute: "2-digit",
                         })}
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3 font-medium text-zinc-900">
+                      <td className="whitespace-nowrap px-4 py-2.5 font-medium text-slate-900">
                         {tx.products?.name || "—"}
                       </td>
-                      <td className="px-5 py-3 text-zinc-500">
+                      <td className="px-4 py-2.5 text-slate-500">
                         {tx.variants?.attributes
                           ? Object.entries(tx.variants.attributes)
                               .map(([k, v]) => `${k}: ${v}`)
                               .join(", ")
                           : "—"}
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3">
+                      <td className="whitespace-nowrap px-4 py-2.5">
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-mono font-medium border ${
+                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium border ${
                             tx.transaction_type === "IN"
                               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                               : "bg-rose-50 text-rose-800 border-rose-200"
@@ -482,13 +477,13 @@ function OperationsPageContent() {
                           {tx.transaction_type === "IN" ? "+ IN" : "- OUT"}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3 font-mono font-semibold text-zinc-900">
+                      <td className="whitespace-nowrap px-4 py-2.5 font-mono font-medium text-slate-900">
                         {tx.quantity}
                       </td>
-                      <td className="px-5 py-3 text-zinc-500 max-w-[200px] truncate">
+                      <td className="px-4 py-2.5 text-slate-500 max-w-[200px] truncate">
                         {tx.reference_note || "—"}
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-right">
+                      <td className="whitespace-nowrap px-4 py-2.5 text-right">
                         {tx.transaction_type === "OUT" ? (
                           <button
                             type="button"
@@ -506,7 +501,7 @@ function OperationsPageContent() {
                               });
                               setPrintModalOpen(true);
                             }}
-                            className="btn-tactile inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-700 shadow-2xs transition"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 shadow-2xs transition"
                           >
                             <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -514,7 +509,7 @@ function OperationsPageContent() {
                             <span>4×6 Label</span>
                           </button>
                         ) : (
-                          <span className="text-slate-400 font-mono text-[10px]">Restock Intake</span>
+                          <span className="text-slate-400 font-mono text-[10px]">Restock intake</span>
                         )}
                       </td>
                     </tr>

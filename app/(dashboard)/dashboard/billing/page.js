@@ -307,13 +307,13 @@ export default function ClientBillingPage() {
             </div>
 
             <div className="sm:text-right">
-              <div className="text-[11px] font-mono text-slate-500 uppercase tracking-wider font-bold">
-                Cycle Reset
+              <div className="text-xs font-medium text-slate-500">
+                Cycle reset
               </div>
-              <div className="text-2xl font-black font-mono text-slate-900 mt-0.5">
+              <div className="text-xl font-semibold font-mono text-slate-900 mt-1">
                 {daysLeftInMonth} {daysLeftInMonth === 1 ? "day" : "days"}
               </div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-[11px] text-slate-400 mt-0.5">
                 Next cycle begins on 1st of next month
               </div>
             </div>
@@ -365,15 +365,15 @@ export default function ClientBillingPage() {
         {/* ── Plan Comparison Cards ──────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
           {/* Plan 1: Free Starter */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 flex flex-col justify-between space-y-6 shadow-2xs card-lift">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 flex flex-col justify-between space-y-5 shadow-2xs">
             <div className="space-y-4">
-              <div className="inline-flex rounded-md bg-slate-100 border border-slate-200 px-2.5 py-1 text-xs font-mono font-bold text-slate-700">
+              <div className="inline-flex rounded-md bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-mono font-medium text-slate-700">
                 Community Tier
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Starter Free</h3>
+                <h3 className="text-base font-semibold text-slate-900">Starter Free</h3>
                 <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-black font-mono text-slate-900">$0</span>
+                  <span className="text-2xl font-semibold font-mono text-slate-900">৳0</span>
                   <span className="text-xs text-slate-500 font-medium">/ month</span>
                 </div>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
@@ -381,27 +381,27 @@ export default function ClientBillingPage() {
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 space-y-2.5 text-xs text-slate-700">
+              <div className="pt-4 border-t border-slate-100 space-y-2 text-xs text-slate-700">
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-emerald-600 shrink-0 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0 font-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Up to {limit} orders per calendar month</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-emerald-600 shrink-0 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0 font-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Thermal Barcode Printing (Standard 2x1)</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-emerald-600 shrink-0 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0 font-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                   </svg>
                   <span>In-Browser WebAssembly Camera Scanner</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-emerald-600 shrink-0 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0 font-medium" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Steadfast Courier Consignment Integration</span>
@@ -418,34 +418,31 @@ export default function ClientBillingPage() {
             <button
               type="button"
               disabled
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-xs font-bold text-slate-500 cursor-default"
+              className="w-full rounded-md border border-slate-200 bg-slate-50 py-2 text-xs font-medium text-slate-500 cursor-default"
             >
-              {!isProPlan ? "Current Active Tier" : "Included"}
+              {!isProPlan ? "Current active tier" : "Included"}
             </button>
           </div>
 
           {/* Plan 2: Pro Growth */}
-          <div className="rounded-2xl border-2 border-orange-500 bg-white p-6 flex flex-col justify-between space-y-6 shadow-xl shadow-orange-500/10 relative card-lift">
+          <div className="rounded-lg border-2 border-orange-500 bg-white p-5 flex flex-col justify-between space-y-5 shadow-2xs relative">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="inline-flex rounded-md bg-orange-600 px-2.5 py-1 text-xs font-mono font-bold text-white shadow-xs">
+                <span className="inline-flex rounded-md bg-orange-600 px-2 py-0.5 text-xs font-mono font-medium text-white shadow-2xs">
                   Pro Growth Tier
                 </span>
-                <span className="text-[11px] font-mono text-orange-600 font-bold">
+                <span className="text-[11px] font-mono text-orange-600 font-medium">
                   Cancel anytime
                 </span>
               </div>
 
               <div>
-                <h3 className="text-xl font-extrabold text-slate-900">Full Automation Pro</h3>
+                <h3 className="text-base font-semibold text-slate-900">Full Automation Pro</h3>
                 <div className="mt-2 flex flex-wrap items-baseline gap-2">
-                  <span className="text-3xl font-black font-mono text-slate-900">
-                    ${pricingConfig.pro_plan_price.toFixed(2)}
+                  <span className="text-2xl font-semibold font-mono text-slate-900">
+                    ৳{bdtPrice.toLocaleString()}
                   </span>
                   <span className="text-xs text-slate-500 font-medium">/ month</span>
-                  <span className="text-xs font-mono font-bold text-orange-700 bg-orange-50 px-2.5 py-0.5 rounded-md border border-orange-200">
-                    ৳{bdtPrice.toLocaleString()} BDT
-                  </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                   Full capacity for growing merchants processing high daily order volumes with automated courier routing.

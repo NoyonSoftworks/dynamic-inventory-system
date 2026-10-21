@@ -427,45 +427,35 @@ export default function AiOperationsHubPage() {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         {/* ── TOP HEADER BAR ────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-1">
-              <span className="font-semibold text-slate-700">{businessName || "Workspace"}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-orange-600 font-semibold flex items-center gap-1">
-                <span>Profit &amp; Automation Hub</span>
-                <span className="px-1.5 py-0.2 rounded-md bg-orange-100 text-orange-700 font-bold text-[10px]">
-                  AUTO PRO
-                </span>
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              Operations &amp; Profit Management
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+              Operations &amp; Automation Hub
             </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Operational tools designed to eliminate courier return losses, automate supplier POs, and protect merchant profit margins.
+            <p className="text-xs text-slate-500 mt-0.5">
+              Courier return checks, stock forecasts, and supplier purchase orders.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard"
-              className="btn-tactile inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition"
+              className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 shadow-2xs hover:bg-slate-50 transition"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span>Back to Dashboard</span>
+              <span>Back to dashboard</span>
             </Link>
 
             <Link
               href="/dashboard/scanner"
-              className="btn-tactile inline-flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white px-3.5 py-2 text-xs font-bold shadow-xs shadow-orange-600/20 transition"
+              className="inline-flex items-center gap-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] text-white px-3.5 py-1.5 text-[13px] font-medium shadow-2xs transition"
             >
               <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
-              <span>Quick Scanner</span>
+              <span>Quick scanner</span>
             </Link>
           </div>
         </div>
@@ -702,8 +692,8 @@ export default function AiOperationsHubPage() {
                       <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
                         Consignment Risk Evaluation
                       </span>
-                      <h3 className="text-xl font-black text-slate-900 mt-0.5">
-                        Risk Verdict:{" "}
+                      <h3 className="text-lg font-semibold text-slate-900 mt-0.5">
+                        Risk verdict:{" "}
                         <span
                           className={
                             rtoResult.riskLevel === "HIGH"
@@ -720,7 +710,7 @@ export default function AiOperationsHubPage() {
 
                     <div className="flex items-center gap-2">
                       <div className="text-right">
-                        <div className="text-2xl font-black font-mono text-slate-900">
+                        <div className="text-2xl font-semibold font-mono text-slate-900">
                           {rtoResult.riskScore}
                           <span className="text-xs text-slate-400 font-normal">/100</span>
                         </div>
@@ -814,7 +804,7 @@ export default function AiOperationsHubPage() {
                       <span className="text-[11px] font-mono text-slate-400 block uppercase">
                         Potential Return Loss Prevented
                       </span>
-                      <span className="text-lg font-black font-mono text-emerald-600">
+                      <span className="text-lg font-semibold font-mono text-emerald-600">
                         ৳{rtoResult.estimatedLossPrevented.toLocaleString()}
                       </span>
                     </div>
@@ -952,7 +942,7 @@ export default function AiOperationsHubPage() {
                           {generatedPo.poNumber}
                         </span>
                       </div>
-                      <h3 className="text-lg font-black text-slate-900 mt-1">
+                      <h3 className="text-base font-semibold text-slate-900 mt-1">
                         Supplier: {generatedPo.supplierName}
                       </h3>
                     </div>
@@ -966,40 +956,40 @@ export default function AiOperationsHubPage() {
                           triggerToast("Purchase Order copied to clipboard! Ready to paste into WhatsApp.");
                           setTimeout(() => setCopiedPo(false), 3000);
                         }}
-                        className="btn-tactile px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-medium text-slate-700 flex items-center gap-1.5 transition"
                       >
                         <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                         </svg>
-                        <span>{copiedPo ? "Copied!" : "Copy WhatsApp Text"}</span>
+                        <span>{copiedPo ? "Copied!" : "Copy WhatsApp text"}</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Summary Metric Strip */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                      <span className="text-[10px] font-mono text-slate-400 uppercase font-bold block">
-                        Total Reorder Units
+                    <div className="p-3 rounded-md bg-slate-50 border border-slate-200">
+                      <span className="text-xs font-medium text-slate-500 block">
+                        Total reorder units
                       </span>
-                      <span className="text-lg font-black font-mono text-slate-900">
+                      <span className="text-lg font-semibold font-mono text-slate-900 mt-1 block">
                         {generatedPo.totalUnits} pcs
                       </span>
                     </div>
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                      <span className="text-[10px] font-mono text-slate-400 uppercase font-bold block">
-                        Estimated Capital Outlay
+                    <div className="p-3 rounded-md bg-slate-50 border border-slate-200">
+                      <span className="text-xs font-medium text-slate-500 block">
+                        Estimated capital outlay
                       </span>
-                      <span className="text-lg font-black font-mono text-orange-600">
+                      <span className="text-lg font-semibold font-mono text-orange-600 mt-1 block">
                         ৳{generatedPo.totalOrderValue.toLocaleString()}
                       </span>
                     </div>
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 col-span-2 sm:col-span-1">
-                      <span className="text-[10px] font-mono text-slate-400 uppercase font-bold block">
-                        Lead Time Buffer
+                    <div className="p-3 rounded-md bg-slate-50 border border-slate-200 col-span-2 sm:col-span-1">
+                      <span className="text-xs font-medium text-slate-500 block">
+                        Lead time buffer
                       </span>
-                      <span className="text-lg font-black font-mono text-teal-700">
-                        {generatedPo.leadTimeDays} Days
+                      <span className="text-lg font-semibold font-mono text-teal-700 mt-1 block">
+                        {generatedPo.leadTimeDays} days
                       </span>
                     </div>
                   </div>
@@ -1159,17 +1149,17 @@ export default function AiOperationsHubPage() {
                       <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-teal-700">
                         {parsedInvoiceData.itemsCount} SKUs Extracted
                       </span>
-                      <h3 className="text-lg font-black text-slate-900 mt-0.5">
+                      <h3 className="text-base font-semibold text-slate-900 mt-0.5">
                         Consignment Ingestion Preview
                       </h3>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <span className="text-[10px] font-mono text-slate-400 block uppercase">
-                          Total Invoice Outlay
+                        <span className="text-xs text-slate-500 block">
+                          Total invoice outlay
                         </span>
-                        <span className="text-lg font-black font-mono text-slate-900">
+                        <span className="text-lg font-semibold font-mono text-slate-900">
                           ৳{parsedInvoiceData.totalCost.toLocaleString()}
                         </span>
                       </div>
@@ -1262,7 +1252,7 @@ export default function AiOperationsHubPage() {
                 <span className="text-[11px] font-mono font-bold uppercase text-slate-400">
                   Working Capital Recovery
                 </span>
-                <h2 className="text-xl font-black text-slate-900 mt-0.5">
+                <h2 className="text-lg font-semibold text-slate-900 mt-0.5">
                   Deadstock Bundling &amp; Liquidation Optimizer
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -1477,8 +1467,8 @@ export default function AiOperationsHubPage() {
                     <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
                       True Unit Economics Reality
                     </span>
-                    <h3 className="text-xl font-black text-slate-900 mt-0.5">
-                      Net Profit Per Order:{" "}
+                    <h3 className="text-lg font-semibold text-slate-900 mt-0.5">
+                      Net profit per order:{" "}
                       <span className="text-emerald-600 font-mono">
                         ৳{unitEconomics.trueNetProfitPerOrder.toLocaleString()}
                       </span>
@@ -1486,20 +1476,20 @@ export default function AiOperationsHubPage() {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-2xl font-black font-mono text-teal-700">
+                    <div className="text-2xl font-semibold font-mono text-teal-700">
                       {unitEconomics.trueNetMarginPercent}%
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">Net Margin</span>
+                    <span className="text-xs text-slate-500 font-mono">Net margin</span>
                   </div>
                 </div>
 
                 {/* 4 Financial KPI Blocks */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">
-                      Break-Even Minimum Price
+                  <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-xs font-medium text-slate-500 block">
+                      Break-even minimum price
                     </span>
-                    <div className="text-xl font-black font-mono text-slate-900">
+                    <div className="text-xl font-semibold font-mono text-slate-900">
                       ৳{unitEconomics.breakEvenPrice.toLocaleString()}
                     </div>
                     <span className="text-[11px] text-slate-500">
@@ -1507,11 +1497,11 @@ export default function AiOperationsHubPage() {
                     </span>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-rose-50/60 border border-rose-200 space-y-1">
-                    <span className="text-[10px] font-mono uppercase text-rose-800 font-bold block">
-                      Monthly Courier RTO Losses
+                  <div className="p-3.5 rounded-lg bg-rose-50/60 border border-rose-200 space-y-1">
+                    <span className="text-xs font-medium text-rose-800 block">
+                      Monthly courier return losses
                     </span>
-                    <div className="text-xl font-black font-mono text-rose-700">
+                    <div className="text-xl font-semibold font-mono text-rose-700">
                       ৳{unitEconomics.monthlyRtoLosses.toLocaleString()}
                     </div>
                     <span className="text-[11px] text-rose-600">
@@ -1519,11 +1509,11 @@ export default function AiOperationsHubPage() {
                     </span>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-1">
-                    <span className="text-[10px] font-mono uppercase text-emerald-800 font-bold block">
-                      Projected Net Monthly Profit
+                  <div className="p-3.5 rounded-lg bg-emerald-50/60 border border-emerald-200 space-y-1">
+                    <span className="text-xs font-medium text-emerald-800 block">
+                      Projected net monthly profit
                     </span>
-                    <div className="text-xl font-black font-mono text-emerald-700">
+                    <div className="text-xl font-semibold font-mono text-emerald-700">
                       ৳{unitEconomics.monthlyProjectedProfit.toLocaleString()}
                     </div>
                     <span className="text-[11px] text-emerald-600">
@@ -1531,15 +1521,15 @@ export default function AiOperationsHubPage() {
                     </span>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">
-                      Nominal Delivered Profit
+                  <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-xs font-medium text-slate-500 block">
+                      Nominal delivered profit
                     </span>
-                    <div className="text-xl font-black font-mono text-slate-900">
+                    <div className="text-xl font-semibold font-mono text-slate-900">
                       ৳{unitEconomics.grossProfitDelivered.toLocaleString()}
                     </div>
                     <span className="text-[11px] text-slate-500">
-                      Before RTO loss absorption
+                      Before return loss deduction
                     </span>
                   </div>
                 </div>

@@ -288,12 +288,12 @@ export default function InteractiveDemoPage() {
       </header>
 
       {/* ── Sandbox Hero Banner ───────────────────────────────── */}
-      <div className="pt-12 pb-10 border-b border-slate-200 bg-white">
+      <div className="pt-10 pb-8 border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-8 text-center space-y-3">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-orange-700 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full">
-            No Registration Needed
+          <span className="text-xs font-mono font-medium text-orange-700 bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-md">
+            No registration needed
           </span>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
             Interactive Fulfillment Sandbox
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
@@ -301,17 +301,17 @@ export default function InteractiveDemoPage() {
           </p>
 
           {/* Segmented Sandbox Tabs */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-2">
+          <div className="pt-3 flex flex-wrap items-center justify-center gap-1.5">
             <button
               type="button"
               onClick={() => setActiveTab("dashboard")}
-              className={`btn-tactile px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition cursor-pointer ${
                 activeTab === "dashboard"
-                  ? "bg-orange-600 text-white shadow-xs shadow-orange-600/20"
+                  ? "bg-[#EA580C] text-white shadow-2xs"
                   : "bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              1. Catalog &amp; Stock Table
+              1. Catalog &amp; stock table
             </button>
 
             <button
@@ -320,13 +320,13 @@ export default function InteractiveDemoPage() {
                 setActiveTab("scanner");
                 handleTriggerScan();
               }}
-              className={`btn-tactile px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition cursor-pointer ${
                 activeTab === "scanner"
-                  ? "bg-orange-600 text-white shadow-xs shadow-orange-600/20"
+                  ? "bg-[#EA580C] text-white shadow-2xs"
                   : "bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              2. Camera Barcode Scanner
+              2. Camera barcode scanner
             </button>
 
             <button
@@ -335,13 +335,13 @@ export default function InteractiveDemoPage() {
                 setActiveTab("dispatch");
                 handleTriggerDispatch();
               }}
-              className={`btn-tactile px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition cursor-pointer ${
                 activeTab === "dispatch"
-                  ? "bg-orange-600 text-white shadow-xs shadow-orange-600/20"
+                  ? "bg-[#EA580C] text-white shadow-2xs"
                   : "bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              3. Courier &amp; WhatsApp Alert
+              3. Courier &amp; WhatsApp alert
             </button>
 
             <button
@@ -350,54 +350,54 @@ export default function InteractiveDemoPage() {
                 setActiveTab("ai-copilot");
                 if (!simRtoResult) handleSimAnalyzeRto();
               }}
-              className={`btn-tactile px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
                 activeTab === "ai-copilot"
-                  ? "bg-orange-600 text-white shadow-xs shadow-orange-600/20"
+                  ? "bg-[#EA580C] text-white shadow-2xs"
                   : "bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              <span>4. Return &amp; Fraud Guard</span>
+              <span>4. Return &amp; fraud check</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* ── MAIN SANDBOX BODY ─────────────────────────────────── */}
-      <main className="mx-auto max-w-6xl px-4 sm:px-8 mt-10 space-y-8">
+      <main className="mx-auto max-w-6xl px-4 sm:px-8 mt-8 space-y-6">
         {/* ======================================================= */}
         {/* TAB 1: SIMULATED INVENTORY CATALOG                      */}
         {/* ======================================================= */}
         {activeTab === "dashboard" && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="card-lift rounded-2xl border border-slate-200 bg-white p-5 shadow-xs hover:border-slate-300 transition">
-                <span className="text-[11px] font-mono uppercase font-bold text-slate-500">Total Active SKUs</span>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900 font-mono mt-1">
+            <div className="rounded-lg border border-slate-200 bg-white shadow-2xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-4">
+              <div className="p-4 space-y-1">
+                <span className="text-xs font-medium text-slate-500">Total active SKUs</span>
+                <div className="text-xl font-semibold text-slate-900 font-mono mt-1">
                   {products.length} SKUs
                 </div>
                 <div className="text-[11px] text-slate-500 mt-0.5">Multi-variant tracking</div>
               </div>
 
-              <div className="card-lift rounded-2xl border border-slate-200 bg-white p-5 shadow-xs hover:border-emerald-300 transition">
-                <span className="text-[11px] font-mono uppercase font-bold text-slate-500">Units on Hand</span>
-                <div className="text-2xl sm:text-3xl font-black text-emerald-700 font-mono mt-1">
-                  {products.reduce((acc, p) => acc + p.stock, 0)} Units
+              <div className="p-4 space-y-1">
+                <span className="text-xs font-medium text-slate-500">Units on hand</span>
+                <div className="text-xl font-semibold text-emerald-700 font-mono mt-1">
+                  {products.reduce((acc, p) => acc + p.stock, 0)} units
                 </div>
                 <div className="text-[11px] text-slate-500 mt-0.5">Live catalog count</div>
               </div>
 
-              <div className="card-lift rounded-2xl border border-slate-200 bg-white p-5 shadow-xs hover:border-orange-300 transition">
-                <span className="text-[11px] font-mono uppercase font-bold text-slate-500">Inventory Valuation</span>
-                <div className="text-2xl sm:text-3xl font-black text-orange-600 font-mono mt-1">
-                  ${products.reduce((acc, p) => acc + p.stock * p.price, 0).toLocaleString()}
+              <div className="p-4 space-y-1">
+                <span className="text-xs font-medium text-slate-500">Inventory valuation</span>
+                <div className="text-xl font-semibold text-slate-900 font-mono mt-1">
+                  ৳{products.reduce((acc, p) => acc + p.stock * p.price, 0).toLocaleString()}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-0.5">Retail catalog sum</div>
               </div>
 
-              <div className="card-lift rounded-2xl border border-slate-200 bg-white p-5 shadow-xs hover:border-teal-300 transition">
-                <span className="text-[11px] font-mono uppercase font-bold text-slate-500">Connected Logistics</span>
-                <div className="text-2xl sm:text-3xl font-black text-teal-700 font-mono mt-1">
+              <div className="p-4 space-y-1">
+                <span className="text-xs font-medium text-slate-500">Connected logistics</span>
+                <div className="text-xl font-semibold text-teal-700 font-mono mt-1">
                   Steadfast BD
                 </div>
                 <div className="text-[11px] text-slate-500 mt-0.5">Automated consignment API</div>
@@ -844,11 +844,11 @@ export default function InteractiveDemoPage() {
             {/* Simulated Live Output */}
             <div className="card-lift lg:col-span-6 rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <span className="text-[11px] font-mono font-bold uppercase text-slate-400">
-                  Return Risk Assessment
+                <span className="text-[11px] font-mono font-medium uppercase text-slate-500">
+                  Return risk assessment
                 </span>
                 {simRtoResult && (
-                  <span className="text-xl font-black font-mono text-slate-900">
+                  <span className="text-xl font-semibold font-mono text-slate-900">
                     {simRtoResult.riskScore}/100 Risk
                   </span>
                 )}
@@ -898,9 +898,9 @@ export default function InteractiveDemoPage() {
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-xs text-orange-950 flex items-center justify-between">
-                    <span>Potential Return Courier Loss Avoided:</span>
-                    <span className="font-mono font-black text-emerald-700 text-sm">
+                  <div className="p-3 rounded-lg bg-orange-50 border border-orange-200 text-xs text-orange-950 flex items-center justify-between">
+                    <span>Potential return courier loss avoided:</span>
+                    <span className="font-mono font-semibold text-emerald-700 text-sm">
                       ৳{simRtoResult.estimatedLossPrevented}
                     </span>
                   </div>

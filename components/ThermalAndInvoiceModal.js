@@ -220,18 +220,18 @@ export default function ThermalAndInvoiceModal({
                   {/* Header */}
                   <div className="flex items-start justify-between border-b-2 border-black pb-2 pt-1">
                     <div>
-                      <h2 className="text-base font-black uppercase tracking-tight text-black">
+                      <h2 className="text-base font-semibold uppercase tracking-tight text-black">
                         {businessName}
                       </h2>
-                      <p className="text-[10px] font-bold text-black/80 font-mono mt-0.5">
+                      <p className="text-[10px] font-medium text-black/80 font-mono mt-0.5">
                         Merchant Support: {businessPhone}
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="px-2 py-0.5 border-2 border-black font-black text-xs uppercase font-mono">
+                      <span className="px-2 py-0.5 border-2 border-black font-semibold text-xs uppercase font-mono">
                         {courierName}
                       </span>
-                      <p className="text-[9px] font-mono font-bold mt-0.5 text-black">STANDARD COD</p>
+                      <p className="text-[9px] font-mono font-medium mt-0.5 text-black">STANDARD COD</p>
                     </div>
                   </div>
 
@@ -248,7 +248,7 @@ export default function ThermalAndInvoiceModal({
                       lineColor="#000000"
                       background="transparent"
                     />
-                    <div className="flex justify-between w-full text-[10px] font-mono font-bold pt-1">
+                    <div className="flex justify-between w-full text-[10px] font-mono font-medium pt-1">
                       <span>DATE: {orderDate}</span>
                       <span>INVOICE: #{invoiceNumber}</span>
                       <span>DESTINATION: BANGLADESH</span>
@@ -257,13 +257,13 @@ export default function ThermalAndInvoiceModal({
 
                   {/* Consignee */}
                   <div className="border-b-2 border-black pb-2 space-y-0.5">
-                    <span className="text-[9px] uppercase tracking-wider font-mono font-bold text-black/70 block">
+                    <span className="text-[9px] uppercase tracking-wider font-mono font-medium text-black/70 block">
                       DELIVER TO (CONSIGNEE):
                     </span>
-                    <div className="text-sm font-black text-black leading-tight">
+                    <div className="text-sm font-semibold text-black leading-tight">
                       {customerName}
                     </div>
-                    <div className="text-xs font-mono font-black text-black">
+                    <div className="text-xs font-mono font-medium text-black">
                       TEL: {customerPhone}
                     </div>
                     <p className="text-[11px] font-medium leading-snug text-black">
@@ -274,16 +274,16 @@ export default function ThermalAndInvoiceModal({
                   {/* COD Cash Box */}
                   <div className="p-2.5 border-2 border-black bg-white flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] uppercase font-mono font-black block leading-none">
+                      <span className="text-[10px] uppercase font-mono font-medium block leading-none">
                         COLLECT FROM BUYER (COD):
                       </span>
-                      <span className="text-2xl font-black font-mono leading-none mt-1 block">
+                      <span className="text-2xl font-semibold font-mono leading-none mt-1 block">
                         ৳{codAmount.toLocaleString()}
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-[9px] font-mono font-bold block">PAYMENT TERMS</span>
-                      <span className="text-xs font-black uppercase text-emerald-800">CASH ONLY</span>
+                      <span className="text-[9px] font-mono font-medium block">PAYMENT TERMS</span>
+                      <span className="text-xs font-semibold uppercase text-emerald-800">CASH ONLY</span>
                     </div>
                   </div>
 
@@ -366,18 +366,18 @@ export default function ThermalAndInvoiceModal({
                 {/* 1. Header: Merchant Brand & Courier Network */}
                 <div className="flex items-start justify-between border-b-2 border-black pb-2">
                   <div>
-                    <h2 className="text-base font-black uppercase tracking-tight leading-none text-black">
+                    <h2 className="text-base font-semibold uppercase tracking-tight leading-none text-black">
                       {businessName}
                     </h2>
-                    <p className="text-[10px] font-bold text-black/80 mt-0.5 font-mono">
+                    <p className="text-[10px] font-medium text-black/80 mt-0.5 font-mono">
                       Support: {businessPhone}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="px-2 py-0.5 border-2 border-black font-black text-xs uppercase font-mono">
+                    <span className="px-2 py-0.5 border-2 border-black font-semibold text-xs uppercase font-mono">
                       {courierName}
                     </span>
-                    <p className="text-[9px] font-mono font-bold mt-0.5">STANDARD COD</p>
+                    <p className="text-[9px] font-mono font-medium mt-0.5">STANDARD COD</p>
                   </div>
                 </div>
 
@@ -394,7 +394,7 @@ export default function ThermalAndInvoiceModal({
                     lineColor="#000000"
                     background="transparent"
                   />
-                  <div className="flex justify-between w-full text-[10px] font-mono font-bold pt-1">
+                  <div className="flex justify-between w-full text-[10px] font-mono font-medium pt-1">
                     <span>DATE: {orderDate}</span>
                     <span>HUB: DHAKA METRO</span>
                   </div>
@@ -402,13 +402,13 @@ export default function ThermalAndInvoiceModal({
 
                 {/* 3. Recipient Delivery Details */}
                 <div className="border-b-2 border-black pb-3 space-y-1">
-                  <span className="text-[9px] uppercase tracking-wider font-mono font-bold text-black/70 block">
+                  <span className="text-[9px] uppercase tracking-wider font-mono font-medium text-black/70 block">
                     SHIP TO (CONSIGNEE):
                   </span>
-                  <div className="text-sm font-black text-black leading-tight">
+                  <div className="text-sm font-semibold text-black leading-tight">
                     {customerName}
                   </div>
-                  <div className="text-xs font-mono font-black text-black">
+                  <div className="text-xs font-mono font-medium text-black">
                     TEL: {customerPhone}
                   </div>
                   <p className="text-[11px] font-medium leading-snug pt-0.5 text-black">
@@ -419,16 +419,16 @@ export default function ThermalAndInvoiceModal({
                 {/* 4. Giant COD Box (Critical for Delivery Riders) */}
                 <div className="p-3 border-2 border-black bg-white flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] uppercase font-mono font-black block leading-none">
+                    <span className="text-[10px] uppercase font-mono font-medium block leading-none">
                       COLLECT FROM BUYER (COD):
                     </span>
-                    <span className="text-2xl font-black font-mono leading-none mt-1 block">
+                    <span className="text-2xl font-semibold font-mono leading-none mt-1 block">
                       ৳{codAmount.toLocaleString()}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[9px] font-mono font-bold block">TERMS</span>
-                    <span className="text-xs font-black uppercase">CASH ONLY</span>
+                    <span className="text-[9px] font-mono font-medium block">TERMS</span>
+                    <span className="text-xs font-semibold uppercase">CASH ONLY</span>
                   </div>
                 </div>
 
@@ -437,11 +437,11 @@ export default function ThermalAndInvoiceModal({
                   <span className="truncate max-w-[240px]">
                     ITEMS: {items.map((i) => `${i.name} (x${i.quantity || 1})`).join(", ")}
                   </span>
-                  <span className="font-bold">QTY: {items.reduce((s, i) => s + (Number(i.quantity) || 1), 0)}</span>
+                  <span className="font-medium">QTY: {items.reduce((s, i) => s + (Number(i.quantity) || 1), 0)}</span>
                 </div>
 
                 {/* 6. Footer Courier Instructions */}
-                <div className="text-[8px] font-mono text-center border-t border-dashed border-black pt-1.5 uppercase font-bold text-black/70">
+                <div className="text-[8px] font-mono text-center border-t border-dashed border-black pt-1.5 uppercase font-medium text-black/70">
                   Fragile Goods · Do Not Open Parcel Before Payment · SmartInventory Verified
                 </div>
               </div>
@@ -455,7 +455,7 @@ export default function ThermalAndInvoiceModal({
                 {/* Invoice Top Strip */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b-2 border-slate-900 gap-4">
                   <div>
-                    <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">
+                    <h1 className="text-xl font-semibold uppercase tracking-tight text-slate-900">
                       {businessName}
                     </h1>
                     <p className="text-xs text-slate-600 mt-0.5 font-mono">
@@ -467,7 +467,7 @@ export default function ThermalAndInvoiceModal({
                   </div>
 
                   <div className="text-left sm:text-right font-mono">
-                    <div className="text-base font-black text-slate-900">
+                    <div className="text-base font-semibold text-slate-900">
                       {invoiceNumber}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">
@@ -552,7 +552,7 @@ export default function ThermalAndInvoiceModal({
                       <span>Tax / VAT (0%):</span>
                       <span>৳0</span>
                     </div>
-                    <div className="flex justify-between text-sm font-black border-t-2 border-slate-900 pt-2 text-slate-900">
+                    <div className="flex justify-between text-sm font-semibold font-mono border-t-2 border-slate-900 pt-2 text-slate-900">
                       <span>Total COD Due:</span>
                       <span>৳{codAmount.toLocaleString()}</span>
                     </div>

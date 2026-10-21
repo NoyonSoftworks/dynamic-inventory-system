@@ -44,15 +44,15 @@ export default function GlobalError({ error, reset }) {
             </svg>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-rose-700">
+          <div className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-xs font-medium text-rose-700">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-            Application Exception Caught
+            Application error caught
           </div>
         </div>
 
         {/* Headline & Friendly Message */}
         <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
             Something unexpected occurred
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
@@ -64,7 +64,7 @@ export default function GlobalError({ error, reset }) {
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             onClick={() => reset()}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 btn-tactile transition"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-[#EA580C] hover:bg-[#D94E07] px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-2xs transition"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

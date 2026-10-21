@@ -267,17 +267,17 @@ export default function MarketingLandingPage() {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-extrabold tracking-tight text-slate-900">
+              <span className="text-base font-semibold tracking-tight text-slate-900">
                 {APP_SHORT_NAME}
               </span>
-              <span className="text-[10px] font-mono font-medium text-orange-600 -mt-1 hidden sm:block">
+              <span className="text-[10px] font-mono font-medium text-orange-600 -mt-0.5 hidden sm:block">
                 Warehouse &amp; Courier OS
               </span>
             </div>
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
+          <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600">
             <a href="#how-it-works" className="hover:text-orange-600 transition">How It Works</a>
             <a href="#features" className="hover:text-orange-600 transition">Features</a>
             <a href="#simulator" className="hover:text-orange-600 transition">Terminal</a>
@@ -286,23 +286,23 @@ export default function MarketingLandingPage() {
             <a href="#contact" className="hover:text-orange-600 transition">Contact</a>
             <Link
               href="/demo"
-              className="text-orange-600 hover:text-orange-700 font-bold transition flex items-center gap-1.5 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200"
+              className="text-orange-600 hover:text-orange-700 font-medium transition flex items-center gap-1.5 bg-orange-50 px-2.5 py-1 rounded-md border border-orange-200"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span>Live Sandbox</span>
+              <span>Live sandbox</span>
             </Link>
           </nav>
 
           {/* Right Action & Currency Controls */}
           <div className="flex items-center gap-3">
             {/* Currency Pill Toggle */}
-            <div className="hidden sm:inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-[11px] font-bold">
+            <div className="hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-slate-100 p-0.5 text-xs font-medium">
               <button
                 type="button"
                 onClick={() => setCurrency("BDT")}
-                className={`px-2 py-0.5 rounded-md transition ${
+                className={`px-2 py-0.5 rounded-sm transition ${
                   currency === "BDT"
-                    ? "bg-white text-orange-600 shadow-2xs font-extrabold"
+                    ? "bg-white text-orange-600 shadow-2xs font-medium"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -311,9 +311,9 @@ export default function MarketingLandingPage() {
               <button
                 type="button"
                 onClick={() => setCurrency("USD")}
-                className={`px-2 py-0.5 rounded-md transition ${
+                className={`px-2 py-0.5 rounded-sm transition ${
                   currency === "USD"
-                    ? "bg-white text-orange-600 shadow-2xs font-extrabold"
+                    ? "bg-white text-orange-600 shadow-2xs font-medium"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -376,7 +376,7 @@ export default function MarketingLandingPage() {
             </div>
 
             {/* Commercial B2B Headline */}
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.12]">
+            <h1 className="text-3xl sm:text-5xl font-semibold tracking-[-0.03em] text-slate-900 leading-tight">
               Stop Courier Return Losses.<br />
               <span className="text-orange-600">
                 Automate Dispatches &amp; Keep More Profit.
@@ -681,20 +681,20 @@ export default function MarketingLandingPage() {
                       </button>
                     </div>
 
-                    <div className="max-w-md mx-auto p-4 rounded-xl border-2 border-slate-900 bg-white font-mono text-xs space-y-3 shadow-md">
+                    <div className="max-w-md mx-auto p-4 rounded-lg border-2 border-slate-900 bg-white font-mono text-xs space-y-3 shadow-sm">
                       <div className="flex justify-between border-b pb-2">
-                        <span className="font-black text-sm">{APP_NAME} LOGISTICS</span>
-                        <span className="font-bold">{heroLabelModalOrder.courier}</span>
+                        <span className="font-semibold text-sm">{APP_NAME} LOGISTICS</span>
+                        <span className="font-medium">{heroLabelModalOrder.courier}</span>
                       </div>
                       <div>
                         <div className="text-[10px] text-slate-500 uppercase">Deliver To:</div>
-                        <div className="font-bold text-sm text-slate-900">{heroLabelModalOrder.customer}</div>
+                        <div className="font-medium text-sm text-slate-900">{heroLabelModalOrder.customer}</div>
                         <div>{heroLabelModalOrder.phone}</div>
                         <div className="text-[11px] text-slate-600">{heroLabelModalOrder.address}</div>
                       </div>
                       <div className="p-2 bg-slate-100 rounded flex justify-between items-center">
-                        <span className="font-bold">CASH ON DELIVERY (COD):</span>
-                        <span className="font-black text-base text-slate-900">৳{heroLabelModalOrder.cod.toLocaleString()}</span>
+                        <span className="font-medium">CASH ON DELIVERY (COD):</span>
+                        <span className="font-semibold font-mono text-base text-slate-900">৳{heroLabelModalOrder.cod.toLocaleString()}</span>
                       </div>
                       <div className="text-center pt-1 border-t">
                         <div className="flex items-center justify-center gap-[2px] h-9">
@@ -735,30 +735,30 @@ export default function MarketingLandingPage() {
 
                 {/* 4 Financial Strips */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 font-mono">
-                    <span className="text-[10px] uppercase font-bold text-slate-500">Gross Sales (GMV)</span>
-                    <div className="text-lg font-black text-slate-900 mt-1">৳1,485,200</div>
+                  <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 font-mono">
+                    <span className="text-[10px] uppercase font-medium text-slate-500">Gross Sales (GMV)</span>
+                    <div className="text-lg font-semibold font-mono text-slate-900 mt-1">৳1,485,200</div>
                     <span className="text-[10px] text-slate-400">1,240 dispatches</span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 font-mono">
-                    <span className="text-[10px] uppercase font-bold text-slate-500">Wholesale COGS (60%)</span>
-                    <div className="text-lg font-black text-slate-700 mt-1">-৳891,120</div>
+                  <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 font-mono">
+                    <span className="text-[10px] uppercase font-medium text-slate-500">Wholesale COGS (60%)</span>
+                    <div className="text-lg font-semibold font-mono text-slate-700 mt-1">-৳891,120</div>
                     <span className="text-[10px] text-slate-400">Direct inventory cost</span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 font-mono">
-                    <span className="text-[10px] uppercase font-bold text-slate-500">Courier &amp; COD Fee</span>
-                    <div className="text-lg font-black text-amber-700 mt-1">-৳44,550</div>
+                  <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 font-mono">
+                    <span className="text-[10px] uppercase font-medium text-slate-500">Courier &amp; COD Fee</span>
+                    <div className="text-lg font-semibold font-mono text-amber-700 mt-1">-৳44,550</div>
                     <span className="text-[10px] text-slate-400">1% carrier commission</span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/70 font-mono">
-                    <span className="text-[10px] uppercase font-bold text-emerald-800">True Net Profit</span>
-                    <div className="text-lg font-black text-emerald-700 mt-1">
+                  <div className="p-3.5 rounded-lg border border-emerald-200 bg-emerald-50/70 font-mono">
+                    <span className="text-[10px] uppercase font-medium text-emerald-800">True Net Profit</span>
+                    <div className="text-lg font-semibold font-mono text-emerald-700 mt-1">
                       {heroSimulatedRtoSavings ? "৳580,730" : "৳549,530"}
                     </div>
-                    <span className="text-[10px] text-emerald-700 font-bold">
+                    <span className="text-[10px] text-emerald-700 font-medium">
                       {heroSimulatedRtoSavings ? "39.1% True Margin" : "37.0% True Margin"}
                     </span>
                   </div>
@@ -843,8 +843,8 @@ export default function MarketingLandingPage() {
                         <span className="font-bold text-slate-700">Bay 4 · Shelf 02</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-500 uppercase text-[10px] font-bold">Real-Time Available Stock:</span>
-                        <span className="font-black text-sm text-emerald-700">
+                        <span className="text-slate-500 uppercase text-[10px] font-medium">Real-Time Available Stock:</span>
+                        <span className="font-semibold font-mono text-sm text-emerald-700">
                           {heroScannerStock} Units
                         </span>
                       </div>
@@ -969,10 +969,10 @@ export default function MarketingLandingPage() {
       <section id="how-it-works" className="py-20 sm:py-28 bg-white border-b border-slate-200/80">
         <div className="mx-auto max-w-6xl px-4 sm:px-8 space-y-14">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
-              Quick-Start Blueprint
+            <span className="text-xs font-mono font-medium uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-md border border-orange-200">
+              Quick-Start Guide
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
               From Sign-Up to Dispatch in Under 5 Minutes
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
@@ -980,16 +980,16 @@ export default function MarketingLandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
             {/* Step 1 */}
-            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/50 p-7 sm:p-8 space-y-4 hover:border-orange-500/50 transition relative">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-6 sm:p-7 space-y-3 hover:border-slate-300 transition relative">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-2xl font-black text-orange-600">01</span>
-                <span className="px-2.5 py-1 rounded-lg bg-orange-100 text-orange-800 font-mono text-[10px] font-bold">
+                <span className="font-mono text-2xl font-semibold text-orange-600">01</span>
+                <span className="px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 font-mono text-[10px] font-medium">
                   Step 1
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Add Your Catalog</h3>
+              <h3 className="text-base font-semibold text-slate-900">Add Your Catalog</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Bulk import thousands of SKUs and variants via Excel / CSV, or paste supplier challan memos into our intelligent text parser. Auto-generates Code128 barcodes instantly.
               </p>
@@ -1001,14 +1001,14 @@ export default function MarketingLandingPage() {
             </div>
 
             {/* Step 2 */}
-            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/50 p-7 sm:p-8 space-y-4 hover:border-teal-500/50 transition relative">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-6 sm:p-7 space-y-3 hover:border-slate-300 transition relative">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-2xl font-black text-teal-600">02</span>
-                <span className="px-2.5 py-1 rounded-lg bg-teal-100 text-teal-800 font-mono text-[10px] font-bold">
+                <span className="font-mono text-2xl font-semibold text-teal-600">02</span>
+                <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 font-mono text-[10px] font-medium">
                   Step 2
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Connect Couriers</h3>
+              <h3 className="text-base font-semibold text-slate-900">Connect Couriers</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Connect your Steadfast, Pathao, or RedX API credentials in Settings. Automated webhooks continuously sync consignment status, tracking links, and cash collection.
               </p>
@@ -1020,14 +1020,14 @@ export default function MarketingLandingPage() {
             </div>
 
             {/* Step 3 */}
-            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/50 p-7 sm:p-8 space-y-4 hover:border-emerald-500/50 transition relative">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-6 sm:p-7 space-y-3 hover:border-slate-300 transition relative">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-2xl font-black text-emerald-600">03</span>
-                <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold">
+                <span className="font-mono text-2xl font-semibold text-emerald-600">03</span>
+                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-mono text-[10px] font-medium">
                   Step 3
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Automate &amp; Dispatch</h3>
+              <h3 className="text-base font-semibold text-slate-900">Automate &amp; Dispatch</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Scan outgoing parcels with any phone camera, verify customer delivery history to prevent return losses, and print standard 4×6 thermal shipping labels in 1 tap.
               </p>
@@ -1048,7 +1048,7 @@ export default function MarketingLandingPage() {
             <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
               Warehouse Capabilities
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
               A Modern Warehouse Operating System
             </h2>
             <p className="text-xs sm:text-sm text-slate-600">
@@ -1157,7 +1157,7 @@ export default function MarketingLandingPage() {
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-orange-700 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
               Interactive Execution
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
               Test Real-World Fulfillment Operations
             </h2>
             <p className="text-xs sm:text-sm text-slate-600">
@@ -1390,7 +1390,7 @@ export default function MarketingLandingPage() {
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-3 py-1 rounded-full border border-orange-200">
                 Interactive Financial Model
               </span>
-              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
                 Calculate Monthly Warehouse Savings
               </h2>
               <p className="text-xs sm:text-sm text-slate-600">
@@ -1399,10 +1399,10 @@ export default function MarketingLandingPage() {
             </div>
 
             {/* Range Slider */}
-            <div className="space-y-4 max-w-xl mx-auto bg-slate-50 p-6 rounded-2xl border border-slate-200">
+            <div className="space-y-4 max-w-xl mx-auto bg-slate-50 p-6 rounded-lg border border-slate-200">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-700">Monthly Orders Shipped</span>
-                <span className="font-mono font-extrabold text-orange-700 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                <span className="font-medium text-slate-700">Monthly Orders Shipped</span>
+                <span className="font-mono font-semibold text-orange-700 bg-white px-3 py-1 rounded-md border border-slate-200 shadow-2xs">
                   {monthlyOrders.toLocaleString()} orders / month
                 </span>
               </div>
@@ -1424,25 +1424,25 @@ export default function MarketingLandingPage() {
 
             {/* Result KPI Tiles */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-center">
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-                <div className="text-xs font-bold text-slate-600 uppercase font-mono">Labor Time Reclaimed</div>
-                <div className="text-3xl font-black text-emerald-600 font-mono mt-1">
+              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+                <div className="text-xs font-medium text-slate-600 uppercase font-mono">Labor Time Reclaimed</div>
+                <div className="text-2xl font-semibold text-emerald-600 font-mono mt-1">
                   ~{hoursSaved} hrs/mo
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">Automated consignment entry</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-                <div className="text-xs font-bold text-slate-600 uppercase font-mono">Hardware Gun Saved</div>
-                <div className="text-3xl font-black text-orange-600 font-mono mt-1">
+              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+                <div className="text-xs font-medium text-slate-600 uppercase font-mono">Hardware Gun Saved</div>
+                <div className="text-2xl font-semibold text-orange-600 font-mono mt-1">
                   {hardwareSavedVal}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">In-browser mobile scanning</div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-                <div className="text-xs font-bold text-slate-600 uppercase font-mono">Est. Value Created</div>
-                <div className="text-3xl font-black text-slate-900 font-mono mt-1">
+              <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+                <div className="text-xs font-medium text-slate-600 uppercase font-mono">Est. Value Created</div>
+                <div className="text-2xl font-semibold text-slate-900 font-mono mt-1">
                   {moneySavedVal}
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1">Reduced RTO &amp; staff hours</div>
@@ -1459,7 +1459,7 @@ export default function MarketingLandingPage() {
             <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
               Why We Are Different
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
               Why 2,400+ High-Volume Merchants Chose Us Over Standard CMS &amp; Spreadsheets
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -1600,7 +1600,7 @@ export default function MarketingLandingPage() {
             <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
               Simple, Transparent Pricing
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
               Predictable Plans Built for Bangladesh E-Commerce
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-lg mx-auto">
@@ -1608,13 +1608,13 @@ export default function MarketingLandingPage() {
             </p>
 
             {/* Currency Selector */}
-            <div className="pt-2 inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200">
+            <div className="pt-2 inline-flex items-center gap-1 p-1 rounded-md bg-slate-100 border border-slate-200">
               <button
                 type="button"
                 onClick={() => setCurrency("BDT")}
-                className={`btn-tactile px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-sm text-xs font-medium transition cursor-pointer ${
                   currency === "BDT"
-                    ? "bg-white text-orange-600 shadow-2xs font-extrabold"
+                    ? "bg-white text-orange-600 shadow-2xs font-medium"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -1623,9 +1623,9 @@ export default function MarketingLandingPage() {
               <button
                 type="button"
                 onClick={() => setCurrency("USD")}
-                className={`btn-tactile px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-sm text-xs font-medium transition cursor-pointer ${
                   currency === "USD"
-                    ? "bg-white text-orange-600 shadow-2xs font-extrabold"
+                    ? "bg-white text-orange-600 shadow-2xs font-medium"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -1634,16 +1634,16 @@ export default function MarketingLandingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
             {/* Tier 1: Starter / Small Business */}
-            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/40 p-7 sm:p-8 flex flex-col justify-between space-y-8 hover:border-slate-300 transition shadow-2xs">
-              <div className="space-y-5">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/40 p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:border-slate-300 transition shadow-2xs">
+              <div className="space-y-4">
                 <div>
-                  <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider">
+                  <span className="text-xs font-medium text-slate-500 uppercase font-mono tracking-wider">
                     Starter / F-Commerce
                   </span>
                   <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-4xl font-black text-slate-900 font-mono">
+                    <span className="text-3xl font-semibold text-slate-900 font-mono">
                       {currency === "BDT" ? "৳990" : "$9"}
                     </span>
                     <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
@@ -1653,28 +1653,28 @@ export default function MarketingLandingPage() {
                   </p>
                 </div>
 
-                <div className="pt-5 border-t border-slate-200/80 space-y-3 text-xs text-slate-700">
-                  <div className="flex items-center gap-2.5">
+                <div className="pt-4 border-t border-slate-200/80 space-y-2.5 text-xs text-slate-700">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Up to <strong>100 orders</strong> / month</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>100 Return Risk Checks</strong> / mo</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>In-browser mobile barcode scanner</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Manual order entry &amp; CSV export</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Single-user operator access</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>PostgreSQL RLS tenant security</span>
                   </div>
@@ -1683,25 +1683,25 @@ export default function MarketingLandingPage() {
 
               <Link
                 href="/login"
-                className="btn-tactile block w-full text-center rounded-xl border border-slate-300 bg-white hover:bg-slate-100 py-3 text-xs font-bold text-slate-800 transition shadow-2xs"
+                className="block w-full text-center rounded-md border border-slate-300 bg-white hover:bg-slate-100 py-2.5 text-xs font-medium text-slate-800 transition shadow-2xs"
               >
                 Start 100-Order Free Trial
               </Link>
             </div>
 
             {/* Tier 2: Professional / Growth (MOST POPULAR) */}
-            <div className="card-lift rounded-2xl border-2 border-orange-500 bg-white p-7 sm:p-8 flex flex-col justify-between space-y-8 relative shadow-xl shadow-orange-500/15">
-              <div className="space-y-5">
+            <div className="rounded-lg border-2 border-orange-500 bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 relative shadow-sm">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-orange-700 uppercase tracking-wider font-mono">
+                  <span className="text-xs font-medium text-orange-700 uppercase tracking-wider font-mono">
                     Professional / Growth
                   </span>
-                  <span className="text-[10px] font-mono font-bold uppercase bg-orange-100 text-orange-700 px-3 py-1 rounded-full border border-orange-200 shadow-2xs">
+                  <span className="text-[10px] font-mono font-medium uppercase bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full border border-orange-200">
                     Most Popular
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-4xl font-black text-slate-900 font-mono">
+                  <span className="text-3xl font-semibold text-slate-900 font-mono">
                     {currency === "BDT" ? "৳1,990" : "$19"}
                   </span>
                   <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
@@ -1710,32 +1710,32 @@ export default function MarketingLandingPage() {
                   Automated fulfillment, courier integrations, and return fraud protection for growing e-commerce brands.
                 </p>
 
-                <div className="pt-5 border-t border-slate-100 space-y-3 text-xs text-slate-700">
-                  <div className="flex items-center gap-2.5">
+                <div className="pt-4 border-t border-slate-100 space-y-2.5 text-xs text-slate-700">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>Unlimited</strong> orders &amp; dispatches</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>Smart COD Return Guard</strong> &amp; RTO Predictor</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>4×6 Thermal Label</strong> &amp; Tax Invoice Generator</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Steadfast &amp; Pathao native API webhooks</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Automated WhatsApp parcel notifications</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>3 User Seats</strong> (Admin &amp; Operators)</span>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Automated PO Restock generator</span>
                   </div>
@@ -1744,20 +1744,20 @@ export default function MarketingLandingPage() {
 
               <Link
                 href={user ? "/dashboard/billing" : "/login"}
-                className="btn-tactile block w-full text-center rounded-xl bg-orange-600 hover:bg-orange-500 py-3.5 text-xs sm:text-sm font-bold text-white transition shadow-md shadow-orange-600/30"
+                className="block w-full text-center rounded-md bg-[#EA580C] hover:bg-[#D94E07] py-2.5 text-xs sm:text-sm font-medium text-white transition shadow-2xs"
               >
                 {user ? "Upgrade in Dashboard →" : "Start 100-Order Free Trial →"}
               </Link>
             </div>
 
             {/* Tier 3: Scale / Enterprise */}
-            <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/40 p-7 sm:p-8 flex flex-col justify-between space-y-8 hover:border-slate-300 transition shadow-2xs">
-              <div className="space-y-5">
-                <span className="text-xs font-bold text-slate-500 uppercase font-mono tracking-wider">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/40 p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:border-slate-300 transition shadow-2xs">
+              <div className="space-y-4">
+                <span className="text-xs font-medium text-slate-500 uppercase font-mono tracking-wider">
                   Scale / Enterprise
                 </span>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-4xl font-black text-slate-900 font-mono">
+                  <span className="text-3xl font-semibold text-slate-900 font-mono">
                     {currency === "BDT" ? "৳4,990" : "$49"}
                   </span>
                   <span className="text-xs text-slate-500 font-medium font-sans">/ month</span>
@@ -1816,7 +1816,7 @@ export default function MarketingLandingPage() {
             <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
               Clear Answers
             </span>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
               Frequently Asked Questions
             </h2>
           </div>
@@ -1859,7 +1859,7 @@ export default function MarketingLandingPage() {
             <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
               Store Setup &amp; Onboarding
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
               Talk With Us · Get Custom Onboarding &amp; Setup
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
@@ -1871,16 +1871,16 @@ export default function MarketingLandingPage() {
             {/* Left Column: Founder & Fast Direct Channels */}
             <div className="lg:col-span-5 space-y-6">
               {/* Founder Profile Card */}
-              <div className="card-lift rounded-2xl border border-slate-200 bg-slate-50/70 p-6 sm:p-7 space-y-5 shadow-2xs">
+              <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-6 space-y-4 shadow-2xs">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    <div className="w-12 h-12 rounded-lg bg-orange-600 text-white flex items-center justify-center font-semibold text-base">
                       NH
                     </div>
-                    <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white" />
+                    <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white" />
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+                    <h3 className="text-base font-semibold text-slate-900 tracking-tight">
                       Noyon Hossain
                     </h3>
                     <p className="text-xs font-medium text-orange-600 font-mono">
@@ -1971,9 +1971,9 @@ export default function MarketingLandingPage() {
 
             {/* Right Column: Interactive Consultation Request Form */}
             <div className="lg:col-span-7">
-              <div className="card-lift rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="rounded-lg border border-slate-200 bg-white p-6 sm:p-7 shadow-2xs space-y-5">
                 <div>
-                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  <h3 className="text-lg font-semibold text-slate-900 tracking-tight">
                     Schedule a 15-Minute Architecture Session
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
@@ -2105,9 +2105,9 @@ export default function MarketingLandingPage() {
       </section>
 
       {/* ── BOTTOM CALL TO ACTION ─────────────────────────────────── */}
-      <section className="py-20 sm:py-28 border-t border-slate-200 bg-[#f8fafc]">
+      <section className="py-20 sm:py-24 border-t border-slate-200 bg-[#f8fafc]">
         <div className="mx-auto max-w-3xl px-4 sm:px-8 text-center space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
             Automate your warehouse fulfillment today.
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
@@ -2116,7 +2116,7 @@ export default function MarketingLandingPage() {
           <div className="pt-2">
             <Link
               href={user ? "/dashboard/products" : "/login"}
-              className="btn-tactile inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-7 py-3.5 text-xs sm:text-sm font-bold text-white transition shadow-md shadow-orange-600/30 group"
+              className="inline-flex items-center gap-2 rounded-md bg-[#EA580C] hover:bg-[#D94E07] px-6 py-3 text-xs sm:text-sm font-medium text-white transition shadow-2xs group"
             >
               <span>{user ? "Open Dashboard" : "Start 100-Order Free Trial"}</span>
               <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -2132,7 +2132,7 @@ export default function MarketingLandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-8 space-y-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <span className="font-extrabold text-slate-900 text-sm">{APP_NAME}</span>
+              <span className="font-semibold text-slate-900 text-sm">{APP_NAME}</span>
               <span className="text-slate-300">·</span>
               <span className="flex items-center gap-1.5 text-emerald-700 font-mono text-[11px] font-semibold">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />

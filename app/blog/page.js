@@ -109,12 +109,12 @@ export default function BlogIndexPage() {
       {/* ── HERO BANNER ─────────────────────────────────────────── */}
       <section className="relative z-10 pt-16 pb-12 border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-8 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3.5 py-1 text-xs font-mono text-orange-700">
+          <div className="inline-flex items-center gap-2 rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-mono text-orange-700">
             <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-            <span>KNOWLEDGE BASE &amp; OPERATIONAL BLUEPRINTS</span>
+            <span>KNOWLEDGE BASE &amp; GUIDES</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.15]">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 leading-[1.15]">
             Engineering &amp; Logistics Guides
           </h1>
 
@@ -173,11 +173,11 @@ export default function BlogIndexPage() {
       <main className="mx-auto max-w-7xl px-4 sm:px-8 py-12 flex-1 space-y-12">
         {/* Featured Flagship Article */}
         {featuredPost && !searchQuery && (
-          <article className="card-lift rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 hover:border-orange-500/40 transition group shadow-xl shadow-slate-200/50">
+          <article className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 hover:border-slate-300 transition group shadow-2xs">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="space-y-3 max-w-3xl">
                 <div className="flex flex-wrap items-center gap-2.5 text-[11px] font-mono">
-                  <span className="px-2.5 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 font-semibold">
+                  <span className="px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 font-medium">
                     {featuredPost.category}
                   </span>
                   <span className="text-slate-300">·</span>
@@ -192,7 +192,7 @@ export default function BlogIndexPage() {
                 </div>
 
                 <Link href={`/blog/${featuredPost.slug}`}>
-                  <h2 className="text-xl sm:text-3xl font-black text-slate-900 group-hover:text-orange-600 transition leading-snug">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 group-hover:text-orange-600 transition leading-snug">
                     {featuredPost.title}
                   </h2>
                 </Link>
@@ -281,27 +281,27 @@ export default function BlogIndexPage() {
         </div>
 
         {/* Inbound Conversion Box */}
-        <section className="rounded-3xl border border-orange-200 bg-gradient-to-r from-orange-50 via-white to-orange-50/50 p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-slate-200/50">
-          <div className="space-y-2 max-w-xl text-center sm:text-left">
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        <section className="rounded-xl border border-slate-200 bg-slate-50 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xs">
+          <div className="space-y-1.5 max-w-xl text-center sm:text-left">
+            <h3 className="text-xl font-semibold text-slate-900 tracking-tight">
               Automate your warehouse fulfillment today.
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Start with 100 free orders per month. Connect your private Steadfast keys and scan barcodes using mobile cameras.
             </p>
           </div>
-          <div className="shrink-0 flex items-center gap-3">
+          <div className="shrink-0 flex items-center gap-2">
             <Link
               href="/demo"
-              className="btn-tactile rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-700 transition"
+              className="rounded-md border border-slate-300 bg-white hover:bg-slate-50 px-3.5 py-1.5 text-xs font-medium text-slate-700 transition"
             >
-              Interactive Sandbox
+              Interactive sandbox
             </Link>
             <Link
               href="/login"
-              className="btn-tactile rounded-xl bg-orange-600 hover:bg-orange-500 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm shadow-orange-600/20"
+              className="rounded-md bg-[#EA580C] hover:bg-[#D94E07] px-4 py-1.5 text-xs font-medium text-white transition shadow-2xs"
             >
-              Start Free Trial →
+              Start free trial →
             </Link>
           </div>
         </section>
