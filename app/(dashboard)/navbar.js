@@ -2,119 +2,150 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
+import { useSidebar } from "./layout";
 
-// ── 7 Core Primary Navigation Tabs with SVG Icons ─────────────
-const CORE_NAV_LINKS = [
+// ── Categorized Navigation Groups ──────────────────────────────
+const NAV_GROUPS = [
   {
-    href: "/dashboard",
-    label: "Dashboard",
-    roles: ["viewer", "operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-      </svg>
-    ),
+    group: "OVERVIEW",
+    items: [
+      {
+        href: "/dashboard",
+        label: "Dashboard",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+        ),
+      },
+    ],
   },
   {
-    href: "/dashboard/ai-hub",
-    label: "Profit & Automation",
-    roles: ["viewer", "operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
+    group: "COMMERCE & ORDERS",
+    items: [
+      {
+        href: "/bulk-orders",
+        label: "Orders & Dispatch",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+          </svg>
+        ),
+      },
+      {
+        href: "/dashboard/products",
+        label: "Products",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        ),
+      },
+      {
+        href: "/dashboard/products/import",
+        label: "Import Catalog",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+        ),
+      },
+      {
+        href: "/bulk-orders",
+        label: "Invoice & Label",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+        ),
+      },
+    ],
   },
   {
-    href: "/dashboard/products",
-    label: "Catalog",
-    roles: ["viewer", "operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
+    group: "WAREHOUSE & STOCK",
+    items: [
+      {
+        href: "/operations",
+        label: "Inventory Operations",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        ),
+      },
+      {
+        href: "/dashboard/scanner",
+        label: "Barcode Scanner",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+          </svg>
+        ),
+      },
+      {
+        href: "/dashboard/ai-hub",
+        label: "Reorder & POs",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        ),
+      },
+    ],
   },
   {
-    href: "/dashboard/scanner",
-    label: "Scanner",
-    roles: ["operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/operations",
-    label: "Operations",
-    roles: ["operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-    ),
-  },
-  {
-    href: "/bulk-orders",
-    label: "Orders",
-    roles: ["operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-      </svg>
-    ),
-  },
-  {
-    href: "/reports",
-    label: "Analytics",
-    roles: ["viewer", "operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-      </svg>
-    ),
-  },
-  {
-    href: "/dashboard/reconciliation",
-    label: "Reconciliation",
-    roles: ["operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/dashboard/expenses",
-    label: "Expenses",
-    roles: ["viewer", "operator", "admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/dashboard/footprints",
-    label: "Audit Trail",
-    roles: ["admin"],
-    icon: (
-      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
-    ),
+    group: "FINANCE & REPORTS",
+    items: [
+      {
+        href: "/dashboard/reconciliation",
+        label: "Courier Reconciliation",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        ),
+      },
+      {
+        href: "/dashboard/expenses",
+        label: "Daily Expenses",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+      },
+      {
+        href: "/dashboard/reports",
+        label: "Reports & Profit",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        ),
+      },
+      {
+        href: "/dashboard/footprints",
+        label: "Activity Logs",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+      },
+      {
+        href: "/dashboard/billing",
+        label: "Billing & Plan",
+        icon: (
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        ),
+      },
+    ],
   },
 ];
-
-const ROLE_BADGE_STYLES = {
-  admin: "bg-orange-50 text-orange-700 border-orange-200",
-  operator: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  viewer: "bg-slate-100 text-slate-700 border-slate-200",
-};
 
 const ADMIN_EMAIL = (
   process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
@@ -124,27 +155,10 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { role, userEmail, businessName, loading } = useBusinessContext();
+  const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
   const isSuperAdmin = (userEmail || "").toLowerCase().trim() === ADMIN_EMAIL;
 
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const profileMenuRef = useRef(null);
-
-  // Close profile dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target)
-      ) {
-        setProfileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Secure sign out handler
+  // Sign out handler
   async function handleLogout() {
     try {
       document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
@@ -165,7 +179,7 @@ export default function Navbar() {
     }
   }
 
-  // Never render client navbar on /login or standalone /admin routes
+  // Never render client navbar on standalone auth/admin routes
   if (
     pathname === "/login" ||
     pathname === "/admin" ||
@@ -174,16 +188,11 @@ export default function Navbar() {
     return null;
   }
 
-  const isWorkspaceAdmin = role === "admin";
   const appBrandName = process.env.NEXT_PUBLIC_APP_NAME || "SmartInventory";
   const workspaceDisplayName =
     businessName && businessName.toLowerCase() !== "lavanza"
       ? businessName
       : "My Workspace";
-
-  const visibleCoreLinks = CORE_NAV_LINKS.filter((item) =>
-    item.roles.includes(role || "viewer")
-  );
 
   const isLinkActive = (href) => {
     if (href === "/dashboard") {
@@ -192,386 +201,330 @@ export default function Navbar() {
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const currentRoleStyle = ROLE_BADGE_STYLES[role] || ROLE_BADGE_STYLES.viewer;
+  const userInitial = (userEmail?.[0] || "N").toUpperCase();
+  const userName = userEmail ? userEmail.split("@")[0] : "Merchant";
+  const userRole = isSuperAdmin ? "Super Admin" : (role === "admin" ? "Store Owner" : "Operator");
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs font-sans">
-      <div className="mx-auto max-w-[1440px] px-3 sm:px-6">
-        <div className="flex h-14 items-center justify-between gap-2 sm:gap-4">
-          {/* ── 1. LEFT: Brand & Workspace Identity ───────────── */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <Link
-              href="/dashboard/products"
-              className="flex items-center gap-2 sm:gap-2.5 group focus:outline-none"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EA580C] text-white shadow-xs group-hover:bg-[#D94E07] transition-all">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <div className="flex flex-col leading-tight">
-                <span className="font-semibold text-sm tracking-tight text-slate-900 group-hover:text-[#EA580C] transition-colors truncate max-w-[130px] sm:max-w-[200px]">
+    <>
+      {/* ── 1. DESKTOP FIXED CATEGORIZED LEFT SIDEBAR (lg:flex) ───────── */}
+      <aside
+        className={`hidden lg:flex flex-col justify-between fixed inset-y-0 left-0 z-40 bg-white border-r border-slate-200/80 transition-all duration-200 font-sans ${
+          collapsed ? "w-20" : "w-64"
+        }`}
+      >
+        {/* Top Brand Header */}
+        <div className="h-16 border-b border-slate-200/80 px-4 flex items-center justify-between gap-2 shrink-0">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2.5 min-w-0 group focus:outline-none"
+            title={`${workspaceDisplayName} · ${appBrandName}`}
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EA580C] text-white shadow-xs group-hover:bg-[#D94E07] transition-all shrink-0">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            {!collapsed && (
+              <div className="flex flex-col leading-tight min-w-0">
+                <span className="font-semibold text-sm tracking-tight text-slate-900 group-hover:text-[#EA580C] transition-colors truncate">
                   {workspaceDisplayName}
                 </span>
-                <span className="text-[10px] text-[#EA580C] font-semibold tracking-wide uppercase">
+                <span className="text-[10px] text-slate-400 font-medium">
                   {appBrandName}
                 </span>
               </div>
-            </Link>
-          </div>
+            )}
+          </Link>
 
-          {/* ── 2. MIDDLE: Core Tenant Navigation ── */}
-          <div className="flex-1 min-w-0 flex items-center justify-center px-1 sm:px-4">
-            <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-1">
-              {visibleCoreLinks.map((link) => {
-                const active = isLinkActive(link.href);
+          {/* Sidebar Collapse Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            className="w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shrink-0 cursor-pointer"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label="Toggle sidebar collapse"
+          >
+            <svg
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Scrollable Navigation Groups */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 no-scrollbar">
+          {NAV_GROUPS.map((grp) => (
+            <div key={grp.group} className="space-y-1">
+              {!collapsed ? (
+                <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
+                  {grp.group}
+                </div>
+              ) : (
+                <div className="h-2" />
+              )}
+
+              {grp.items.map((item) => {
+                const active = isLinkActive(item.href);
                 return (
                   <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`btn-tactile flex flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-[13px] font-medium whitespace-nowrap shrink-0 transition-all duration-150 ${
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
+                      collapsed ? "justify-center px-2" : "justify-between"
+                    } ${
                       active
-                        ? "bg-orange-50 text-[#EA580C] border border-orange-200/70 font-semibold shadow-xs"
-                        : "border border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
+                        ? "bg-blue-50/80 text-blue-600 font-medium"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                     }`}
+                    title={collapsed ? item.label : undefined}
                   >
-                    <span className={active ? "text-[#EA580C]" : "text-slate-400"}>
-                      {link.icon}
-                    </span>
-                    <span className="shrink-0">{link.label}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={active ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"}>
+                        {item.icon}
+                      </span>
+                      {!collapsed && <span className="truncate">{item.label}</span>}
+                    </div>
+                    {!collapsed && active && (
+                      <span className="text-blue-600 text-xs font-bold shrink-0">›</span>
+                    )}
                   </Link>
                 );
               })}
             </div>
-          </div>
+          ))}
 
-          {/* ── 3. RIGHT: Workspace Settings & User Profile ──────── */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Super Admin Console Button */}
-            {isSuperAdmin && (
+          {/* Super Admin Console Link (if authorized) */}
+          {isSuperAdmin && (
+            <div className="pt-2 border-t border-slate-100 space-y-1">
+              {!collapsed && (
+                <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
+                  PLATFORM
+                </div>
+              )}
               <Link
                 href="/admin"
-                className="btn-tactile inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition shadow-2xs"
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium bg-slate-900 text-white hover:bg-slate-800 transition ${
+                  collapsed ? "justify-center px-2" : ""
+                }`}
                 title="Super Admin Control Plane"
               >
-                <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>Super Admin</span>
+                {!collapsed && <span className="truncate">Super Admin</span>}
               </Link>
-            )}
+            </div>
+          )}
+        </div>
 
-            {/* Quick Settings Icon */}
-            {isWorkspaceAdmin && (
+        {/* Bottom Sidebar Footer */}
+        <div className="p-3 border-t border-slate-200/80 bg-white shrink-0 space-y-3">
+          {/* Quick Scanner Shortcut Card (Desktop only when expanded) */}
+          {!collapsed && (
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-2.5">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#EA580C] flex items-center justify-center shrink-0">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold text-slate-800 truncate">Mobile Scanner</div>
+                  <div className="text-[10px] text-slate-400 truncate">In-browser barcode gun</div>
+                </div>
+              </div>
               <Link
-                href="/dashboard/settings"
-                className="hidden sm:inline-flex p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition shrink-0"
-                title="Store & Integration Settings"
+                href="/dashboard/scanner"
+                className="mt-2 block w-full py-1 text-center text-[11px] font-medium text-[#EA580C] hover:bg-orange-50 rounded-md transition"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+                Launch camera scan →
               </Link>
-            )}
+            </div>
+          )}
 
-            {/* User Profile Avatar Dropdown */}
-            {!loading && userEmail && (
-              <div className="relative" ref={profileMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="btn-tactile flex items-center gap-1.5 sm:gap-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 p-1 sm:px-2.5 sm:py-1.5 shadow-2xs transition focus:outline-none"
-                  aria-expanded={profileOpen}
-                >
-                  <div className="h-6 w-6 rounded-md bg-[#EA580C] text-white flex items-center justify-center font-semibold text-xs uppercase shadow-xs shrink-0">
-                    {(userEmail[0] || "U").toUpperCase()}
-                  </div>
-
-                  <span
-                    className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider border shrink-0 ${currentRoleStyle}`}
-                  >
-                    {role || "Admin"}
-                  </span>
-
-                  <span className="text-slate-400 text-xs hidden sm:inline-block">
-                    ▾
-                  </span>
-                </button>
-
-                {/* Dropdown Menu Panel */}
-                {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-white border border-slate-200 p-2 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150">
-                    {/* User Identity Details */}
-                    <div className="p-3 border-b border-slate-100 bg-slate-50/50 rounded-lg space-y-1">
-                      <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                        Signed in as
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 truncate" title={userEmail}>
-                        {userEmail}
-                      </div>
-                      <div className="text-[11px] text-orange-600 font-medium truncate pt-0.5 flex items-center gap-1">
-                        <span>Workspace:</span>
-                        <span className="font-bold">{workspaceDisplayName}</span>
-                      </div>
-                    </div>
-
-                    {/* Pure Tenant Navigation Items */}
-                    <div className="py-1.5 space-y-0.5 text-xs font-medium">
-                      {isSuperAdmin && (
-                        <div className="pb-1.5 mb-1.5 border-b border-slate-100">
-                          <Link
-                            href="/admin"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-bold transition"
-                          >
-                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span>Super Admin Control Plane</span>
-                          </Link>
-                        </div>
-                      )}
-                      {isWorkspaceAdmin && (
-                        <>
-                          <Link
-                            href="/dashboard/products/add"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-orange-600 hover:bg-orange-50 font-semibold transition"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span>Add Product Intake</span>
-                          </Link>
-
-                          <Link
-                            href="/dashboard/settings?tab=couriers"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
-                          >
-                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            <span>Courier API &amp; Webhooks</span>
-                          </Link>
-
-                          <Link
-                            href="/dashboard/settings?tab=team"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
-                          >
-                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                            <span>Team &amp; Store Settings</span>
-                          </Link>
-
-                          <Link
-                            href="/dashboard/reconciliation"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
-                          >
-                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                            <span>Courier COD Reconciliation</span>
-                          </Link>
-
-                          <Link
-                            href="/dashboard/expenses"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
-                          >
-                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>Operating Overheads &amp; Ads</span>
-                          </Link>
-
-                          <Link
-                            href="/dashboard/billing"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
-                          >
-                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                            </svg>
-                            <span>Billing &amp; Subscription</span>
-                          </Link>
-
-                          <Link
-                            href="/dashboard/footprints"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 transition"
-                          >
-                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                            <span>Audit Trail</span>
-                          </Link>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Sign Out Option */}
-                    <div className="pt-1.5 border-t border-slate-100">
-                      <button
-                        onClick={() => {
-                          setProfileOpen(false);
-                          handleLogout();
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left cursor-pointer"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+          {/* User Profile Row */}
+          <div className="flex items-center gap-2.5 px-1 py-1 min-w-0">
+            <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xs shrink-0 shadow-xs">
+              {userInitial}
+            </div>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-slate-900 truncate" title={userEmail}>
+                  {userName}
+                </div>
+                <div className="text-[10px] text-slate-400 truncate">
+                  {userRole}
+                </div>
               </div>
             )}
+          </div>
 
-            {!loading && !userEmail && (
-              <Link
-                href="/login"
-                className="btn-tactile inline-flex items-center rounded-xl bg-orange-600 hover:bg-orange-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs shadow-orange-600/30 transition shrink-0"
-              >
-                Sign In
-              </Link>
-            )}
+          {/* Full-width Outlined Rose Sign Out Button */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className={`w-full h-9 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-[13px] font-medium flex items-center justify-center gap-2 transition cursor-pointer ${
+              collapsed ? "px-1" : "px-3"
+            }`}
+            title="Sign out of workspace"
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+        </div>
+      </aside>
 
-            {/* Mobile Navigation Drawer Toggle */}
-            <div className="lg:hidden flex items-center">
+      {/* ── 2. MOBILE TOP BAR (lg:hidden) ────────────────────────── */}
+      <header className="lg:hidden sticky top-0 z-30 h-14 bg-white border-b border-slate-200/80 px-4 flex items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EA580C] text-white">
+            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <span className="font-semibold text-sm tracking-tight text-slate-900 truncate">
+            {workspaceDisplayName}
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-[11px]">
+            {userInitial}
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            className="p-1.5 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100"
+            aria-label="Open mobile menu"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      {/* ── 3. MOBILE SIDEBAR DRAWER (lg:hidden) ─────────────────── */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity animate-in fade-in"
+            onClick={() => setMobileOpen(false)}
+          />
+
+          {/* Slide-over Drawer */}
+          <div className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+            {/* Header */}
+            <div className="h-14 border-b border-slate-200/80 px-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EA580C] text-white">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-sm tracking-tight text-slate-900 truncate">
+                  {workspaceDisplayName}
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 transition"
-                aria-label="Toggle Navigation Menu"
+                onClick={() => setMobileOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-700"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  stroke="currentColor"
-                >
-                  {mobileMenuOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"
-                    />
-                  )}
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
+              </button>
+            </div>
+
+            {/* Navigation Groups */}
+            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 no-scrollbar">
+              {NAV_GROUPS.map((grp) => (
+                <div key={grp.group} className="space-y-1">
+                  <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
+                    {grp.group}
+                  </div>
+                  {grp.items.map((item) => {
+                    const active = isLinkActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
+                          active
+                            ? "bg-blue-50/80 text-blue-600 font-medium"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={active ? "text-blue-600" : "text-slate-400"}>
+                            {item.icon}
+                          </span>
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        {active && <span className="text-blue-600 text-xs font-bold">›</span>}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
+
+              {isSuperAdmin && (
+                <div className="pt-2 border-t border-slate-100 space-y-1">
+                  <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
+                    PLATFORM
+                  </div>
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium bg-slate-900 text-white"
+                  >
+                    <span className="truncate">Super Admin Control</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Footer */}
+            <div className="p-3 border-t border-slate-200/80 bg-white space-y-3">
+              <div className="flex items-center gap-2.5 px-1 py-1">
+                <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xs">
+                  {userInitial}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold text-slate-900 truncate">
+                    {userName}
+                  </div>
+                  <div className="text-[10px] text-slate-400 truncate">
+                    {userRole}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  handleLogout();
+                }}
+                className="w-full h-9 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-[13px] font-medium flex items-center justify-center gap-2 transition"
+              >
+                <span>Sign Out</span>
               </button>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* ── Mobile Drawer ────────────────────────────────────────── */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-3 shadow-xl animate-in slide-in-from-top-2 duration-150">
-          {userEmail && (
-            <div className="pb-2 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-xs font-mono text-slate-800 font-bold truncate max-w-[200px]">
-                  {userEmail}
-                </span>
-                <span className="text-[10px] text-orange-600 font-medium truncate max-w-[200px]">
-                  Workspace: {workspaceDisplayName}
-                </span>
-              </div>
-              <span
-                className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${currentRoleStyle}`}
-              >
-                {role || "Admin"}
-              </span>
-            </div>
-          )}
-
-          {/* Core Navigation Links */}
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-2 pt-1">
-              Main Menu
-            </span>
-            {visibleCoreLinks.map((link) => {
-              const active = isLinkActive(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition ${
-                    active
-                      ? "bg-orange-50 text-[#EA580C] border border-orange-200/70 font-semibold shadow-xs"
-                      : "border border-transparent text-slate-600 hover:bg-slate-100/70 hover:text-slate-900"
-                  }`}
-                >
-                  <span className={active ? "text-[#EA580C]" : "text-slate-400"}>
-                    {link.icon}
-                  </span>
-                  <span>{link.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Mobile Admin Quick Shortcuts */}
-          {isWorkspaceAdmin && (
-            <div className="pt-2 border-t border-slate-100 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-2">
-                Administration
-              </span>
-              <Link
-                href="/dashboard/products/add"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-orange-600 hover:bg-orange-50"
-              >
-                <span>+</span> Add Product Intake
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              >
-                Settings &amp; Couriers
-              </Link>
-              <Link
-                href="/dashboard/billing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              >
-                Billing &amp; Subscription
-              </Link>
-            </div>
-          )}
-
-          {/* Mobile Logout */}
-          <div className="pt-2 border-t border-slate-100">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                handleLogout();
-              }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
       )}
-    </nav>
+    </>
   );
 }
