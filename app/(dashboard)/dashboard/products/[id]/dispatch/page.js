@@ -22,6 +22,34 @@ function CloseIcon({ className = "w-3.5 h-3.5" }) {
   );
 }
 
+function playSuccessBeep() {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      /** @type {any} */ (window).webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    const audioCtx = new AudioContextClass();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1900, audioCtx.currentTime + 0.08);
+
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.12);
+  } catch (err) {
+    // Audio feedback muted or unsupported
+  }
+}
+
 function ProductDispatchContent({ params }) {
   const router = useRouter();
   const clientParams = useParams();
@@ -41,6 +69,7 @@ function ProductDispatchContent({ params }) {
   // ── Scanned Items Queue ──────────────────────────────────
   const [scannedItems, setScannedItems] = useState([]);
   const [barcodeInput, setBarcodeInput] = useState("");
+  const [searchingBarcode, setSearchingBarcode] = useState(false);
   const scannerInputRef = useRef(null);
 
   // ── Customer Details Form ────────────────────────────────
@@ -106,42 +135,86 @@ function ProductDispatchContent({ params }) {
     };
   }, [productId, businessId]);
 
-  // ── Barcode Scanner Logic ────────────────────────────────
-  function handleBarcodeScan(e) {
+  // ── Intelligent Multi-Product Barcode Scanner Logic ──────────
+  async function handleBarcodeScan(e) {
     if (e.key === "Enter") {
       e.preventDefault();
       const rawCode = barcodeInput.trim();
 
       if (!rawCode) return;
 
-      // 1. Search for matching code in the available in-stock inventory
-      const matchedItem = availableItems.find(
+      // 1. Check if already added to current parcel queue
+      const alreadyAdded = scannedItems.some(
         (item) => item.unique_barcode.toUpperCase() === rawCode.toUpperCase()
       );
+      if (alreadyAdded) {
+        showToast("info", `Barcode "${rawCode}" is already added to this parcel.`);
+        setBarcodeInput("");
+        return;
+      }
+
+      // 2. First search in current product's cached in-stock items (instant 0ms)
+      let matchedItem = availableItems.find(
+        (item) => item.unique_barcode.toUpperCase() === rawCode.toUpperCase()
+      );
+      let itemProduct = product;
+
+      // 3. If NOT found in current product, perform dynamic cross-catalog lookup across all products in store
+      if (!matchedItem) {
+        setSearchingBarcode(true);
+        try {
+          const lookupRes = await fetch(
+            `/api/products/lookup?code=${encodeURIComponent(rawCode)}`
+          );
+          const lookupJson = await lookupRes.json();
+
+          if (lookupJson.success && lookupJson.found && lookupJson.matchedItem) {
+            if (lookupJson.matchedItem.status !== "IN_STOCK") {
+              showToast(
+                "error",
+                `Barcode "${rawCode}" (${lookupJson.product?.name || "Item"}) is already ${lookupJson.matchedItem.status}.`
+              );
+              setBarcodeInput("");
+              return;
+            }
+            matchedItem = lookupJson.matchedItem;
+            itemProduct = lookupJson.product;
+          }
+        } catch (err) {
+          console.warn("Cross-catalog barcode lookup failed:", err);
+        } finally {
+          setSearchingBarcode(false);
+        }
+      }
 
       if (!matchedItem) {
         showToast(
           "error",
-          `Barcode "${rawCode}" not found in available stock for this product.`
+          `Barcode "${rawCode}" not found in available stock across your catalog.`
         );
         setBarcodeInput("");
         return;
       }
 
-      // 2. Check if already added to current queue
-      const alreadyAdded = scannedItems.some((item) => item.id === matchedItem.id);
-      if (alreadyAdded) {
-        showToast("info", `Item "${rawCode}" is already in your dispatch queue.`);
-        setBarcodeInput("");
-        return;
-      }
+      // 4. Construct parcel item object with its product name and price
+      const parcelItem = {
+        id: matchedItem.id,
+        unique_barcode: matchedItem.unique_barcode,
+        product_id: itemProduct?.id || product?.id,
+        product_name: itemProduct?.name || product?.name || "Product",
+        unit_price: Number(itemProduct?.price ?? product?.price ?? 0),
+        base_sku: itemProduct?.base_sku || product?.base_sku || "",
+      };
 
-      // 3. Add to scanned list
-      setScannedItems((prev) => [...prev, matchedItem]);
-      showToast("success", `Barcode "${matchedItem.unique_barcode}" ready to dispatch.`);
+      setScannedItems((prev) => [...prev, parcelItem]);
+      playSuccessBeep();
+      showToast(
+        "success",
+        `Scanned: ${parcelItem.product_name} (${parcelItem.unique_barcode}) - ৳${parcelItem.unit_price.toLocaleString()}`
+      );
       setBarcodeInput("");
 
-      // Refocus scanner
+      // Refocus scanner input
       setTimeout(() => {
         scannerInputRef.current?.focus();
       }, 50);
@@ -159,17 +232,29 @@ function ProductDispatchContent({ params }) {
   // ── Fast Manual Select from available list ───────────────
   function quickAddBarcode(item) {
     if (scannedItems.some((i) => i.id === item.id)) return;
-    setScannedItems((prev) => [...prev, item]);
-    showToast("success", `Added "${item.unique_barcode}"`);
+    const parcelItem = {
+      id: item.id,
+      unique_barcode: item.unique_barcode,
+      product_id: product?.id,
+      product_name: product?.name || "Product",
+      unit_price: Number(product?.price || 0),
+      base_sku: product?.base_sku || "",
+    };
+    setScannedItems((prev) => [...prev, parcelItem]);
+    playSuccessBeep();
+    showToast("success", `Added "${item.unique_barcode}" (${product?.name})`);
     setTimeout(() => {
       scannerInputRef.current?.focus();
     }, 50);
   }
 
-  // ── Price Calculation ────────────────────────────────────
+  // ── Price Calculation (Aggregated across all multi-product items) ──
   const unitPrice = Number(product?.price) || 0;
   const deliveryFee = deliveryArea === "inside_dhaka" ? 60 : 120;
-  const subtotal = unitPrice * scannedItems.length;
+  const subtotal = scannedItems.reduce(
+    (sum, item) => sum + (Number(item.unit_price) || 0),
+    0
+  );
   const grandTotal = subtotal + (scannedItems.length > 0 ? deliveryFee : 0);
 
   // ── Submission Logic ─────────────────────────────────────
@@ -197,7 +282,12 @@ function ProductDispatchContent({ params }) {
     setSubmitting(true);
 
     try {
-      // 1. Insert order record into 'orders' table
+      // 1. Group items for notes & tracking
+      const itemsSummary = scannedItems
+        .map((item) => `${item.product_name} [${item.unique_barcode}]`)
+        .join(", ");
+
+      // 2. Insert order record into 'orders' table
       const orderPayload = {
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim(),
@@ -207,13 +297,17 @@ function ProductDispatchContent({ params }) {
         quantity: scannedItems.length,
         total_amount: grandTotal,
         status: "DISPATCHED",
+        delivery_charge: deliveryFee,
+        order_notes: orderNotes.trim()
+          ? `${orderNotes.trim()} | Items: ${itemsSummary}`
+          : `Items: ${itemsSummary}`,
       };
 
       if (businessId) {
         orderPayload.business_id = businessId;
       }
 
-      // 1. Process order and stock update via server route (bypasses RLS recursion)
+      // 3. Process order and stock update via server route (bypasses RLS recursion)
       const scannedItemIds = scannedItems.map((item) => item.id);
       const dispatchRes = await fetch("/api/products/dispatch", {
         method: "POST",
@@ -230,7 +324,7 @@ function ProductDispatchContent({ params }) {
       }
       const orderData = dispatchJson.order;
 
-      // 3. Trigger Courier API (Steadfast Integration)
+      // 4. Trigger Courier API (Steadfast Integration)
       if (selectedCourier === "Steadfast") {
         try {
           const courierRes = await fetch("/api/courier/steadfast", {
@@ -246,7 +340,7 @@ function ProductDispatchContent({ params }) {
               amount_to_collect: grandTotal,
               invoice_note:
                 orderNotes.trim() ||
-                `${product.name} (Qty: ${scannedItems.length})`,
+                `Parcel (${scannedItems.length} pcs): ${scannedItems.map((i) => i.product_name).slice(0, 3).join(", ")}`,
             }),
           });
 
@@ -585,7 +679,7 @@ function ProductDispatchContent({ params }) {
             <div className="rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200/80 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Target Product
+                  Primary Product
                 </span>
                 <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
                   {availableItems.length} Units in Stock
@@ -597,7 +691,17 @@ function ProductDispatchContent({ params }) {
                 <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 font-medium">
                   <span>SKU: <code className="font-mono font-bold text-slate-800">{product.base_sku}</code></span>
                   <span>·</span>
-                  <span>Unit Price: <strong className="text-slate-900">${unitPrice.toFixed(2)}</strong></span>
+                  <span>Unit Price: <strong className="text-slate-900 font-mono">৳{unitPrice.toLocaleString()}</strong></span>
+                </div>
+              </div>
+
+              {/* Multi-Item Parcel Info Banner */}
+              <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-xs text-blue-900 flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="leading-relaxed">
+                  <span className="font-bold">Multi-Product Parcel Supported:</span> 1 জন কাস্টমার বিভিন্ন আইটেম অর্ডার করলে যেকোনো প্রোডাক্টের বারকোড স্ক্যান করুন। সিস্টেম স্বয়ংক্রিয়ভাবে ক্যাটালগ থেকে প্রোডাক্টের নাম ও প্রাইস ডিটেক্ট করে একই পার্সেল বা অর্ডারে যুক্ত করে নিবে।
                 </div>
               </div>
             </div>
@@ -612,7 +716,7 @@ function ProductDispatchContent({ params }) {
                   </span>
                 </div>
                 <span className="text-[10px] text-slate-400 font-mono">
-                  USB / Bluetooth Ready
+                  {searchingBarcode ? "Searching Catalog…" : "USB / Bluetooth Ready"}
                 </span>
               </div>
 
@@ -628,8 +732,9 @@ function ProductDispatchContent({ params }) {
                     value={barcodeInput}
                     onChange={(e) => setBarcodeInput(e.target.value)}
                     onKeyDown={handleBarcodeScan}
-                    placeholder="Aim scanner & pull trigger…"
-                    className="block w-full rounded-xl bg-slate-800/90 border border-slate-700 px-4 py-3 text-sm font-mono tracking-wider text-emerald-400 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition"
+                    disabled={searchingBarcode}
+                    placeholder={searchingBarcode ? "Searching store catalog across products…" : "Aim scanner & pull trigger…"}
+                    className="block w-full rounded-xl bg-slate-800/90 border border-slate-700 px-4 py-3 text-sm font-mono tracking-wider text-emerald-400 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition disabled:opacity-50"
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                     <span className="text-xs text-slate-400 font-mono bg-slate-700/60 px-2 py-0.5 rounded">
@@ -638,7 +743,7 @@ function ProductDispatchContent({ params }) {
                   </div>
                 </div>
                 <p className="text-[11px] text-slate-400 italic">
-                  Pressing trigger automatically validates serial against in-stock records.
+                  Pressing trigger automatically validates serial against all in-stock catalog records.
                 </p>
               </div>
 
@@ -652,7 +757,7 @@ function ProductDispatchContent({ params }) {
                     <button
                       type="button"
                       onClick={() => setScannedItems([])}
-                      className="text-[11px] text-rose-400 hover:text-rose-300"
+                      className="text-[11px] text-rose-400 hover:text-rose-300 cursor-pointer"
                     >
                       Clear All
                     </button>
@@ -661,24 +766,32 @@ function ProductDispatchContent({ params }) {
 
                 {scannedItems.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-slate-800 p-4 text-center text-xs text-slate-500">
-                    No barcodes scanned yet. Scan a sticker to add to order.
+                    No barcodes scanned yet. Scan any product sticker in your store to add to this order.
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                     {scannedItems.map((item, idx) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between bg-slate-800/90 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono"
+                        className="flex items-center justify-between bg-slate-800/90 border border-slate-700 rounded-lg px-3 py-2 text-xs"
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="text-emerald-400 font-bold">#{idx + 1}</span>
-                          <span className="text-white font-bold">{item.unique_barcode}</span>
+                        <div className="min-w-0 flex-1 pr-2">
+                          <div className="flex items-center gap-2 font-mono">
+                            <span className="text-emerald-400 font-bold text-[11px]">#{idx + 1}</span>
+                            <span className="text-white font-bold text-xs truncate">{item.unique_barcode}</span>
+                            <span className="text-orange-400 font-sans font-semibold text-[11px]">
+                              ৳{Number(item.unit_price || 0).toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-300 font-sans truncate mt-0.5 font-medium">
+                            {item.product_name || "Store Item"}
+                          </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeScannedItem(item.id)}
-                          className="text-rose-400 hover:text-rose-300 p-0.5 rounded transition"
-                          aria-label={`Remove ${item.unique_barcode}`}
+                          className="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-slate-700/60 transition cursor-pointer shrink-0"
+                          title={`Remove ${item.unique_barcode}`}
                         >
                           <CloseIcon className="w-3.5 h-3.5" />
                         </button>
@@ -703,7 +816,7 @@ function ProductDispatchContent({ params }) {
                           key={item.id}
                           type="button"
                           onClick={() => quickAddBarcode(item)}
-                          className="rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[10px] font-mono text-slate-300 transition"
+                          className="rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[10px] font-mono text-slate-300 transition cursor-pointer"
                         >
                           + {item.unique_barcode}
                         </button>
@@ -721,25 +834,34 @@ function ProductDispatchContent({ params }) {
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-slate-600">
-                  <span>Unit Price:</span>
-                  <span>${unitPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Quantity Scanned:</span>
-                  <span className="font-bold text-slate-900">{scannedItems.length} pcs</span>
+                  <span>Items in Parcel:</span>
+                  <span className="font-bold text-slate-900 font-mono">
+                    {scannedItems.length} pcs
+                    {scannedItems.length > 0 && (
+                      <span className="text-xs text-slate-400 font-sans font-normal ml-1">
+                        ({new Set(scannedItems.map((i) => i.product_id)).size} product{new Set(scannedItems.map((i) => i.product_id)).size > 1 ? "s" : ""})
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span className="font-semibold text-slate-900 font-mono">
+                    ৳{subtotal.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Delivery ({selectedCourier}):</span>
-                  <span>৳{scannedItems.length > 0 ? deliveryFee : 0}</span>
+                  <span className="font-mono">
+                    ৳{scannedItems.length > 0 ? deliveryFee : 0}
+                  </span>
                 </div>
 
                 <div className="border-t border-slate-200 pt-2 flex justify-between text-base font-bold text-slate-900">
-                  <span>Total Payable:</span>
-                  <span className="text-orange-600 font-mono">${subtotal.toFixed(2)} + ৳{deliveryFee}</span>
+                  <span>Total Payable (COD):</span>
+                  <span className="text-orange-600 font-mono text-lg">
+                    ৳{grandTotal.toLocaleString()}
+                  </span>
                 </div>
               </div>
 
@@ -747,7 +869,7 @@ function ProductDispatchContent({ params }) {
               <button
                 type="submit"
                 disabled={submitting || scannedItems.length === 0}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-orange-600/25 hover:bg-orange-500 hover:shadow-orange-600/40 focus:ring-2 focus:ring-orange-500/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed btn-tactile transition-all"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-orange-600/25 hover:bg-orange-500 hover:shadow-orange-600/40 focus:ring-2 focus:ring-orange-500/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed btn-tactile transition-all cursor-pointer"
               >
                 {submitting ? (
                   <>
@@ -756,7 +878,7 @@ function ProductDispatchContent({ params }) {
                   </>
                 ) : (
                   <>
-                    <span>Confirm dispatch via {selectedCourier}</span>
+                    <span>Confirm dispatch via {selectedCourier} ({scannedItems.length} items · ৳{grandTotal.toLocaleString()})</span>
                   </>
                 )}
               </button>

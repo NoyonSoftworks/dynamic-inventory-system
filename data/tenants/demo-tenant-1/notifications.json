@@ -1,0 +1,25 @@
+[
+  {
+    "id": "notif-1792614338678-675m",
+    "business_id": "demo-tenant-1",
+    "title": "New Update: Enhanced Courier Auto-Reconciliation",
+    "message": "We have launched automated courier payment matching for Steadfast and Pathao. Check your Courier Reconciliation page for 1-click ledger audits.",
+    "type": "success",
+    "category": "system",
+    "created_at": "2026-10-21T20:25:38.678Z",
+    "read": false,
+    "sender": "Platform Broadcast",
+    "expires_at": null
+  },
+  {
+    "id": "notif-welcome-1792614338677",
+    "business_id": "demo-tenant-1",
+    "title": "Welcome to SmartInventory!",
+    "message": "Your workspace is ready. Start by adding products or connecting your courier API keys.",
+    "type": "success",
+    "category": "system",
+    "created_at": "2026-10-21T19:36:29.596Z",
+    "read": false,
+    "sender": "Platform Team"
+  }
+]

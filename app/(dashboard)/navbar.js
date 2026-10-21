@@ -21,6 +21,16 @@ const NAV_GROUPS = [
           </svg>
         ),
       },
+      {
+        href: "/dashboard/piku",
+        label: "Piku AI Assistant",
+        badge: "AI ✨",
+        icon: (
+          <svg className="w-4 h-4 shrink-0 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        ),
+      },
     ],
   },
   {
@@ -369,7 +379,7 @@ export default function Navbar() {
                 const active = isLinkActive(item.href);
                 return (
                   <Link
-                    key={item.href}
+                    key={`${item.href}-${item.label}`}
                     href={item.href}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
                       collapsed ? "justify-center px-2" : "justify-between"
@@ -386,7 +396,12 @@ export default function Navbar() {
                       </span>
                       {!collapsed && <span className="truncate">{item.label}</span>}
                     </div>
-                    {!collapsed && active && (
+                    {!collapsed && item.badge && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-2xs shrink-0">
+                        {item.badge}
+                      </span>
+                    )}
+                    {!collapsed && active && !item.badge && (
                       <span className="text-blue-600 text-xs font-bold shrink-0">›</span>
                     )}
                   </Link>
@@ -547,7 +562,7 @@ export default function Navbar() {
                     const active = isLinkActive(item.href);
                     return (
                       <Link
-                        key={item.href}
+                        key={`${item.href}-${item.label}`}
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
                         className={`flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
@@ -562,7 +577,13 @@ export default function Navbar() {
                           </span>
                           <span className="truncate">{item.label}</span>
                         </div>
-                        {active && <span className="text-blue-600 text-xs font-bold">›</span>}
+                        {item.badge ? (
+                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-2xs shrink-0">
+                            {item.badge}
+                          </span>
+                        ) : (
+                          active && <span className="text-blue-600 text-xs font-bold">›</span>
+                        )}
                       </Link>
                     );
                   })}

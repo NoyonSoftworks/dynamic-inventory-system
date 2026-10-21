@@ -812,6 +812,45 @@ export function dispatchAutoExpiryAlerts() {
   };
 }
 
+/**
+ * Collect all notifications across all tenant stores for Super Admin delivery & read tracking.
+ */
+export function getAllTenantNotifications() {
+  const tenantsDir = DATA_BASE_DIR;
+  if (!fs.existsSync(tenantsDir)) return [];
+
+  const entries = fs.readdirSync(tenantsDir, { withFileTypes: true });
+  const tenantIds = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+
+  const all = [];
+
+  for (const tId of tenantIds) {
+    const config = getTenantConfig(tId) || {};
+    const notifs = getTenantNotifications(tId);
+    for (const n of notifs) {
+      all.push({
+        ...n,
+        business_id: tId,
+        store_name: config.name || `Store #${tId.slice(0, 6)}`,
+        owner_email: config.ownerEmail || "",
+        phone: config.phone || "",
+        plan: config.plan || "starter",
+      });
+    }
+  }
+
+  return all.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+}
+
+export function deleteTenantNotification(businessId, notificationId) {
+  if (!businessId || !notificationId) return false;
+  const existing = getTenantNotifications(businessId);
+  const filtered = existing.filter((n) => n.id !== notificationId);
+  const filePath = getTenantFilePath(businessId, "notifications.json");
+  writeJsonFile(filePath, filtered);
+  return true;
+}
+
 // ─────────────────────────────────────────────────────────────────
 // MERCHANT HELP DESK & SUPPORT TICKETS
 // ─────────────────────────────────────────────────────────────────

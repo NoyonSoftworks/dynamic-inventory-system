@@ -7,6 +7,8 @@ import {
   saveGlobalAnnouncement,
   dispatchAutoExpiryAlerts,
   getTenantConfig,
+  getAllTenantNotifications,
+  deleteTenantNotification,
 } from "@/utils/storage/tenant-store";
 import fs from "fs";
 import path from "path";
@@ -24,9 +26,23 @@ export async function GET(request) {
     }
 
     const announcements = getGlobalAnnouncements();
+    const sentNotifications = getAllTenantNotifications();
+
+    const totalSent = sentNotifications.length;
+    const readCount = sentNotifications.filter((n) => n.read).length;
+    const unreadCount = totalSent - readCount;
+    const readRate = totalSent > 0 ? Math.round((readCount / totalSent) * 100) : 0;
+
     return NextResponse.json({
       success: true,
       announcements,
+      sentNotifications,
+      stats: {
+        totalSent,
+        readCount,
+        unreadCount,
+        readRate,
+      },
     });
   } catch (err) {
     console.error("GET /api/admin/notifications error:", err);
@@ -118,10 +134,26 @@ export async function POST(request) {
       });
     }
 
-    // ── 3. Single Merchant Notification ───────────────────────
+    // ── 3. Delete / Revoke Notification ──────────────────────
+    if (action === "delete") {
+      const { notificationId, tenantId: targetTenant } = body;
+      if (!notificationId || !targetTenant) {
+        return NextResponse.json(
+          { success: false, error: "Notification ID and Tenant ID are required." },
+          { status: 400 }
+        );
+      }
+      deleteTenantNotification(targetTenant, notificationId);
+      return NextResponse.json({
+        success: true,
+        message: "Notification deleted.",
+      });
+    }
+
+    // ── 4. Single Targeted Merchant Notification ──────────────
     if (!tenantId) {
       return NextResponse.json(
-        { success: false, error: "Tenant ID is required for targeted notification." },
+        { success: false, error: "Tenant ID or Store Code is required for targeted notification." },
         { status: 400 }
       );
     }
@@ -133,7 +165,20 @@ export async function POST(request) {
       );
     }
 
-    const newNotif = saveTenantNotification(tenantId, {
+    // Resolve tenantId if a partial code / ID prefix was passed
+    let resolvedTenantId = tenantId.trim();
+    if (fs.existsSync(DATA_BASE_DIR)) {
+      const entries = fs.readdirSync(DATA_BASE_DIR, { withFileTypes: true });
+      const allIds = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+      const match = allIds.find(
+        (id) =>
+          id.toLowerCase() === resolvedTenantId.toLowerCase() ||
+          id.toLowerCase().startsWith(resolvedTenantId.toLowerCase())
+      );
+      if (match) resolvedTenantId = match;
+    }
+
+    const newNotif = saveTenantNotification(resolvedTenantId, {
       title,
       message,
       type,
@@ -143,7 +188,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: "Notification delivered to merchant store.",
+      message: `Notification delivered to store (${resolvedTenantId.slice(0, 8)}…).`,
       notification: newNotif,
     });
   } catch (err) {

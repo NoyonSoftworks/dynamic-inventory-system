@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, use, Suspense } from "react";
+import { useEffect, useState, useRef, useMemo, use, Suspense, forwardRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useReactToPrint } from "react-to-print";
@@ -70,8 +70,14 @@ function PrintStickersContent({ params }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const printComponentRef = useRef(null);
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // ── Data Fetching ──────────────────────────────────────────
   useEffect(() => {
@@ -115,11 +121,36 @@ function PrintStickersContent({ params }) {
   }, [productId, businessId]);
 
   // ── react-to-print Integration ─────────────────────────────
-  const handlePrint = useReactToPrint({
+  const handleReactToPrint = useReactToPrint({
     contentRef: printComponentRef,
-    documentTitle: `${product?.base_sku || "product"}_barcodes_2x1`,
+    documentTitle: `${product?.base_sku || "product"}_thermal_barcodes`,
     pageStyle: THERMAL_PAGE_STYLE,
+    onAfterPrint: () => {
+      showToast("success", "Print command delivered to printer spooler.");
+    },
+    onPrintError: (errorLocation, error) => {
+      console.warn("Thermal print note:", errorLocation, error);
+      window.print();
+    },
   });
+
+  const onPrintTrigger = () => {
+    if (printableItems.length === 0) {
+      showToast("error", "No stickers selected to print. Select at least one item.");
+      return;
+    }
+    if (!printComponentRef.current) {
+      console.warn("Print ref missing, executing window.print()");
+      window.print();
+      return;
+    }
+    try {
+      handleReactToPrint();
+    } catch (err) {
+      console.warn("Print failed, executing window.print():", err);
+      window.print();
+    }
+  };
 
   // ── Items to Print (filtered by selection) ─────────────────
   const printableItems = useMemo(() => {
@@ -187,6 +218,21 @@ function PrintStickersContent({ params }) {
 
   return (
     <main className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      {/* Toast Feedback */}
+      {toast && (
+        <div className="fixed top-5 right-5 z-50 animate-in fade-in slide-in-from-top-2">
+          <div
+            className={`px-4 py-2.5 rounded-lg border text-xs font-semibold shadow-lg ${
+              toast.type === "success"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : "bg-rose-50 border-rose-200 text-rose-800"
+            }`}
+          >
+            {toast.message}
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto max-w-5xl space-y-6">
         {/* ── Breadcrumb & Top Bar ────────────────────────── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -243,7 +289,7 @@ function PrintStickersContent({ params }) {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={handlePrint}
+                onClick={onPrintTrigger}
                 disabled={printableItems.length === 0}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-orange-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-600/25 hover:bg-orange-500 hover:shadow-orange-600/40 focus:ring-2 focus:ring-orange-600/40 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all btn-tactile"
               >
@@ -388,7 +434,18 @@ function PrintStickersContent({ params }) {
       {/* ============================================================== */}
       {/* ── PRINTABLE COMPONENT: Sent Exclusively to Thermal Printer ── */}
       {/* ============================================================== */}
-      <div className="hidden">
+      <div
+        style={{
+          position: "fixed",
+          left: "-9999px",
+          top: "-9999px",
+          width: "2in",
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -9999,
+        }}
+        aria-hidden="true"
+      >
         <ComponentToPrint
           ref={printComponentRef}
           product={product}
@@ -400,7 +457,7 @@ function PrintStickersContent({ params }) {
 }
 
 // ── Pure Component Sent to the Thermal Printer ────────────────
-const ComponentToPrint = ({ product, items }, ref) => {
+const ComponentToPrint = forwardRef(function ComponentToPrint({ product, items }, ref) {
   return (
     <div ref={ref} className="thermal-label-container">
       {items.map((item) => (
@@ -476,7 +533,8 @@ const ComponentToPrint = ({ product, items }, ref) => {
       ))}
     </div>
   );
-};
+});
+ComponentToPrint.displayName = "ComponentToPrint";
 
 // ── spinner icon ──────────────────────────────────────────────
 function Spinner({ size = 20 }) {

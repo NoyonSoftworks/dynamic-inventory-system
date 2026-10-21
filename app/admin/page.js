@@ -7,6 +7,7 @@ import { supabase } from "@/utils/supabase/client";
 import AdminTasksTab from "./components/AdminTasksTab";
 import AdminBlogTab from "./components/AdminBlogTab";
 import AdminSupportTab from "./components/AdminSupportTab";
+import AdminNotificationsTab from "./components/AdminNotificationsTab";
 import BangladeshDivisionMap from "@/components/BangladeshDivisionMap";
 import {
   TenantStatusDonutChart,
@@ -139,6 +140,22 @@ function RefreshIcon({ className = "w-3.5 h-3.5" }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    </svg>
+  );
+}
+
+function CopyIcon({ className = "w-3 h-3 text-slate-400" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function TrashIcon({ className = "w-3.5 h-3.5 text-rose-500" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
     </svg>
   );
 }
@@ -352,19 +369,17 @@ export default function SuperAdminDashboard() {
     },
   });
 
-  // Single Merchant Notification Modal State
+  // Single & Broadcast Notification State
   const [selectedTenantForNotify, setSelectedTenantForNotify] = useState(null);
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [notifySending, setNotifySending] = useState(false);
+  const [broadcastSending, setBroadcastSending] = useState(false);
   const [notifyForm, setNotifyForm] = useState({
     title: "",
     message: "",
-    type: "warning",
-    category: "renewal",
+    type: "info",
+    category: "system",
   });
-
-  // Broadcast to All Merchants Modal State
-  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
-  const [broadcastSending, setBroadcastSending] = useState(false);
   const [broadcastForm, setBroadcastForm] = useState({
     title: "",
     message: "",
@@ -372,6 +387,19 @@ export default function SuperAdminDashboard() {
     category: "system",
     target: "all",
   });
+
+  // Unified Notification Modal State
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [notifyTargetType, setNotifyTargetType] = useState("all"); // "single" | "all" | "trial" | "active" | "expiring"
+  const [notifyTargetTenantId, setNotifyTargetTenantId] = useState("");
+
+  // Store Notifications & Read Receipts Tab State
+  const [adminNotifications, setAdminNotifications] = useState([]);
+  const [adminNotifStats, setAdminNotifStats] = useState({ totalSent: 0, readCount: 0, unreadCount: 0, readRate: 0 });
+  const [loadingAdminNotifs, setLoadingAdminNotifs] = useState(false);
+
+  // Table row action dropdown popover
+  const [activeActionMenuId, setActiveActionMenuId] = useState(null);
 
   // ── Data Fetchers ──────────────────────────────────────────
   async function fetchTelemetryData() {
@@ -434,6 +462,26 @@ export default function SuperAdminDashboard() {
       console.warn("Failed to fetch support tickets:", err);
     } finally {
       setTicketsLoading(false);
+    }
+  }
+
+  async function fetchAdminNotifications() {
+    try {
+      setLoadingAdminNotifs(true);
+      const res = await fetch("/api/admin/notifications");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.sentNotifications) {
+          setAdminNotifications(json.sentNotifications);
+        }
+        if (json.stats) {
+          setAdminNotifStats(json.stats);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch admin notifications:", err);
+    } finally {
+      setLoadingAdminNotifs(false);
     }
   }
 
@@ -504,12 +552,13 @@ export default function SuperAdminDashboard() {
           setIsAuthorized(true);
         }
 
-        // Fetch platform overview, dynamic settings, activity footprints, and support tickets
+        // Fetch platform overview, dynamic settings, activity footprints, support tickets, and notifications
         const [overviewData] = await Promise.all([
           fetchTelemetryData(),
           fetchSaasSettings(),
           fetchActivityLogs(),
           fetchSupportTickets(),
+          fetchAdminNotifications(),
         ]);
 
         if (isMounted && overviewData) {
@@ -551,6 +600,7 @@ export default function SuperAdminDashboard() {
         fetchSaasSettings(),
         fetchActivityLogs(),
         fetchSupportTickets(),
+        fetchAdminNotifications(),
       ]);
       if (overviewData?.summary) setSummary(overviewData.summary);
       if (overviewData?.tenants) setTenants(overviewData.tenants);
@@ -993,8 +1043,10 @@ export default function SuperAdminDashboard() {
   // ── Open Targeted Notification Modal ───────────────────────
   function handleOpenNotifyModal(t) {
     setSelectedTenantForNotify(t);
-    const conf = t.config || {};
-    const exp = t.expires_at || conf.expires_at;
+    setNotifyTargetType("single");
+    setNotifyTargetTenantId(t ? t.id : "");
+    const conf = t?.config || {};
+    const exp = t?.expires_at || conf.expires_at;
     let days = null;
     if (exp) {
       days = Math.ceil((new Date(exp).getTime() - Date.now()) / 86400000);
@@ -1003,87 +1055,95 @@ export default function SuperAdminDashboard() {
     if (days !== null && days <= 0) {
       setNotifyForm({
         title: "Subscription / Trial Expired - Action Required",
-        message: `Hello ${t.name}! Your store subscription has expired. Please upgrade or renew your plan via bKash/Nagad on your Billing page to maintain seamless order sync and barcode label printing.`,
+        message: `Hello ${t?.name || "Merchant"}! Your store subscription has expired. Please upgrade or renew your plan via bKash/Nagad on your Billing page to maintain seamless order sync and barcode label printing.`,
         type: "alert",
         category: "renewal",
       });
     } else if (days !== null && days <= 5) {
       setNotifyForm({
         title: `${days} Day${days === 1 ? "" : "s"} Left on Your Subscription`,
-        message: `Dear ${t.name} team, your ${t.status === "Trial" ? "15-day trial" : "subscription"} will expire in ${days} day${days === 1 ? "" : "s"}. Renew today to continue processing customer parcels without interruption.`,
+        message: `Dear ${t?.name || "Merchant"} team, your ${t?.status === "Trial" ? "15-day trial" : "subscription"} will expire in ${days} day${days === 1 ? "" : "s"}. Renew today to continue processing customer parcels without interruption.`,
         type: "warning",
         category: "renewal",
       });
     } else {
       setNotifyForm({
-        title: `Notice for ${t.name}`,
-        message: `Hello ${t.name}! We have an important platform update for your store.`,
+        title: `Notice for ${t?.name || "Merchant"}`,
+        message: `Hello ${t?.name || "Merchant"}! We have an important platform update for your store.`,
         type: "info",
         category: "custom",
       });
     }
+    setShowNotifyModal(true);
   }
 
-  // ── Send Targeted Notification to Single Merchant ─────────
-  async function handleSendNotification(e) {
+  function handleOpenBroadcastModal(target = "all") {
+    setNotifyTargetType(target);
+    setNotifyTargetTenantId("");
+    setNotifyForm({
+      title: "",
+      message: "",
+      type: "info",
+      category: "system",
+    });
+    setShowNotifyModal(true);
+  }
+
+  // ── Unified Notification & Broadcast Dispatcher ───────────
+  async function handleSendUnifiedNotification(e) {
     if (e) e.preventDefault();
-    if (!selectedTenantForNotify) return;
+    if (notifyTargetType === "single" && !notifyTargetTenantId.trim()) {
+      triggerToast("error", "Please select a store or enter a store code/ID.");
+      return;
+    }
+    if (!notifyForm.title.trim() || !notifyForm.message.trim()) {
+      triggerToast("error", "Please provide both a title and message.");
+      return;
+    }
+
     setNotifySending(true);
+    setBroadcastSending(true);
     try {
+      const payload = {
+        title: notifyForm.title.trim(),
+        message: notifyForm.message.trim(),
+        type: notifyForm.type,
+        category: notifyForm.category,
+      };
+
+      if (notifyTargetType === "single") {
+        payload.action = "single";
+        payload.tenantId = notifyTargetTenantId.trim();
+      } else {
+        payload.action = "broadcast";
+        payload.target = notifyTargetType;
+      }
+
       const res = await fetch("/api/admin/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "single",
-          tenantId: selectedTenantForNotify.id,
-          title: notifyForm.title,
-          message: notifyForm.message,
-          type: notifyForm.type,
-          category: notifyForm.category,
-        }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to send notification.");
+        throw new Error(json.error || "Failed to dispatch notification.");
       }
-      triggerToast("success", `Notification delivered to "${selectedTenantForNotify.name}"!`);
+
+      triggerToast("success", json.message || "Notification delivered successfully!");
+      setShowNotifyModal(false);
       setSelectedTenantForNotify(null);
+      setShowBroadcastModal(false);
+      fetchAdminNotifications();
     } catch (err) {
       triggerToast("error", err.message || "Failed to deliver notification.");
     } finally {
       setNotifySending(false);
-    }
-  }
-
-  // ── Send Broadcast Announcement to All Merchants ──────────
-  async function handleSendBroadcast(e) {
-    if (e) e.preventDefault();
-    setBroadcastSending(true);
-    try {
-      const res = await fetch("/api/admin/notifications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "broadcast",
-          title: broadcastForm.title,
-          message: broadcastForm.message,
-          type: broadcastForm.type,
-          category: broadcastForm.category,
-          target: broadcastForm.target,
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to send broadcast announcement.");
-      }
-      triggerToast("success", json.message || "Broadcast sent to all merchants!");
-      setShowBroadcastModal(false);
-    } catch (err) {
-      triggerToast("error", err.message || "Failed to dispatch broadcast.");
-    } finally {
       setBroadcastSending(false);
     }
   }
+
+  const handleSendNotification = handleSendUnifiedNotification;
+  const handleSendBroadcast = handleSendUnifiedNotification;
 
   // ── Auto-Alert Expiring Stores (1-Click Engine) ────────────
   async function handleAutoAlertExpiringStores() {
@@ -1293,6 +1353,17 @@ export default function SuperAdminDashboard() {
           icon: (
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ),
+        },
+        {
+          id: "notifications",
+          label: "Store Notifications",
+          tab: "notifications",
+          badge: adminNotifStats?.unreadCount > 0 ? `${adminNotifStats.unreadCount} unread` : null,
+          icon: (
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           ),
         },
@@ -1613,7 +1684,13 @@ export default function SuperAdminDashboard() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs">
               <span className="font-semibold text-slate-900 capitalize">
-                {activeTab === "overview" ? "Dashboard" : activeTab === "support" ? "Merchant Support & Helpdesk" : activeTab.replace("-", " ")}
+                {activeTab === "overview"
+                  ? "Dashboard"
+                  : activeTab === "support"
+                  ? "Merchant Support & Helpdesk"
+                  : activeTab === "notifications"
+                  ? "Store Notifications & Read Receipts"
+                  : activeTab.replace("-", " ")}
               </span>
               <span className="text-slate-300">/</span>
               <span className="text-slate-500 text-[11px] font-mono hidden sm:inline">
@@ -1873,16 +1950,36 @@ export default function SuperAdminDashboard() {
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      {Object.entries(courierBreakdown).slice(0, 4).map(([courier, count]) => {
-                        const pct = Math.round((count / totalCourierOrders) * 100);
-                        return (
-                          <div key={courier} className="rounded-lg bg-slate-50 border border-slate-100 p-2.5">
-                            <div className="text-[11px] font-medium text-slate-500">{courier}</div>
-                            <div className="text-base font-semibold text-slate-900 font-mono">{count}</div>
-                            <div className="text-[10px] text-slate-400 font-mono">{pct}% volume</div>
-                          </div>
-                        );
-                      })}
+                      {(() => {
+                        const totalCourierOrders =
+                          Object.values(courierBreakdown || {}).reduce(
+                            (acc, curr) => acc + (Number(curr) || 0),
+                            0
+                          ) || 1;
+                        return Object.entries(courierBreakdown)
+                          .slice(0, 4)
+                          .map(([courier, count]) => {
+                            const pct = Math.round(
+                              ((Number(count) || 0) / totalCourierOrders) * 100
+                            );
+                            return (
+                              <div
+                                key={courier}
+                                className="rounded-lg bg-slate-50 border border-slate-100 p-2.5"
+                              >
+                                <div className="text-[11px] font-medium text-slate-500">
+                                  {courier}
+                                </div>
+                                <div className="text-base font-semibold text-slate-900 font-mono">
+                                  {count}
+                                </div>
+                                <div className="text-[10px] text-slate-400 font-mono">
+                                  {pct}% volume
+                                </div>
+                              </div>
+                            );
+                          });
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1943,14 +2040,31 @@ export default function SuperAdminDashboard() {
 
                       <button
                         type="button"
-                        onClick={() => setShowBroadcastModal(true)}
+                        onClick={() => handleOpenBroadcastModal("all")}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium shadow-2xs transition shrink-0 cursor-pointer"
                         title="Send announcement or platform update to all merchants"
                       >
                         <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                         </svg>
-                        <span>Broadcast to All</span>
+                        <span>Broadcast Notice</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("notifications")}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs font-medium shadow-2xs transition shrink-0 cursor-pointer"
+                        title="View notification delivery history and merchant read receipts"
+                      >
+                        <svg className="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span>Read Receipts</span>
+                        {adminNotifStats?.unreadCount > 0 && (
+                          <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-blue-200 text-blue-900 text-[10px] font-mono font-bold">
+                            {adminNotifStats.unreadCount} unread
+                          </span>
+                        )}
                       </button>
 
                       <button
@@ -2006,22 +2120,21 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-200 text-left text-xs font-mono">
-                    <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 text-[11px]">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50/90 text-slate-600 uppercase border-b border-slate-200 text-[11px] font-mono tracking-wider">
                       <tr>
-                        <th className="px-5 py-3.5 font-semibold">Store Name</th>
-                        <th className="px-5 py-3.5 font-semibold">Owner Email</th>
-                        <th className="px-5 py-3.5 font-semibold">Validity / Myad</th>
-                        <th className="px-4 py-3.5 font-semibold">Products</th>
-                        <th className="px-4 py-3.5 font-semibold">Orders</th>
-                        <th className="px-5 py-3.5 font-semibold">Status</th>
+                        <th className="px-5 py-3.5 font-semibold">Store &amp; Code</th>
+                        <th className="px-4 py-3.5 font-semibold">Owner Email</th>
+                        <th className="px-4 py-3.5 font-semibold">Validity / Myad</th>
+                        <th className="px-4 py-3.5 font-semibold">Inventory &amp; Usage</th>
+                        <th className="px-4 py-3.5 font-semibold">Status</th>
                         <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white font-sans">
                       {filteredTenants.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="px-6 py-8 text-center text-slate-400 text-xs">
+                          <td colSpan="6" className="px-6 py-8 text-center text-slate-400 text-xs">
                             No merchant stores match your filter criteria.
                           </td>
                         </tr>
@@ -2035,54 +2148,73 @@ export default function SuperAdminDashboard() {
                           return (
                             <tr
                               key={t.id}
-                              className="hover:bg-slate-50/70 transition cursor-pointer"
+                              className="hover:bg-slate-50/80 transition cursor-pointer group"
                               onClick={() => setSelectedTenantForGodMode(t)}
                             >
-                              <td className="px-5 py-4 font-semibold text-slate-900">
+                              {/* 1. Store & Code */}
+                              <td className="px-5 py-3.5">
                                 <div className="flex flex-col gap-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="truncate max-w-[160px]">{t.name || "Store"}</span>
-                                    <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 uppercase shrink-0">
+                                    <span className="font-semibold text-slate-900 group-hover:text-blue-600 transition truncate max-w-[170px]">
+                                      {t.name || "Store"}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200 uppercase shrink-0">
                                       {planTier}
                                     </span>
                                   </div>
-                                  <span className="text-[10px] text-slate-400 font-mono">
-                                    ID: {String(t.id || "").slice(0, 8)}…
-                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const code = t.id ? t.id.slice(0, 8) : "";
+                                        navigator.clipboard.writeText(code);
+                                        triggerToast("success", `Store code "${code}" copied!`);
+                                      }}
+                                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-500 hover:text-slate-800 bg-slate-100/70 hover:bg-slate-200/70 border border-slate-200/60 transition cursor-pointer"
+                                      title="Click to copy store code"
+                                    >
+                                      <span>#{t.id ? t.id.slice(0, 8) : "—"}</span>
+                                      <CopyIcon className="w-2.5 h-2.5 text-slate-400" />
+                                    </button>
+                                  </div>
                                 </div>
                               </td>
 
-                              <td className="px-5 py-4 text-slate-600 font-mono text-[11px]">
-                                {t.ownerEmail}
+                              {/* 2. Owner Email */}
+                              <td className="px-4 py-3.5 text-slate-600 text-xs truncate max-w-[180px]">
+                                <span className="font-mono text-[11px] truncate block" title={t.ownerEmail}>
+                                  {t.ownerEmail}
+                                </span>
                               </td>
 
-                              {/* Validity & Expiry Column */}
-                              <td className="px-5 py-4">
+                              {/* 3. Validity / Myad */}
+                              <td className="px-4 py-3.5">
                                 <div className="flex flex-col gap-1">
                                   <div className="flex items-center gap-1.5">
                                     {val.daysRemaining === null ? (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200">
                                         Ongoing Active
                                       </span>
                                     ) : val.isExpired ? (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                                         <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
                                         Expired
                                       </span>
                                     ) : val.isExpiring ? (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                                         {val.daysRemaining}d left
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                         {val.daysRemaining}d left
                                       </span>
                                     )}
 
                                     {t.status === "Trial" && (
-                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-50 text-purple-700 border border-purple-200">
+                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
                                         Trial
                                       </span>
                                     )}
@@ -2093,22 +2225,24 @@ export default function SuperAdminDashboard() {
                                 </div>
                               </td>
 
-                              <td className="px-4 py-4 text-orange-700 font-semibold font-mono">
-                                {t.skuCount ?? t.totalSkus ?? 0}
-                              </td>
-
-                              <td className="px-4 py-4 font-mono">
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="text-emerald-700 font-semibold">
-                                    {currentOrders}
-                                  </span>
-                                  <span className="text-[10px] text-slate-400">
-                                    / {orderLimit} cap
-                                  </span>
+                              {/* 4. Inventory & Usage */}
+                              <td className="px-4 py-3.5">
+                                <div className="flex flex-col gap-0.5 text-xs font-mono">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-orange-700 font-semibold">
+                                      {t.skuCount ?? t.totalSkus ?? 0}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-sans">SKUs</span>
+                                  </div>
+                                  <div className="flex items-center gap-1 text-[11px] text-slate-600">
+                                    <span className="text-emerald-700 font-semibold">{currentOrders}</span>
+                                    <span className="text-slate-400 text-[10px]">/ {orderLimit}</span>
+                                  </div>
                                 </div>
                               </td>
 
-                              <td className="px-5 py-4">
+                              {/* 5. Status */}
+                              <td className="px-4 py-3.5">
                                 <span
                                   className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
                                     t.status === "Active"
@@ -2131,25 +2265,14 @@ export default function SuperAdminDashboard() {
                                 </span>
                               </td>
 
-                              <td className="px-5 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                <div className="inline-flex items-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenEditStore(t)}
-                                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition cursor-pointer flex items-center gap-1"
-                                    title="Edit store plan, validity, and quotas"
-                                  >
-                                    <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    <span>Edit</span>
-                                  </button>
-
+                              {/* 6. Actions */}
+                              <td className="px-5 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                                <div className="inline-flex items-center gap-1.5 justify-end">
                                   <button
                                     type="button"
                                     onClick={() => handleOpenNotifyModal(t)}
-                                    className="rounded-lg border border-blue-200 bg-blue-50/80 px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-100 transition cursor-pointer flex items-center gap-1"
-                                    title="Send targeted alert notification to merchant"
+                                    className="rounded-lg border border-blue-200 bg-blue-50/80 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition cursor-pointer flex items-center gap-1"
+                                    title="Send notification to merchant"
                                   >
                                     <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -2160,26 +2283,70 @@ export default function SuperAdminDashboard() {
                                   <button
                                     type="button"
                                     onClick={() => setSelectedTenantForGodMode(t)}
-                                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition cursor-pointer"
+                                    className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 shadow-2xs transition cursor-pointer flex items-center gap-1"
+                                    title="Impersonate store workspace in God Mode"
                                   >
-                                    God Mode
+                                    <span>God Mode</span>
                                   </button>
 
                                   <button
                                     type="button"
-                                    onClick={() => handleToggleTenantStatus(t.id, t.status)}
-                                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition cursor-pointer"
+                                    onClick={() => handleOpenEditStore(t)}
+                                    className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 p-1.5 text-slate-600 hover:text-slate-900 shadow-2xs transition cursor-pointer"
+                                    title="Edit store plan, validity, and quotas"
                                   >
-                                    {t.status === "Active" ? "Suspend" : "Activate"}
+                                    <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
                                   </button>
 
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteTenant(t.id, t.name)}
-                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer"
-                                  >
-                                    Purge
-                                  </button>
+                                  {/* Actions Popover / Dropdown */}
+                                  <div className="relative inline-block text-left">
+                                    <button
+                                      type="button"
+                                      onClick={() => setActiveActionMenuId(activeActionMenuId === t.id ? null : t.id)}
+                                      className="rounded-lg border border-slate-200 bg-white hover:bg-slate-50 p-1.5 text-slate-600 hover:text-slate-900 shadow-2xs transition cursor-pointer"
+                                      title="Store actions"
+                                    >
+                                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                      </svg>
+                                    </button>
+
+                                    {activeActionMenuId === t.id && (
+                                      <>
+                                        <div
+                                          className="fixed inset-0 z-20"
+                                          onClick={() => setActiveActionMenuId(null)}
+                                        />
+                                        <div className="absolute right-0 mt-1 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl z-30 animate-in fade-in zoom-in-95 duration-100">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setActiveActionMenuId(null);
+                                              handleToggleTenantStatus(t.id, t.status);
+                                            }}
+                                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between transition cursor-pointer"
+                                          >
+                                            <span>{t.status === "Active" ? "Suspend Store" : "Activate Store"}</span>
+                                            <span className={`w-2 h-2 rounded-full ${t.status === "Active" ? "bg-amber-500" : "bg-emerald-500"}`} />
+                                          </button>
+                                          <div className="my-1 border-t border-slate-100" />
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setActiveActionMenuId(null);
+                                              handleDeleteTenant(t.id, t.name);
+                                            }}
+                                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 flex items-center justify-between transition cursor-pointer"
+                                          >
+                                            <span>Purge Store</span>
+                                            <TrashIcon className="w-3.5 h-3.5 text-rose-500" />
+                                          </button>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
                               </td>
                             </tr>
@@ -3587,6 +3754,24 @@ export default function SuperAdminDashboard() {
           <AdminBlogTab triggerToast={triggerToast} />
         )}
 
+        {/* ── STORE NOTIFICATIONS & READ RECEIPTS TAB ──────────────── */}
+        {activeTab === "notifications" && (
+          <AdminNotificationsTab
+            notifications={adminNotifications}
+            stats={adminNotifStats}
+            loading={loadingAdminNotifs}
+            onRefresh={fetchAdminNotifications}
+            onOpenSendModal={(store) => {
+              if (store) {
+                handleOpenNotifyModal(store);
+              } else {
+                handleOpenBroadcastModal("all");
+              }
+            }}
+            triggerToast={triggerToast}
+          />
+        )}
+
         {/* ── 1. PROVISION NEW STORE MODAL ───────────────────────── */}
         {showProvisionModal && (
           <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
@@ -4516,93 +4701,219 @@ export default function SuperAdminDashboard() {
           </div>
         )}
 
-        {/* ── 6. SINGLE MERCHANT NOTIFICATION MODAL ─────────────── */}
-        {selectedTenantForNotify && (
+        {/* ── 6. UNIFIED STORE NOTIFICATION & BROADCAST MODAL ─────── */}
+        {(showNotifyModal || selectedTenantForNotify || showBroadcastModal) && (
           <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/60">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
-                    <span>Send Notice to Merchant</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5 truncate">
-                    Target: {selectedTenantForNotify.name} ({selectedTenantForNotify.ownerEmail})
-                  </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">
+                      Dispatch Store Notification
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Send custom in-app alerts to single stores by code or broadcast platform-wide.
+                    </p>
+                  </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedTenantForNotify(null)}
-                  className="text-slate-400 hover:text-slate-600 p-1"
+                  onClick={() => {
+                    setShowNotifyModal(false);
+                    setSelectedTenantForNotify(null);
+                    setShowBroadcastModal(false);
+                  }}
+                  className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
                 >
                   <CloseIcon className="w-4 h-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleSendNotification} className="p-6 space-y-4">
+              <form onSubmit={handleSendUnifiedNotification} className="p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+                {/* 1. Target Audience Switcher */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider font-mono">
+                    Target Audience *
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: "single", label: "Single Store" },
+                      { id: "all", label: `All Stores (${tenants.length})` },
+                      { id: "expiring", label: `Expiring (≤5d) (${expiringTenantsCount})` },
+                      { id: "trial", label: `Trial Only (${trialTenantsCount})` },
+                      { id: "active", label: `Active Paying (${activeTenantsCount})` },
+                    ].map((tgt) => (
+                      <button
+                        key={tgt.id}
+                        type="button"
+                        onClick={() => setNotifyTargetType(tgt.id)}
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border text-center transition cursor-pointer ${
+                          notifyTargetType === tgt.id
+                            ? "bg-slate-900 text-white border-slate-900 shadow-2xs"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        {tgt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 1b. Single Store Selector & Code Search */}
+                {notifyTargetType === "single" && (
+                  <div className="rounded-xl border border-blue-200/80 bg-blue-50/40 p-3.5 space-y-2.5 animate-in fade-in duration-150">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Select Store from Directory
+                      </label>
+                      <select
+                        value={notifyTargetTenantId}
+                        onChange={(e) => setNotifyTargetTenantId(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-blue-600 focus:outline-none"
+                      >
+                        <option value="">-- Choose a store --</option>
+                        {tenants.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name || "Store"} ({t.ownerEmail}) [#{t.id ? t.id.slice(0, 8) : ""}]
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                        Or Enter Store Code / Tenant UUID
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. ec5b7420 or full tenant UUID"
+                        value={notifyTargetTenantId}
+                        onChange={(e) => setNotifyTargetTenantId(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-blue-600 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Resolved Store Chip */}
+                    {(() => {
+                      const matched = tenants.find(
+                        (t) =>
+                          t.id === notifyTargetTenantId ||
+                          (notifyTargetTenantId.length >= 4 &&
+                            t.id.toLowerCase().startsWith(notifyTargetTenantId.toLowerCase()))
+                      );
+                      if (matched) {
+                        return (
+                          <div className="flex items-center gap-1.5 text-[11px] font-medium text-blue-800 bg-blue-100/70 px-2.5 py-1 rounded-md border border-blue-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                            <span>
+                              Target: <strong>{matched.name}</strong> (#{matched.id.slice(0, 8)}) &bull; {matched.ownerEmail}
+                            </span>
+                          </div>
+                        );
+                      } else if (notifyTargetTenantId.trim()) {
+                        return (
+                          <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                            <span>Targeting store matching code: <strong>{notifyTargetTenantId}</strong></span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                )}
+
+                {/* 2. Quick Preset Templates */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Quick Notification Template
+                    Apply Quick Template (Optional)
                   </label>
                   <select
                     onChange={(e) => {
                       const val = e.target.value;
+                      const matched = tenants.find(
+                        (t) =>
+                          t.id === notifyTargetTenantId ||
+                          (notifyTargetTenantId && t.id.toLowerCase().startsWith(notifyTargetTenantId.toLowerCase()))
+                      );
+                      const storeName = matched ? matched.name : "Merchant";
+
                       if (val === "expiring_3d") {
                         setNotifyForm({
                           title: "Trial Expiration Notice - 3 Days Left",
-                          message: `Hello ${selectedTenantForNotify.name}! Your 15-day trial is nearing its end in 3 days. Upgrade to Growth Pro today to keep your orders syncing with Steadfast and Pathao without interruption.`,
+                          message: `Hello ${storeName}! Your 15-day trial is nearing its end in 3 days. Upgrade to Growth Pro today to keep your orders syncing with Steadfast and Pathao without interruption.`,
                           type: "warning",
                           category: "renewal",
                         });
                       } else if (val === "expired") {
                         setNotifyForm({
-                          title: "Subscription Expired - Urgent Action Required",
-                          message: `Your store subscription has expired. Please renew your plan via bKash/Nagad on your Billing page to restore full dispatch capabilities.`,
+                          title: "Subscription Expired - Action Required",
+                          message: `Hello ${storeName}! Your store subscription has expired. Please renew your plan via bKash/Nagad on your Billing page to restore full order dispatching and courier sync.`,
                           type: "alert",
                           category: "renewal",
                         });
                       } else if (val === "payment_approved") {
                         setNotifyForm({
-                          title: "Payment Verified - Subscription Extended!",
-                          message: `Your subscription payment has been verified and your validity has been successfully extended. Thank you for partnering with SmartInventory!`,
+                          title: "Payment Verified - Validity Extended!",
+                          message: `Your subscription payment has been verified and your account validity has been successfully extended. Thank you for partnering with us!`,
                           type: "success",
                           category: "system",
+                        });
+                      } else if (val === "reconciliation_live") {
+                        setNotifyForm({
+                          title: "New Feature: Courier Auto-Reconciliation Live",
+                          message: `Automated courier reconciliation for Steadfast & Pathao is now live! Upload your courier statements to audit pending COD payouts instantly.`,
+                          type: "success",
+                          category: "feature",
                         });
                       } else if (val === "maintenance") {
                         setNotifyForm({
                           title: "Scheduled System Maintenance Tonight",
-                          message: `We will be performing a brief 10-minute database index optimization tonight at 2:00 AM. Courier tracking will resume immediately after.`,
+                          message: `We will be performing a brief 15-minute database optimization tonight between 2:00 AM - 2:15 AM. Order syncing will resume immediately after.`,
                           type: "info",
                           category: "system",
                         });
+                      } else if (val === "renewal_promo") {
+                        setNotifyForm({
+                          title: "Special Offer: 20% Off on Annual Renewal",
+                          message: `Renew your store plan for 1 year this week and get 2 months extra validity free! Visit Billing & Plan to redeem this offer.`,
+                          type: "success",
+                          category: "renewal",
+                        });
                       }
                     }}
-                    className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
                   >
-                    <option value="">Choose a pre-filled template…</option>
+                    <option value="">Select a ready-made template or write custom below…</option>
                     <option value="expiring_3d">Trial Expiring in 3 Days</option>
                     <option value="expired">Subscription Expired Alert</option>
                     <option value="payment_approved">Payment Verified &amp; Quota Extended</option>
+                    <option value="reconciliation_live">New Feature: Courier Auto-Reconciliation</option>
                     <option value="maintenance">Scheduled System Maintenance</option>
+                    <option value="renewal_promo">Annual Plan Promotion (20% Off)</option>
                   </select>
                 </div>
 
+                {/* 3. Severity & Category */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Notice Severity
+                      Notice Severity / Type
                     </label>
                     <select
                       value={notifyForm.type}
                       onChange={(e) => setNotifyForm({ ...notifyForm, type: e.target.value })}
-                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
                     >
+                      <option value="info">Information (Blue)</option>
                       <option value="warning">Warning (Amber)</option>
                       <option value="alert">Critical Alert (Red)</option>
-                      <option value="info">Information (Blue)</option>
-                      <option value="success">Success (Green)</option>
+                      <option value="success">Success / Promo (Green)</option>
                     </select>
                   </div>
                   <div>
@@ -4612,16 +4923,17 @@ export default function SuperAdminDashboard() {
                     <select
                       value={notifyForm.category}
                       onChange={(e) => setNotifyForm({ ...notifyForm, category: e.target.value })}
-                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
                     >
-                      <option value="renewal">Renewal / Expiry</option>
                       <option value="system">System Notice</option>
+                      <option value="renewal">Renewal &amp; Billing</option>
                       <option value="feature">New Feature</option>
                       <option value="custom">General Custom</option>
                     </select>
                   </div>
                 </div>
 
+                {/* 4. Notification Title */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
                     Notification Subject / Title *
@@ -4631,36 +4943,43 @@ export default function SuperAdminDashboard() {
                     required
                     value={notifyForm.title}
                     onChange={(e) => setNotifyForm({ ...notifyForm, title: e.target.value })}
-                    className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                    placeholder="e.g. Critical Subscription Notice or Platform Update"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
                   />
                 </div>
 
+                {/* 5. Message Body */}
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Message Body *
+                    Notification Message Body *
                   </label>
                   <textarea
                     required
                     rows={4}
                     value={notifyForm.message}
                     onChange={(e) => setNotifyForm({ ...notifyForm, message: e.target.value })}
-                    placeholder="Type notice message visible on merchant dashboard…"
-                    className="w-full rounded-md border border-slate-200 px-3 py-2 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                    placeholder="Type notification message that will be shown in the merchant dashboard and top notification bell…"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
                   />
                 </div>
 
+                {/* Footer Actions */}
                 <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => setSelectedTenantForNotify(null)}
-                    className="px-3.5 py-1.5 rounded-md border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition"
+                    onClick={() => {
+                      setShowNotifyModal(false);
+                      setSelectedTenantForNotify(null);
+                      setShowBroadcastModal(false);
+                    }}
+                    className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={notifySending}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-2xs transition disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-xs transition cursor-pointer disabled:opacity-50"
                   >
                     {notifySending && (
                       <svg className="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
@@ -4668,160 +4987,19 @@ export default function SuperAdminDashboard() {
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                       </svg>
                     )}
-                    <span>Deliver Notice</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ── 7. PLATFORM BROADCAST TO ALL MERCHANTS MODAL ─────── */}
-        {showBroadcastModal && (
-          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                    </svg>
-                    <span>Broadcast Announcement to Stores</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Delivers an announcement to merchants across the entire platform.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowBroadcastModal(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1"
-                >
-                  <CloseIcon className="w-4 h-4" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSendBroadcast} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Target Store Audience
-                  </label>
-                  <select
-                    value={broadcastForm.target}
-                    onChange={(e) => setBroadcastForm({ ...broadcastForm, target: e.target.value })}
-                    className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white font-medium"
-                  >
-                    <option value="all">All Stores (Everyone - {tenants.length} stores)</option>
-                    <option value="expiring">Expiring Stores Only (≤ 5 Days Left)</option>
-                    <option value="trial">Trial Stores Only ({trialTenantsCount} stores)</option>
-                    <option value="active">Active Paying Stores ({activeTenantsCount} stores)</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Notice Severity
-                    </label>
-                    <select
-                      value={broadcastForm.type}
-                      onChange={(e) => setBroadcastForm({ ...broadcastForm, type: e.target.value })}
-                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
-                    >
-                      <option value="info">Information (Blue)</option>
-                      <option value="warning">Important Warning (Amber)</option>
-                      <option value="alert">Critical Maintenance (Red)</option>
-                      <option value="success">Feature / Promotion (Green)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Quick Preset
-                    </label>
-                    <select
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "maintenance") {
-                          setBroadcastForm((prev) => ({
-                            ...prev,
-                            title: "Scheduled Platform Maintenance Notice",
-                            message: "We have scheduled a brief performance upgrade tonight between 2:00 AM - 2:30 AM. Order dispatching will continue normally right after.",
-                            type: "info",
-                          }));
-                        } else if (val === "new_features") {
-                          setBroadcastForm((prev) => ({
-                            ...prev,
-                            title: "New Update: Enhanced Courier Auto-Reconciliation",
-                            message: "We have launched automated courier payment matching for Steadfast and Pathao. Check your Courier Reconciliation page for 1-click ledger audits.",
-                            type: "success",
-                          }));
-                        } else if (val === "renewal_promo") {
-                          setBroadcastForm((prev) => ({
-                            ...prev,
-                            title: "Special Offer: 20% Off on Annual Plans",
-                            message: "Upgrade or renew your subscription annually this week and get 2 extra months completely free! Visit Billing & Plan to redeem.",
-                            type: "success",
-                          }));
-                        }
-                      }}
-                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
-                    >
-                      <option value="">Choose preset…</option>
-                      <option value="maintenance">Platform Maintenance</option>
-                      <option value="new_features">New Feature Announcement</option>
-                      <option value="renewal_promo">Annual Plan Promotion</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Broadcast Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={broadcastForm.title}
-                    onChange={(e) => setBroadcastForm({ ...broadcastForm, title: e.target.value })}
-                    placeholder="e.g. System Upgrades & Performance Improvements"
-                    className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Broadcast Announcement Message *
-                  </label>
-                  <textarea
-                    required
-                    rows={4}
-                    value={broadcastForm.message}
-                    onChange={(e) => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
-                    placeholder="Type the announcement that will be displayed to merchants…"
-                    className="w-full rounded-md border border-slate-200 px-3 py-2 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => setShowBroadcastModal(false)}
-                    className="px-3.5 py-1.5 rounded-md border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={broadcastSending}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition disabled:opacity-50"
-                  >
-                    {broadcastSending && (
-                      <svg className="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                      </svg>
-                    )}
-                    <span>Send Broadcast Announcement</span>
+                    <span>
+                      {notifyTargetType === "single"
+                        ? "Deliver Notice to Store"
+                        : `Dispatch Broadcast (${
+                            notifyTargetType === "all"
+                              ? "All Stores"
+                              : notifyTargetType === "expiring"
+                              ? "Expiring"
+                              : notifyTargetType === "trial"
+                              ? "Trial"
+                              : "Active"
+                          })`}
+                    </span>
                   </button>
                 </div>
               </form>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
 import Navbar from "./navbar";
+import PikuAIAssistant from "@/components/PikuAIAssistant";
 
 export const SidebarContext = createContext({
   collapsed: false,
@@ -259,6 +260,9 @@ export default function DashboardLayout({ children }) {
             {children}
           </main>
         </div>
+
+        {/* Piku 24/7 AI Store Copilot & Assistant */}
+        <PikuAIAssistant />
       </div>
     </SidebarContext.Provider>
   );

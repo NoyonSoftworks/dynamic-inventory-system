@@ -300,7 +300,7 @@ export function PlanDistributionList({ plans = [] }) {
               <span className="font-medium text-slate-700">{plan.name}</span>
             </div>
             <div className="font-mono text-slate-500 text-[11px]">
-              <span className="font-semibold text-slate-900">{plan.count}</span> ({plan.pct.toFixed(0)}%)
+              <span className="font-semibold text-slate-900">{plan.count}</span> ({(Number(plan.pct) || 0).toFixed(0)}%)
             </div>
           </div>
 
@@ -308,7 +308,7 @@ export function PlanDistributionList({ plans = [] }) {
             <div
               className="h-full rounded-full transition-all duration-300"
               style={{
-                width: `${Math.max(plan.pct, 0)}%`,
+                width: `${Math.max(Number(plan.pct) || 0, 0)}%`,
                 backgroundColor: plan.color,
               }}
             />
