@@ -51,8 +51,47 @@ export async function GET(request) {
 
     let businessId = roleRow?.business_id;
 
+    if (!businessId && user.email) {
+      const { data: byEmail } = await adminClient
+        .from("user_roles")
+        .select("role, business_id")
+        .eq("email", user.email.toLowerCase().trim())
+        .maybeSingle();
+      if (byEmail?.business_id) businessId = byEmail.business_id;
+    }
+
     if (!businessId) {
       return NextResponse.json({ success: true, products: [] });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const targetProductId = searchParams.get("id");
+
+    // If single product requested (for dispatch or print barcode label views)
+    if (targetProductId) {
+      const { data: singleProd, error: sErr } = await adminClient
+        .from("products")
+        .select("*")
+        .eq("id", targetProductId)
+        .maybeSingle();
+
+      if (sErr || !singleProd) {
+        return NextResponse.json(
+          { success: false, error: sErr?.message || "Product not found." },
+          { status: 404 }
+        );
+      }
+
+      const { data: invItems } = await adminClient
+        .from("inventory_items")
+        .select("*")
+        .eq("product_id", targetProductId);
+
+      return NextResponse.json({
+        success: true,
+        product: singleProd,
+        items: invItems || [],
+      });
     }
 
     // Fetch products

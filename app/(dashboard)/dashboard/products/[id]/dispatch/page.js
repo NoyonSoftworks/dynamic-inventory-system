@@ -76,35 +76,21 @@ function ProductDispatchContent({ params }) {
         setLoading(true);
         setError(null);
 
-        // 1. Fetch Product
-        const { data: prodData, error: prodErr } = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", productId)
-          .single();
+        // Fetch Product and Barcodes via server API to bypass client-side RLS recursion
+        const res = await fetch(`/api/products?id=${encodeURIComponent(productId)}`);
+        const json = await res.json();
 
-        if (prodErr || !prodData) {
-          throw new Error(prodErr?.message || "Product not found.");
+        if (!res.ok || !json.success || !json.product) {
+          throw new Error(json.error || "Product not found.");
         }
 
-        if (prodData.business_id && businessId && prodData.business_id !== businessId) {
-          throw new Error("Unauthorized: Product belongs to another workspace.");
-        }
-
-        // 2. Fetch Available inventory_items (where status = 'IN_STOCK')
-        const { data: itemsData, error: itemsErr } = await supabase
-          .from("inventory_items")
-          .select("*")
-          .eq("product_id", productId)
-          .eq("status", "IN_STOCK");
-
-        if (itemsErr) {
-          throw new Error(itemsErr.message || "Failed to load stock barcodes.");
-        }
+        const prodData = json.product;
+        const allItems = json.items || [];
+        const inStockItems = allItems.filter((item) => item.status === "IN_STOCK");
 
         if (isMounted) {
           setProduct(prodData);
-          setAvailableItems(itemsData || []);
+          setAvailableItems(inStockItems);
         }
       } catch (err) {
         if (isMounted) setError(err.message || "An error occurred.");
@@ -227,57 +213,22 @@ function ProductDispatchContent({ params }) {
         orderPayload.business_id = businessId;
       }
 
-      let { data: orderData, error: orderErr } = await supabase
-        .from("orders")
-        .insert(orderPayload)
-        .select()
-        .single();
-
-      // Graceful fallback if business_id or optional columns differ
-      if (orderErr && orderErr.message?.includes("business_id")) {
-        delete orderPayload.business_id;
-        const retry = await supabase
-          .from("orders")
-          .insert(orderPayload)
-          .select()
-          .single();
-        orderData = retry.data;
-        orderErr = retry.error;
-      }
-
-      if (orderErr && !orderData) {
-        throw new Error(orderErr.message || "Failed to create order record.");
-      }
-
-      // 2. Update status of each scanned inventory item to 'SHIPPED' & link order_id
+      // 1. Process order and stock update via server route (bypasses RLS recursion)
       const scannedItemIds = scannedItems.map((item) => item.id);
+      const dispatchRes = await fetch("/api/products/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderPayload,
+          scannedItemIds,
+        }),
+      });
 
-      const updatePayload = {
-        status: "SHIPPED",
-      };
-      if (orderData?.id) {
-        updatePayload.order_id = orderData.id;
+      const dispatchJson = await dispatchRes.json();
+      if (!dispatchRes.ok || !dispatchJson.success) {
+        throw new Error(dispatchJson.error || "Failed to process order dispatch.");
       }
-
-      let { error: updateErr } = await supabase
-        .from("inventory_items")
-        .update(updatePayload)
-        .in("id", scannedItemIds);
-
-      // Fallback if 'order_id' foreign key column is not yet on inventory_items
-      if (updateErr && updateErr.message?.includes("order_id")) {
-        const retryUpdate = await supabase
-          .from("inventory_items")
-          .update({ status: "SHIPPED" })
-          .in("id", scannedItemIds);
-        updateErr = retryUpdate.error;
-      }
-
-      if (updateErr) {
-        throw new Error(
-          `Order created (#${orderData?.id || "N/A"}), but failed to update stock status: ${updateErr.message}`
-        );
-      }
+      const orderData = dispatchJson.order;
 
       // 3. Trigger Courier API (Steadfast Integration)
       if (selectedCourier === "Steadfast") {

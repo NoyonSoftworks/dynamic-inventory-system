@@ -1,0 +1,17 @@
+[
+  {
+    "id": "TICK-1001",
+    "business_id": "demo-tenant-1",
+    "store_name": "Dhaka Silk & Fashion",
+    "user_email": "dhakafashion@smartinventory.app",
+    "phone": "01755123456",
+    "subject": "Steadfast Courier API Webhook sync delay",
+    "category": "courier",
+    "priority": "high",
+    "description": "Orders dispatched around 5 PM took 15 minutes to reflect tracking IDs. Please check if webhook secret is active.",
+    "status": "RESOLVED",
+    "admin_reply": "Webhook worker concurrency was doubled. Sync latency is now under 2 seconds.",
+    "created_at": "2026-10-18T20:18:25.431Z",
+    "updated_at": "2026-10-19T08:18:25.431Z"
+  }
+]

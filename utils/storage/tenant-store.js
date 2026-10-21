@@ -811,3 +811,84 @@ export function dispatchAutoExpiryAlerts() {
     alertedCount: alertedStores.length,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────
+// MERCHANT HELP DESK & SUPPORT TICKETS
+// ─────────────────────────────────────────────────────────────────
+
+const SUPPORT_TICKETS_FILE = path.join(process.cwd(), "data", "support_tickets.json");
+
+export function getAllSupportTickets() {
+  const existing = readJsonFile(SUPPORT_TICKETS_FILE, null);
+  if (!existing) {
+    const defaults = [
+      {
+        id: "TICK-1001",
+        business_id: "demo-tenant-1",
+        store_name: "Dhaka Silk & Fashion",
+        user_email: "dhakafashion@smartinventory.app",
+        phone: "01755123456",
+        subject: "Steadfast Courier API Webhook sync delay",
+        category: "courier",
+        priority: "high",
+        description: "Orders dispatched around 5 PM took 15 minutes to reflect tracking IDs. Please check if webhook secret is active.",
+        status: "RESOLVED",
+        admin_reply: "Webhook worker concurrency was doubled. Sync latency is now under 2 seconds.",
+        created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+        updated_at: new Date(Date.now() - 86400000 * 2.5).toISOString(),
+      },
+    ];
+    writeJsonFile(SUPPORT_TICKETS_FILE, defaults);
+    return defaults;
+  }
+  return existing;
+}
+
+export function getTenantSupportTickets(businessId) {
+  if (!businessId) return [];
+  const all = getAllSupportTickets();
+  return all.filter((t) => t.business_id === businessId);
+}
+
+export function saveSupportTicket(ticketData) {
+  const all = getAllSupportTickets();
+  const newTicket = {
+    id: ticketData.id || `TICK-${Date.now().toString().slice(-6)}`,
+    business_id: ticketData.business_id,
+    store_name: ticketData.store_name || "Merchant Store",
+    user_email: ticketData.user_email || "",
+    phone: ticketData.phone || "",
+    subject: ticketData.subject || "Support Inquiry",
+    category: ticketData.category || "help", // "bug" | "courier" | "billing" | "feature" | "help"
+    priority: ticketData.priority || "normal", // "normal" | "high" | "urgent"
+    description: ticketData.description || "",
+    status: "OPEN",
+    admin_reply: "",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const updated = [newTicket, ...all];
+  writeJsonFile(SUPPORT_TICKETS_FILE, updated);
+  return newTicket;
+}
+
+export function updateSupportTicketStatus(ticketId, status = "RESOLVED", adminReply = "") {
+  const all = getAllSupportTickets();
+  let updatedTicket = null;
+  const modified = all.map((t) => {
+    if (t.id === ticketId) {
+      updatedTicket = {
+        ...t,
+        status,
+        admin_reply: adminReply !== undefined ? adminReply : t.admin_reply,
+        updated_at: new Date().toISOString(),
+      };
+      return updatedTicket;
+    }
+    return t;
+  });
+
+  writeJsonFile(SUPPORT_TICKETS_FILE, modified);
+  return updatedTicket;
+}

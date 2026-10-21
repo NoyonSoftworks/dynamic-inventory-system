@@ -83,34 +83,19 @@ function PrintStickersContent({ params }) {
         setLoading(true);
         setError(null);
 
-        // 1. Fetch Product Details
-        const { data: prodData, error: prodErr } = await supabase
-          .from("products")
-          .select("*")
-          .eq("id", productId)
-          .single();
+        // Fetch Product Details and Barcodes via server API to bypass client RLS recursion
+        const res = await fetch(`/api/products?id=${encodeURIComponent(productId)}`);
+        const json = await res.json();
 
-        if (prodErr || !prodData) {
-          throw new Error(prodErr?.message || "Product not found.");
+        if (!res.ok || !json.success || !json.product) {
+          throw new Error(json.error || "Product not found.");
         }
 
-        if (prodData.business_id && businessId && prodData.business_id !== businessId) {
-          throw new Error("Unauthorized: Product belongs to another workspace.");
-        }
-
-        // 2. Fetch Associated Inventory Items (Barcodes)
-        const { data: itemsData, error: itemsErr } = await supabase
-          .from("inventory_items")
-          .select("*")
-          .eq("product_id", productId);
-
-        if (itemsErr) {
-          throw new Error(itemsErr.message || "Failed to load inventory barcodes.");
-        }
+        const prodData = json.product;
+        const safeItems = json.items || [];
 
         if (isMounted) {
           setProduct(prodData);
-          const safeItems = itemsData || [];
           setItems(safeItems);
           // Default: select all items for printing
           setSelectedIds(new Set(safeItems.map((item) => item.id)));

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 import AdminTasksTab from "./components/AdminTasksTab";
 import AdminBlogTab from "./components/AdminBlogTab";
+import AdminSupportTab from "./components/AdminSupportTab";
 import BangladeshDivisionMap from "@/components/BangladeshDivisionMap";
 import {
   TenantStatusDonutChart,
@@ -279,6 +280,10 @@ export default function SuperAdminDashboard() {
     notes: "",
   });
 
+  // ── Merchant Support Desk State ────────────────────────────
+  const [supportTickets, setSupportTickets] = useState([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+
   // ── Provision New Store Modal State ─────────────────────────
   const [showProvisionModal, setShowProvisionModal] = useState(false);
   const [provisioningStore, setProvisioningStore] = useState(false);
@@ -415,6 +420,23 @@ export default function SuperAdminDashboard() {
     }
   }
 
+  async function fetchSupportTickets() {
+    try {
+      setTicketsLoading(true);
+      const res = await fetch("/api/admin/support");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.tickets) {
+          setSupportTickets(json.tickets);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch support tickets:", err);
+    } finally {
+      setTicketsLoading(false);
+    }
+  }
+
   // ── Security Check & Initial Mount ─────────────────────────
   useEffect(() => {
     let isMounted = true;
@@ -482,11 +504,12 @@ export default function SuperAdminDashboard() {
           setIsAuthorized(true);
         }
 
-        // Fetch platform overview, dynamic settings, and activity footprints
+        // Fetch platform overview, dynamic settings, activity footprints, and support tickets
         const [overviewData] = await Promise.all([
           fetchTelemetryData(),
           fetchSaasSettings(),
           fetchActivityLogs(),
+          fetchSupportTickets(),
         ]);
 
         if (isMounted && overviewData) {
@@ -527,6 +550,7 @@ export default function SuperAdminDashboard() {
         fetchTelemetryData(),
         fetchSaasSettings(),
         fetchActivityLogs(),
+        fetchSupportTickets(),
       ]);
       if (overviewData?.summary) setSummary(overviewData.summary);
       if (overviewData?.tenants) setTenants(overviewData.tenants);
@@ -1136,18 +1160,27 @@ export default function SuperAdminDashboard() {
 
   // ── Helper to calculate validity & days remaining ────────────
   const getTenantValidity = (t) => {
+    if (!t) return { daysRemaining: null, isExpired: false, isExpiring: false, label: "Ongoing", expiryDate: "Ongoing" };
     const exp = t.expires_at || t.config?.expires_at;
     if (!exp) return { daysRemaining: null, isExpired: false, isExpiring: false, label: "Ongoing", expiryDate: "Ongoing" };
-    const daysRemaining = Math.ceil((new Date(exp).getTime() - Date.now()) / 86400000);
-    const isExpired = daysRemaining <= 0;
-    const isExpiring = daysRemaining > 0 && daysRemaining <= 5;
-    return {
-      daysRemaining,
-      isExpired,
-      isExpiring,
-      label: isExpired ? "Expired" : `${daysRemaining}d left`,
-      expiryDate: new Date(exp).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-    };
+    try {
+      const expDate = new Date(exp);
+      if (isNaN(expDate.getTime())) {
+        return { daysRemaining: null, isExpired: false, isExpiring: false, label: "Ongoing", expiryDate: "Ongoing" };
+      }
+      const daysRemaining = Math.ceil((expDate.getTime() - Date.now()) / 86400000);
+      const isExpired = daysRemaining <= 0;
+      const isExpiring = daysRemaining > 0 && daysRemaining <= 5;
+      return {
+        daysRemaining,
+        isExpired,
+        isExpiring,
+        label: isExpired ? "Expired" : `${daysRemaining}d left`,
+        expiryDate: expDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      };
+    } catch {
+      return { daysRemaining: null, isExpired: false, isExpiring: false, label: "Ongoing", expiryDate: "Ongoing" };
+    }
   };
 
   const expiringTenantsCount = tenants.filter((t) => getTenantValidity(t).isExpiring).length;
@@ -1245,6 +1278,21 @@ export default function SuperAdminDashboard() {
           icon: (
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          ),
+        },
+        {
+          id: "support",
+          label: "Merchant Support",
+          tab: "support",
+          badge:
+            supportTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS")
+              .length > 0
+              ? `${supportTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS").length} open`
+              : null,
+          icon: (
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           ),
         },
@@ -1565,7 +1613,7 @@ export default function SuperAdminDashboard() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs">
               <span className="font-semibold text-slate-900 capitalize">
-                {activeTab === "overview" ? "Dashboard" : activeTab.replace("-", " ")}
+                {activeTab === "overview" ? "Dashboard" : activeTab === "support" ? "Merchant Support & Helpdesk" : activeTab.replace("-", " ")}
               </span>
               <span className="text-slate-300">/</span>
               <span className="text-slate-500 text-[11px] font-mono hidden sm:inline">
@@ -1982,7 +2030,7 @@ export default function SuperAdminDashboard() {
                           const val = getTenantValidity(t);
                           const orderLimit = t.order_limit || t.config?.order_limit || 1000;
                           const currentOrders = t.orderCount ?? t.totalOrders ?? 0;
-                          const planTier = (t.config?.plan || t.plan || "starter").toUpperCase();
+                          const planTier = String(t.config?.plan || t.plan || "starter").toUpperCase();
 
                           return (
                             <tr
@@ -1993,13 +2041,13 @@ export default function SuperAdminDashboard() {
                               <td className="px-5 py-4 font-semibold text-slate-900">
                                 <div className="flex flex-col gap-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="truncate max-w-[160px]">{t.name}</span>
+                                    <span className="truncate max-w-[160px]">{t.name || "Store"}</span>
                                     <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 uppercase shrink-0">
                                       {planTier}
                                     </span>
                                   </div>
                                   <span className="text-[10px] text-slate-400 font-mono">
-                                    ID: {t.id.slice(0, 8)}…
+                                    ID: {String(t.id || "").slice(0, 8)}…
                                   </span>
                                 </div>
                               </td>
@@ -2844,6 +2892,18 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB: MERCHANT SUPPORT & HELPDESK TICKETS                 */}
+        {/* ========================================================= */}
+        {activeTab === "support" && (
+          <AdminSupportTab
+            tickets={supportTickets}
+            loading={ticketsLoading}
+            onRefresh={fetchSupportTickets}
+            triggerToast={triggerToast}
+          />
         )}
 
         {/* ========================================================= */}
@@ -3807,7 +3867,7 @@ export default function SuperAdminDashboard() {
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                    {selectedTenantForGodMode.ownerEmail} • ID: {selectedTenantForGodMode.id.slice(0, 8)}
+                    {selectedTenantForGodMode.ownerEmail} • ID: {String(selectedTenantForGodMode.id || "").slice(0, 8)}
                   </p>
                 </div>
                 <button
