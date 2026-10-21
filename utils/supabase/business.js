@@ -57,6 +57,7 @@ export function useBusinessContext() {
                   role: apiData.role || "admin",
                   userEmail: apiData.userEmail || session.user.email,
                   userId: apiData.userId || session.user.id,
+                  tenantConfig: apiData.tenantConfig || null,
                   loading: false,
                 });
               }

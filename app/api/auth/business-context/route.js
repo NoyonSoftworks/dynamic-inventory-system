@@ -127,6 +127,8 @@ async function handleBusinessContext(request) {
         ? businessName
         : "My Workspace";
 
+    const tenantConfig = businessId ? getTenantConfig(businessId) : null;
+
     return NextResponse.json({
       success: true,
       businessId,
@@ -134,6 +136,7 @@ async function handleBusinessContext(request) {
       role: resolvedRole,
       userEmail: user.email,
       userId: user.id,
+      tenantConfig,
     });
   } catch (error) {
     console.error("API /api/auth/business-context exception:", error);
