@@ -219,6 +219,18 @@ function BlogPostReaderContent() {
             {post.excerpt}
           </p>
 
+          {/* Cover Image Banner (If Provided) */}
+          {post.cover_image && (
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 shadow-md max-h-[460px]">
+              <img
+                src={post.cover_image}
+                alt={post.title}
+                className="w-full h-full object-cover"
+                loading="eager"
+              />
+            </div>
+          )}
+
           {/* Author Capsule */}
           <div className="pt-3 flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-orange-50 border border-orange-200 flex items-center justify-center font-bold text-orange-700 font-mono text-sm shadow-xs">

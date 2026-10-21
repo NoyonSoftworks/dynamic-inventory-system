@@ -120,6 +120,95 @@ export default function MarkdownRenderer({ content }) {
       continue;
     }
 
+    // Image: ![alt](url "caption") or ![alt](url)
+    const imgMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)"\s]+)(?:\s+"([^"]*)")?\)$/);
+    if (imgMatch) {
+      const [, alt, src, caption] = imgMatch;
+      elements.push(
+        <figure key={elementKey++} className="my-8 space-y-2.5">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-md">
+            <img
+              src={src}
+              alt={alt || "Article visual illustration"}
+              className="w-full max-h-[520px] object-cover transition-transform hover:scale-[1.01] duration-300"
+              loading="lazy"
+            />
+          </div>
+          {(caption || alt) && (
+            <figcaption className="text-center text-xs text-slate-500 italic font-sans">
+              🖼️ {caption || alt}
+            </figcaption>
+          )}
+        </figure>
+      );
+      i++;
+      continue;
+    }
+
+    // Video Embed: [video:url "caption"] or direct iframe or direct video link (YouTube, Vimeo, Loom)
+    const videoTagMatch = trimmed.match(/^\[video:\s*([^\s"]+)(?:\s+"([^"]*)")?\]$/i);
+    const isIframe = trimmed.startsWith("<iframe") && trimmed.includes("</iframe>");
+    const isDirectVideo =
+      /^https?:\/\/(www\.)?(youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/|vimeo\.com\/|loom\.com\/share\/)[^\s]+$/i.test(trimmed);
+
+    if (videoTagMatch || isIframe || isDirectVideo) {
+      let videoUrl = videoTagMatch ? videoTagMatch[1] : (isDirectVideo ? trimmed : "");
+      let caption = videoTagMatch ? videoTagMatch[2] : "";
+      let embedUrl = "";
+
+      if (isIframe) {
+        const srcMatch = trimmed.match(/src=["']([^"']+)["']/i);
+        embedUrl = srcMatch ? srcMatch[1] : "";
+      } else if (videoUrl) {
+        // YouTube (watch?v=, youtu.be/, shorts/)
+        const ytMatch = videoUrl.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+        if (ytMatch) {
+          embedUrl = `https://www.youtube-nocookie.com/embed/${ytMatch[1]}`;
+        }
+        // Vimeo
+        const vimeoMatch = videoUrl.match(/vimeo\.com\/(\d+)/i);
+        if (vimeoMatch) {
+          embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+        }
+        // Loom
+        const loomMatch = videoUrl.match(/loom\.com\/share\/([a-zA-Z0-9]+)/i);
+        if (loomMatch) {
+          embedUrl = `https://www.loom.com/embed/${loomMatch[1]}`;
+        }
+        if (!embedUrl && (videoUrl.endsWith(".mp4") || videoUrl.endsWith(".webm"))) {
+          embedUrl = videoUrl;
+        }
+      }
+
+      if (embedUrl) {
+        const isDirectMp4 = embedUrl.endsWith(".mp4") || embedUrl.endsWith(".webm");
+        elements.push(
+          <figure key={elementKey++} className="my-8 space-y-2.5">
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-lg">
+              {isDirectMp4 ? (
+                <video src={embedUrl} controls className="w-full h-full object-contain" />
+              ) : (
+                <iframe
+                  src={embedUrl}
+                  title={caption || "Embedded Video Tutorial"}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full border-0"
+                />
+              )}
+            </div>
+            {caption && (
+              <figcaption className="text-center text-xs text-slate-500 italic font-sans">
+                🎬 {caption}
+              </figcaption>
+            )}
+          </figure>
+        );
+        i++;
+        continue;
+      }
+    }
+
     // Horizontal Rule: --- or ***
     if (/^(\-{3,}|\*{3,})$/.test(trimmed)) {
       elements.push(

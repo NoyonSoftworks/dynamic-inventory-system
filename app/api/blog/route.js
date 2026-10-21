@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { SEED_BLOG_POSTS } from "@/utils/blog-seed";
+import { getAllBlogPosts } from "@/utils/storage/blog-store";
 
 export async function GET(request) {
   try {
@@ -9,44 +8,12 @@ export async function GET(request) {
     const search = searchParams.get("search");
     const tag = searchParams.get("tag");
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    let posts = await getAllBlogPosts();
 
-    let posts = [];
+    // Only return published posts for public API
+    posts = posts.filter((p) => p.is_published !== false);
 
-    if (supabaseUrl && supabaseKey) {
-      try {
-        const supabase = createClient(supabaseUrl, supabaseKey, {
-          auth: { persistSession: false },
-        });
-
-        let query = supabase
-          .from("blog_posts")
-          .select("id, slug, title, excerpt, category, tags, author_name, author_role, reading_time, created_at, updated_at, views_count, is_published")
-          .eq("is_published", true)
-          .order("created_at", { ascending: false });
-
-        if (category && category !== "All") {
-          query = query.eq("category", category);
-        }
-
-        const { data, error } = await query;
-        if (!error && Array.isArray(data) && data.length > 0) {
-          posts = data;
-        }
-      } catch (dbErr) {
-        console.warn("Notice: falling back to seed blog articles:", dbErr.message);
-      }
-    }
-
-    // Fallback to seed articles if database has no rows
-    if (posts.length === 0) {
-      posts = SEED_BLOG_POSTS;
-    }
-
-    // Apply in-memory filters if needed
+    // Apply filters
     if (category && category !== "All") {
       posts = posts.filter(
         (p) => p.category?.toLowerCase() === category.toLowerCase()
@@ -69,24 +36,17 @@ export async function GET(request) {
       );
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        count: posts.length,
-        posts,
-      },
-      {
-        headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-        },
-      }
-    );
+    return NextResponse.json({
+      success: true,
+      count: posts.length,
+      posts,
+    });
   } catch (err) {
     if (err?.digest) throw err;
-    console.error("Public blog list API error:", err);
+    console.error("Public /api/blog error:", err);
     return NextResponse.json(
-      { success: false, posts: SEED_BLOG_POSTS, error: "Internal fallback" },
-      { status: 200 }
+      { error: "Failed to load articles." },
+      { status: 500 }
     );
   }
 }

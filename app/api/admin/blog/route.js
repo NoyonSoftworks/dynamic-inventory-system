@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyAdminRequest } from "@/utils/admin-auth";
-import { SEED_BLOG_POSTS } from "@/utils/blog-seed";
-
-function getServiceSupabase() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) return null;
-  return createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false },
-  });
-}
+import {
+  getAllBlogPosts,
+  saveBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
+  seedDefaultBlogPosts,
+} from "@/utils/storage/blog-store";
 
 /**
  * GET /api/admin/blog
@@ -28,38 +21,27 @@ export async function GET(request) {
     );
   }
 
-  const supabase = getServiceSupabase();
-  let posts = [];
+  try {
+    const posts = await getAllBlogPosts();
 
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error && Array.isArray(data)) {
-        posts = data;
-      }
-    } catch (err) {
-      console.warn("Notice: falling back to seed posts in admin:", err.message);
-    }
+    return NextResponse.json({
+      success: true,
+      count: posts.length,
+      posts,
+    });
+  } catch (err) {
+    if (err?.digest) throw err;
+    console.error("GET /api/admin/blog error:", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to load blog posts." },
+      { status: 500 }
+    );
   }
-
-  if (posts.length === 0) {
-    posts = SEED_BLOG_POSTS;
-  }
-
-  return NextResponse.json({
-    success: true,
-    count: posts.length,
-    posts,
-  });
 }
 
 /**
  * POST /api/admin/blog
- * Creates a new article in the database.
+ * Creates a new article or seeds standard posts.
  */
 export async function POST(request) {
   const auth = await verifyAdminRequest(request);
@@ -72,6 +54,18 @@ export async function POST(request) {
 
   try {
     const body = await request.json();
+
+    // Special action: Seed default demo posts
+    if (body.action === "seed_defaults") {
+      const seeded = seedDefaultBlogPosts(body.overwrite || false);
+      return NextResponse.json({
+        success: true,
+        message: "Default blog articles initialized successfully.",
+        count: seeded.length,
+        posts: seeded,
+      });
+    }
+
     const {
       title,
       slug,
@@ -81,6 +75,8 @@ export async function POST(request) {
       tags,
       author_name,
       author_role,
+      author_avatar,
+      cover_image,
       meta_title,
       meta_description,
       canonical_url,
@@ -102,51 +98,28 @@ export async function POST(request) {
       .replace(/[\s_-]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
-    const newPost = {
+    const newPost = await saveBlogPost({
       title: title.trim(),
-      slug: sanitizedSlug,
+      slug: sanitizedSlug || `article-${Date.now()}`,
       excerpt: excerpt?.trim() || "",
       content: content.trim(),
-      category: category?.trim() || "Logistics & Supply Chain",
-      tags: Array.isArray(tags) ? tags : (tags ? tags.split(",").map((t) => t.trim()) : []),
-      author_name: author_name?.trim() || "Platform Operations Team",
-      author_role: author_role?.trim() || "Senior Supply Chain Architect",
+      category: category?.trim() || "Logistics & Courier Automation",
+      tags: Array.isArray(tags) ? tags : (tags ? String(tags).split(",").map((t) => t.trim()).filter(Boolean) : []),
+      author_name: author_name?.trim() || "Noyon Hossain",
+      author_role: author_role?.trim() || "Founder & Lead Systems Architect",
+      author_avatar: author_avatar?.trim() || "",
+      cover_image: cover_image?.trim() || "",
       meta_title: meta_title?.trim() || title.trim(),
       meta_description: meta_description?.trim() || excerpt?.trim() || "",
       canonical_url: canonical_url?.trim() || `https://smartinventory.io/blog/${sanitizedSlug}`,
       reading_time: reading_time?.trim() || "5 min read",
       is_published: Boolean(is_published),
       views_count: 0,
-      updated_at: new Date().toISOString(),
-    };
-
-    const supabase = getServiceSupabase();
-    if (!supabase) {
-      return NextResponse.json(
-        { error: "Database client configuration missing." },
-        { status: 500 }
-      );
-    }
-
-    const { data, error } = await supabase
-      .from("blog_posts")
-      .insert(newPost)
-      .select()
-      .single();
-
-    if (error) {
-      // If table doesn't exist yet, inform clearly
-      return NextResponse.json(
-        {
-          error: `Database error: ${error.message}. Please run the blog-engine-migration.sql script in Supabase SQL editor.`,
-        },
-        { status: 400 }
-      );
-    }
+    });
 
     return NextResponse.json({
       success: true,
-      post: data,
+      post: newPost,
     });
   } catch (err) {
     if (err?.digest) throw err;
@@ -182,40 +155,17 @@ export async function PUT(request) {
       );
     }
 
-    if (updates.tags && !Array.isArray(updates.tags)) {
-      updates.tags = String(updates.tags)
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
-    }
-
-    updates.updated_at = new Date().toISOString();
-
-    const supabase = getServiceSupabase();
-    if (!supabase) {
+    const updated = await updateBlogPost(id, updates);
+    if (!updated) {
       return NextResponse.json(
-        { error: "Database client configuration missing." },
-        { status: 500 }
-      );
-    }
-
-    const { data, error } = await supabase
-      .from("blog_posts")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
+        { error: "Article not found or could not be updated." },
+        { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      post: data,
+      post: updated,
     });
   } catch (err) {
     if (err?.digest) throw err;
@@ -251,20 +201,8 @@ export async function DELETE(request) {
       );
     }
 
-    const supabase = getServiceSupabase();
-    if (!supabase) {
-      return NextResponse.json(
-        { error: "Database client configuration missing." },
-        { status: 500 }
-      );
-    }
-
-    const { error } = await supabase.from("blog_posts").delete().eq("id", id);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true, deletedId: id });
+    const success = await deleteBlogPost(id);
+    return NextResponse.json({ success, deletedId: id });
   } catch (err) {
     if (err?.digest) throw err;
     return NextResponse.json(
