@@ -2,6 +2,7 @@
 
 import { useEffect, useState, createContext, useContext, Suspense } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
 import Navbar from "./navbar";
@@ -57,10 +58,32 @@ function RoleRouteGuard() {
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
+  const { tenantConfig, businessName } = useBusinessContext();
   const [authChecking, setAuthChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [expiryDismissed, setExpiryDismissed] = useState(false);
+
+  // Calculate validity expiration notice for top banner
+  let expiryNotice = null;
+  if (tenantConfig?.expires_at) {
+    const diff = Math.ceil(
+      (new Date(tenantConfig.expires_at).getTime() - Date.now()) / 86400000
+    );
+    if (diff <= 5) {
+      expiryNotice = {
+        daysRemaining: Math.max(0, diff),
+        isExpired: diff <= 0,
+        status: tenantConfig.status || "Trial",
+        expiresDate: new Date(tenantConfig.expires_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      };
+    }
+  }
 
   // Load collapsed preference from localStorage
   useEffect(() => {
@@ -187,6 +210,52 @@ export default function DashboardLayout({ children }) {
           }`}
         >
           <main className="flex-1 w-full bg-[#F4F6F8]">
+            {/* Top Expiry / Renewal Notice Banner */}
+            {expiryNotice && !expiryDismissed && (
+              <div
+                className={`px-4 py-2.5 border-b text-xs flex items-center justify-between gap-3 font-sans transition-all shrink-0 ${
+                  expiryNotice.isExpired
+                    ? "bg-rose-50 border-rose-200 text-rose-900"
+                    : "bg-amber-50 border-amber-200 text-amber-900"
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span
+                    className={`h-2 w-2 rounded-full shrink-0 ${
+                      expiryNotice.isExpired ? "bg-rose-500 animate-pulse" : "bg-amber-500"
+                    }`}
+                  />
+                  <span className="font-semibold shrink-0">
+                    {expiryNotice.isExpired ? "Subscription Expired:" : "Subscription Validity Notice:"}
+                  </span>
+                  <span className="truncate">
+                    {expiryNotice.isExpired
+                      ? `Your workspace (${businessName || "Store"}) subscription expired on ${expiryNotice.expiresDate}. Please renew your plan to restore full dispatch capabilities.`
+                      : `Your ${expiryNotice.status === "Trial" ? "15-day trial" : "subscription"} will expire in ${expiryNotice.daysRemaining} day${expiryNotice.daysRemaining === 1 ? "" : "s"} (${expiryNotice.expiresDate}). Upgrade now to keep dispatching customer parcels.`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link
+                    href="/dashboard/billing"
+                    className={`px-3 py-1 rounded-md font-medium text-[11px] shadow-2xs transition whitespace-nowrap ${
+                      expiryNotice.isExpired
+                        ? "bg-rose-600 hover:bg-rose-700 text-white"
+                        : "bg-amber-600 hover:bg-amber-700 text-white"
+                    }`}
+                  >
+                    Renew / Upgrade Plan →
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setExpiryDismissed(true)}
+                    className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    title="Dismiss notice for this session"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
             {children}
           </main>
         </div>

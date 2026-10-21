@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
@@ -153,6 +154,41 @@ export default function Navbar() {
   const { role, userEmail, businessName, loading } = useBusinessContext();
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
 
+  // ── Merchant Notifications State ──────────────────────────
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifDrawer, setShowNotifDrawer] = useState(false);
+
+  useEffect(() => {
+    async function fetchNotifs() {
+      try {
+        const res = await fetch("/api/tenant/notifications");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            setNotifications(json.notifications || []);
+            setUnreadCount(json.unreadCount || 0);
+          }
+        }
+      } catch {}
+    }
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function handleMarkAllRead() {
+    try {
+      await fetch("/api/tenant/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: "all" }),
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch {}
+  }
+
   // Sign out handler
   async function handleLogout() {
     try {
@@ -268,23 +304,43 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Sidebar Collapse Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setCollapsed(!collapsed)}
-            className="w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shrink-0 cursor-pointer"
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-label="Toggle sidebar collapse"
-          >
-            <svg
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Notification Bell Button */}
+            <button
+              type="button"
+              onClick={() => setShowNotifDrawer(true)}
+              className="relative w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shrink-0 cursor-pointer"
+              title="Store Notifications & Announcements"
+              aria-label="Open notifications"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-3.5 min-w-3.5 px-0.5 rounded-full bg-rose-500 text-white text-[9px] font-mono font-bold flex items-center justify-center animate-pulse">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Sidebar Collapse Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setCollapsed(!collapsed)}
+              className="w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shrink-0 cursor-pointer"
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label="Toggle sidebar collapse"
+            >
+              <svg
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Navigation Groups */}
@@ -403,6 +459,23 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
+          {/* Mobile Notification Bell */}
+          <button
+            type="button"
+            onClick={() => setShowNotifDrawer(true)}
+            className="relative p-1.5 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100"
+            aria-label="Open notifications"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-3.5 min-w-3.5 px-0.5 rounded-full bg-rose-500 text-white text-[9px] font-mono font-bold flex items-center justify-center animate-pulse">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+
           <div className="h-7 w-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-[11px]">
             {userInitial}
           </div>
@@ -513,6 +586,133 @@ export default function Navbar() {
               >
                 <span>Sign Out</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. MERCHANT NOTIFICATION SLIDE-OVER DRAWER ───────────── */}
+      {showNotifDrawer && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity animate-in fade-in"
+            onClick={() => setShowNotifDrawer(false)}
+          />
+
+          {/* Slide-over panel */}
+          <div className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200">
+            {/* Header */}
+            <div className="h-16 px-5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">Store Notices</h3>
+                  <p className="text-[11px] text-slate-400">
+                    {unreadCount > 0 ? `${unreadCount} unread message(s)` : "All caught up"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleMarkAllRead}
+                    className="text-[11px] font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                  >
+                    Mark all read
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowNotifDrawer(false)}
+                  className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-slate-100">
+              {notifications.length === 0 ? (
+                <div className="py-12 text-center">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                  </div>
+                  <h4 className="text-xs font-semibold text-slate-800">No Notifications Yet</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Important alerts and platform announcements will appear here.
+                  </p>
+                </div>
+              ) : (
+                notifications.map((n) => {
+                  const isRenewal = n.category === "renewal" || n.type === "alert" || n.type === "warning";
+                  return (
+                    <div
+                      key={n.id}
+                      className={`pt-3 first:pt-0 ${
+                        !n.read ? "bg-blue-50/30 -mx-2 px-2 py-2 rounded-lg" : ""
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <span
+                          className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-medium ${
+                            n.type === "alert"
+                              ? "bg-rose-50 text-rose-700 border border-rose-200"
+                              : n.type === "warning"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : n.type === "success"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-blue-50 text-blue-700 border border-blue-200"
+                          }`}
+                        >
+                          {n.category === "renewal"
+                            ? "Renewal Alert"
+                            : n.category === "system"
+                            ? "System Notice"
+                            : n.type.toUpperCase()}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {n.created_at ? new Date(n.created_at).toLocaleDateString() : ""}
+                        </span>
+                      </div>
+
+                      <h4 className="text-xs font-semibold text-slate-900 leading-snug">
+                        {n.title}
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                        {n.message}
+                      </p>
+
+                      <div className="flex items-center justify-between mt-2 pt-1">
+                        <span className="text-[10px] text-slate-400">
+                          From: {n.sender || "Platform Team"}
+                        </span>
+                        {isRenewal && (
+                          <Link
+                            href="/dashboard/billing"
+                            onClick={() => setShowNotifDrawer(false)}
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-orange-600 hover:text-orange-700 hover:underline"
+                          >
+                            <span>Manage Plan</span>
+                            <span>→</span>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

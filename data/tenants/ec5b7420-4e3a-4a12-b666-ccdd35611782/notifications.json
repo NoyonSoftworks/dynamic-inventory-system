@@ -1,0 +1,13 @@
+[
+  {
+    "id": "notif-welcome-1792612371386",
+    "business_id": "ec5b7420-4e3a-4a12-b666-ccdd35611782",
+    "title": "Welcome to SmartInventory!",
+    "message": "Your workspace is ready. Start by adding products or connecting your courier API keys.",
+    "type": "success",
+    "category": "system",
+    "created_at": "2026-10-21T19:23:37.945Z",
+    "read": false,
+    "sender": "Platform Team"
+  }
+]
