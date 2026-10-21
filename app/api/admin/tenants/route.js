@@ -528,11 +528,13 @@ export async function PATCH(request) {
       let newExpiry = currentConfig.expires_at;
       if (customExpiry) {
         newExpiry = new Date(customExpiry).toISOString();
-      } else if (addDays) {
-        const base =
-          currentConfig.expires_at && new Date(currentConfig.expires_at) > new Date()
-            ? new Date(currentConfig.expires_at)
-            : new Date();
+      } else if (addDays !== undefined && addDays !== null && Number(addDays) > 0) {
+        const currTime = currentConfig.expires_at ? new Date(currentConfig.expires_at).getTime() : 0;
+        const isFarFuture = currTime > Date.now() + 3650 * 86400000;
+        const isPast = currTime < Date.now();
+        const base = (isFarFuture || isPast || !currentConfig.expires_at)
+          ? new Date()
+          : new Date(currentConfig.expires_at);
         newExpiry = new Date(base.getTime() + Number(addDays) * 86400000).toISOString();
       }
 

@@ -662,7 +662,7 @@ export default function SuperAdminDashboard() {
   }
 
   // ── God-Mode: Plan & Validity Update ───────────────────────
-  async function handleGodModePlanUpdate(plan, addDays) {
+  async function handleGodModePlanUpdate(plan, addDays, customExpiry, newStatus) {
     if (!selectedTenantForGodMode) return;
     setGodModeSaving(true);
     try {
@@ -672,8 +672,10 @@ export default function SuperAdminDashboard() {
         body: JSON.stringify({
           action: "update_plan",
           tenantId: selectedTenantForGodMode.id,
-          plan,
+          plan: plan || selectedTenantForGodMode.plan,
           addDays,
+          customExpiry,
+          status: newStatus,
         }),
       });
       const json = await res.json();
@@ -681,11 +683,32 @@ export default function SuperAdminDashboard() {
         throw new Error(json.error || "Failed to update plan.");
       }
       triggerToast("success", "Store plan and validity updated!");
+      const updatedConf = json.config || {};
+      const updatedExp = updatedConf.expires_at || customExpiry;
+      const updatedStatus = updatedConf.status || newStatus || selectedTenantForGodMode.status;
+      const updatedPlan = updatedConf.plan || plan || selectedTenantForGodMode.plan;
+
       setSelectedTenantForGodMode((prev) => ({
         ...prev,
-        plan: json.config?.plan || plan,
-        config: json.config || prev.config,
+        plan: updatedPlan,
+        status: updatedStatus,
+        expires_at: updatedExp,
+        config: updatedConf,
       }));
+
+      setTenants((prev) =>
+        prev.map((t) =>
+          t.id === selectedTenantForGodMode.id
+            ? {
+                ...t,
+                plan: updatedPlan,
+                status: updatedStatus,
+                expires_at: updatedExp,
+                config: updatedConf,
+              }
+            : t
+        )
+      );
       handleManualRefresh();
     } catch (err) {
       triggerToast("error", err.message || "Error updating plan.");
@@ -3821,55 +3844,146 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {/* Section: Subscription & Plan Control */}
-                <div className="rounded-lg border border-slate-200 p-4 space-y-3 bg-white shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-semibold text-slate-900">Subscription &amp; Validity</h4>
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      {selectedTenantForGodMode.config?.expires_at
-                        ? `Expires: ${new Date(selectedTenantForGodMode.config.expires_at).toLocaleDateString()}`
-                        : "Active"}
-                    </span>
-                  </div>
+                <div className="rounded-lg border border-slate-200 p-4 space-y-3.5 bg-white shadow-2xs">
+                  {(() => {
+                    const currentExp = selectedTenantForGodMode.config?.expires_at || selectedTenantForGodMode.expires_at;
+                    const diffDays = currentExp
+                      ? Math.ceil((new Date(currentExp).getTime() - Date.now()) / 86400000)
+                      : null;
+                    const isExp = diffDays !== null && diffDays <= 0;
+                    const formattedDate = currentExp ? new Date(currentExp).toLocaleDateString() : "No Expiry";
 
-                  <div>
-                    <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                      Assigned Plan Tier
-                    </label>
-                    <select
-                      value={selectedTenantForGodMode.config?.plan || selectedTenantForGodMode.plan || "growth"}
-                      onChange={(e) => handleGodModePlanUpdate(e.target.value, 0)}
-                      disabled={godModeSaving}
-                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
-                    >
-                      <option value="starter">Starter Plan (৳999/mo - 100 SKUs)</option>
-                      <option value="growth">Growth Plan (৳1,990/mo - 500 SKUs)</option>
-                      <option value="enterprise">Enterprise Plan (৳4,990/mo - Unlimited)</option>
-                    </select>
-                  </div>
+                    return (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-semibold text-slate-900">Subscription &amp; Validity</h4>
+                          <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                            {diffDays === null ? (
+                              <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Ongoing</span>
+                            ) : isExp ? (
+                              <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold border border-rose-200">
+                                🔴 Expired ({formattedDate})
+                              </span>
+                            ) : diffDays <= 5 ? (
+                              <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold border border-amber-200">
+                                ⚠️ {diffDays} days left ({formattedDate})
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
+                                🟢 {diffDays} days left ({formattedDate})
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
-                  <div>
-                    <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                      Quick Validity Extension
-                    </label>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {[
-                        { label: "+30 Days", days: 30 },
-                        { label: "+90 Days", days: 90 },
-                        { label: "+1 Year", days: 365 },
-                        { label: "+5 Years", days: 1825 },
-                      ].map((btn) => (
-                        <button
-                          key={btn.label}
-                          type="button"
-                          disabled={godModeSaving}
-                          onClick={() => handleGodModePlanUpdate(null, btn.days)}
-                          className="px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-mono text-slate-700 shadow-2xs transition disabled:opacity-50"
-                        >
-                          {btn.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                        <div>
+                          <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                            Assigned Plan Tier
+                          </label>
+                          <select
+                            value={selectedTenantForGodMode.config?.plan || selectedTenantForGodMode.plan || "growth"}
+                            onChange={(e) => handleGodModePlanUpdate(e.target.value, 0)}
+                            disabled={godModeSaving}
+                            className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white font-medium"
+                          >
+                            <option value="starter">Starter Plan (৳999/mo · 300 orders)</option>
+                            <option value="growth">Growth Pro Plan (৳1,990/mo · 2,000 orders)</option>
+                            <option value="enterprise">Enterprise Plan (৳4,990/mo · Unlimited)</option>
+                          </select>
+                        </div>
+
+                        {/* Reset / Standard Cycle Presets from Today */}
+                        <div>
+                          <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                            Set Cycle From Today
+                          </label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              disabled={godModeSaving}
+                              onClick={() => {
+                                const newDate = new Date(Date.now() + 15 * 86400000).toISOString();
+                                handleGodModePlanUpdate(null, null, newDate, "Trial");
+                              }}
+                              className="px-2.5 py-1.5 rounded border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-medium shadow-2xs transition disabled:opacity-50 text-center"
+                            >
+                              ⚡ Set 15-Day Trial
+                            </button>
+                            <button
+                              type="button"
+                              disabled={godModeSaving}
+                              onClick={() => {
+                                const newDate = new Date(Date.now() + 30 * 86400000).toISOString();
+                                handleGodModePlanUpdate(null, null, newDate, "Active");
+                              }}
+                              className="px-2.5 py-1.5 rounded border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-medium shadow-2xs transition disabled:opacity-50 text-center"
+                            >
+                              ✓ Set 30-Day Active Cycle
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Quick Add Extensions */}
+                        <div>
+                          <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                            Add Days to Current Validity
+                          </label>
+                          <div className="grid grid-cols-5 gap-1.5">
+                            {[
+                              { label: "+7 Days", days: 7 },
+                              { label: "+15 Days", days: 15 },
+                              { label: "+30 Days", days: 30 },
+                              { label: "+90 Days", days: 90 },
+                              { label: "+1 Year", days: 365 },
+                            ].map((btn) => (
+                              <button
+                                key={btn.label}
+                                type="button"
+                                disabled={godModeSaving}
+                                onClick={() => handleGodModePlanUpdate(null, btn.days)}
+                                className="px-1.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-mono text-slate-700 shadow-2xs transition disabled:opacity-50 text-center"
+                              >
+                                {btn.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Set Exact Expiry Date */}
+                        <div>
+                          <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                            Or Set Exact Expiry Date
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="date"
+                              id="godmode-custom-date-input"
+                              defaultValue={
+                                currentExp
+                                  ? new Date(currentExp).toISOString().split("T")[0]
+                                  : new Date().toISOString().split("T")[0]
+                              }
+                              className="flex-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                            />
+                            <button
+                              type="button"
+                              disabled={godModeSaving}
+                              onClick={() => {
+                                const input = document.getElementById("godmode-custom-date-input");
+                                if (input && input.value) {
+                                  const dateVal = new Date(input.value).toISOString();
+                                  handleGodModePlanUpdate(null, null, dateVal);
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition disabled:opacity-50 shrink-0"
+                            >
+                              Apply Date
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
 
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                     <span className="text-xs text-slate-600 font-medium">Store Operational Access</span>
