@@ -508,8 +508,21 @@ export async function PATCH(request) {
     }
 
     // ── Action E: Update Plan & Validity Extension ─────────────
-    if (action === "update_plan") {
-      const { plan, addDays, customExpiry, skuLimit, orderLimit, status } = payload;
+    if (action === "update_plan" || action === "manage_tenant") {
+      const {
+        plan,
+        addDays,
+        customExpiry,
+        skuLimit,
+        sku_limit,
+        orderLimit,
+        order_limit,
+        status,
+        name,
+        phone,
+        division,
+        features,
+      } = payload;
       const currentConfig = getTenantConfig(tenantId);
 
       let newExpiry = currentConfig.expires_at;
@@ -523,12 +536,22 @@ export async function PATCH(request) {
         newExpiry = new Date(base.getTime() + Number(addDays) * 86400000).toISOString();
       }
 
+      if (name && typeof name === "string") {
+        await supabaseAdmin
+          .from("businesses")
+          .update({ name: name.trim().slice(0, 100) })
+          .eq("id", tenantId);
+      }
+
       const updated = saveTenantConfig(tenantId, {
         plan: plan || currentConfig.plan,
         expires_at: newExpiry,
         status: status || currentConfig.status,
-        sku_limit: skuLimit ? Number(skuLimit) : currentConfig.sku_limit,
-        order_limit: orderLimit ? Number(orderLimit) : currentConfig.order_limit,
+        sku_limit: skuLimit ? Number(skuLimit) : (sku_limit ? Number(sku_limit) : currentConfig.sku_limit),
+        order_limit: orderLimit ? Number(orderLimit) : (order_limit ? Number(order_limit) : currentConfig.order_limit),
+        phone: phone !== undefined ? phone : currentConfig.phone,
+        division: division !== undefined ? division : currentConfig.division,
+        features: features ? { ...currentConfig.features, ...features } : currentConfig.features,
       });
 
       return NextResponse.json({
