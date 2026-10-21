@@ -147,16 +147,11 @@ const NAV_GROUPS = [
   },
 ];
 
-const ADMIN_EMAIL = (
-  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-).toLowerCase().trim();
-
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { role, userEmail, businessName, loading } = useBusinessContext();
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
-  const isSuperAdmin = (userEmail || "").toLowerCase().trim() === ADMIN_EMAIL;
 
   // Sign out handler
   async function handleLogout() {
@@ -201,9 +196,45 @@ export default function Navbar() {
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const userInitial = (userEmail?.[0] || "N").toUpperCase();
+  const userInitial = (userEmail?.[0] || "M").toUpperCase();
   const userName = userEmail ? userEmail.split("@")[0] : "Merchant";
-  const userRole = isSuperAdmin ? "Super Admin" : (role === "admin" ? "Store Owner" : "Operator");
+  
+  // Role-Based Access Control
+  const userRole = (role || "admin").toLowerCase();
+  const isOwnerOrAdmin = userRole === "owner" || userRole === "admin";
+  const isManager = userRole === "manager";
+  const isStaff = userRole === "staff" || userRole === "operator";
+
+  const roleDisplayLabel = isOwnerOrAdmin
+    ? "Store Owner"
+    : isManager
+    ? "Store Manager"
+    : "Packing Staff";
+
+  // Filter navigation items based on granular staff permissions
+  const visibleNavGroups = NAV_GROUPS.map((grp) => {
+    const allowedItems = grp.items.filter((item) => {
+      if (isOwnerOrAdmin) return true;
+      if (isManager) {
+        // Managers can access operational & courier tools, but not Billing & Plan
+        return item.href !== "/dashboard/billing";
+      }
+      if (isStaff) {
+        // Warehouse & Packing staff can ONLY access order dispatch, scanner, and operations
+        return (
+          item.href === "/bulk-orders" ||
+          item.href === "/dashboard/scanner" ||
+          item.href === "/operations"
+        );
+      }
+      return true;
+    });
+
+    return {
+      ...grp,
+      items: allowedItems,
+    };
+  }).filter((grp) => grp.items.length > 0);
 
   return (
     <>
@@ -258,7 +289,7 @@ export default function Navbar() {
 
         {/* Scrollable Navigation Groups */}
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 no-scrollbar">
-          {NAV_GROUPS.map((grp) => (
+          {visibleNavGroups.map((grp) => (
             <div key={grp.group} className="space-y-1">
               {!collapsed ? (
                 <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
@@ -297,30 +328,6 @@ export default function Navbar() {
               })}
             </div>
           ))}
-
-          {/* Super Admin Console Link (if authorized) */}
-          {isSuperAdmin && (
-            <div className="pt-2 border-t border-slate-100 space-y-1">
-              {!collapsed && (
-                <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
-                  PLATFORM
-                </div>
-              )}
-              <Link
-                href="/admin"
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium bg-slate-900 text-white hover:bg-slate-800 transition ${
-                  collapsed ? "justify-center px-2" : ""
-                }`}
-                title="Super Admin Control Plane"
-              >
-                <svg className="w-4 h-4 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {!collapsed && <span className="truncate">Super Admin</span>}
-              </Link>
-            </div>
-          )}
         </div>
 
         {/* Bottom Sidebar Footer */}
@@ -359,7 +366,7 @@ export default function Navbar() {
                   {userName}
                 </div>
                 <div className="text-[10px] text-slate-400 truncate">
-                  {userRole}
+                  {roleDisplayLabel}
                 </div>
               </div>
             )}
@@ -448,7 +455,7 @@ export default function Navbar() {
 
             {/* Navigation Groups */}
             <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 no-scrollbar">
-              {NAV_GROUPS.map((grp) => (
+              {visibleNavGroups.map((grp) => (
                 <div key={grp.group} className="space-y-1">
                   <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
                     {grp.group}
@@ -478,21 +485,6 @@ export default function Navbar() {
                   })}
                 </div>
               ))}
-
-              {isSuperAdmin && (
-                <div className="pt-2 border-t border-slate-100 space-y-1">
-                  <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
-                    PLATFORM
-                  </div>
-                  <Link
-                    href="/admin"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium bg-slate-900 text-white"
-                  >
-                    <span className="truncate">Super Admin Control</span>
-                  </Link>
-                </div>
-              )}
             </div>
 
             {/* Bottom Footer */}
@@ -506,7 +498,7 @@ export default function Navbar() {
                     {userName}
                   </div>
                   <div className="text-[10px] text-slate-400 truncate">
-                    {userRole}
+                    {roleDisplayLabel}
                   </div>
                 </div>
               </div>

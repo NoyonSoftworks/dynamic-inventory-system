@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, createContext, useContext, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
+import { useBusinessContext } from "@/utils/supabase/business";
 import Navbar from "./navbar";
 
 export const SidebarContext = createContext({
@@ -14,6 +15,44 @@ export const SidebarContext = createContext({
 
 export function useSidebar() {
   return useContext(SidebarContext);
+}
+
+function RoleRouteGuard() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { role, loading: ctxLoading } = useBusinessContext();
+
+  useEffect(() => {
+    if (ctxLoading || !role) return;
+    const r = (role || "").toLowerCase();
+    const isStaff = r === "staff" || r === "operator";
+    const isManager = r === "manager";
+
+    if (isStaff) {
+      // Packing & warehouse staff can ONLY access order dispatch, scanner, and operations
+      const restrictedForStaff = [
+        "/dashboard/expenses",
+        "/dashboard/reports",
+        "/dashboard/reconciliation",
+        "/dashboard/billing",
+        "/dashboard/ai-hub",
+        "/dashboard/footprints",
+      ];
+      if (
+        restrictedForStaff.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ||
+        pathname === "/dashboard"
+      ) {
+        router.replace("/bulk-orders");
+      }
+    } else if (isManager) {
+      // Managers cannot access store billing & plan settings
+      if (pathname === "/dashboard/billing" || pathname.startsWith("/dashboard/billing/")) {
+        router.replace("/dashboard");
+      }
+    }
+  }, [pathname, role, ctxLoading, router]);
+
+  return null;
 }
 
 export default function DashboardLayout({ children }) {
@@ -134,6 +173,9 @@ export default function DashboardLayout({ children }) {
         setMobileOpen,
       }}
     >
+      <Suspense fallback={null}>
+        <RoleRouteGuard />
+      </Suspense>
       <div className="min-h-screen bg-[#F4F6F8] text-[#0f172a] selection:bg-orange-500 selection:text-white">
         <Suspense fallback={<div className="w-64 bg-white border-r border-slate-200 hidden lg:block fixed inset-y-0 left-0 z-40" />}>
           <Navbar />

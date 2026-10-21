@@ -262,6 +262,61 @@ export default function SuperAdminDashboard() {
   const [logSearchQuery, setLogSearchQuery] = useState("");
   const [expandedLogId, setExpandedLogId] = useState(null);
 
+  // ── Subscription Payments Desk State ───────────────────────
+  const [payments, setPayments] = useState([]);
+  const [approvingPaymentId, setApprovingPaymentId] = useState(null);
+  const [showRecordPaymentModal, setShowRecordPaymentModal] = useState(false);
+  const [recordingPayment, setRecordingPayment] = useState(false);
+  const [offlinePaymentForm, setOfflinePaymentForm] = useState({
+    tenantId: "",
+    storeName: "",
+    ownerEmail: "",
+    amount: "1990",
+    method: "bKash Personal",
+    phone: "",
+    trxId: "",
+    plan: "Growth Pro",
+    notes: "",
+  });
+
+  // ── Provision New Store Modal State ─────────────────────────
+  const [showProvisionModal, setShowProvisionModal] = useState(false);
+  const [provisioningStore, setProvisioningStore] = useState(false);
+  const [newStoreForm, setNewStoreForm] = useState({
+    name: "",
+    ownerEmail: "",
+    initialPassword: "",
+    phone: "",
+    division: "Dhaka",
+    plan: "growth",
+    billingStatus: "Trial",
+    preloadSampleProducts: true,
+  });
+  const [provisionedStoreResult, setProvisionedStoreResult] = useState(null);
+
+  // ── God-Mode Merchant Control Drawer State ──────────────────
+  const [selectedTenantForGodMode, setSelectedTenantForGodMode] = useState(null);
+  const [godModeSaving, setGodModeSaving] = useState(false);
+  const [godModeNewPassword, setGodModeNewPassword] = useState("");
+
+  const generateNewStorePassword = () => {
+    const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$%";
+    let pwd = "";
+    for (let i = 0; i < 12; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewStoreForm((prev) => ({ ...prev, initialPassword: pwd }));
+  };
+
+  const generateGodModePassword = () => {
+    const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$%";
+    let pwd = "";
+    for (let i = 0; i < 12; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setGodModeNewPassword(pwd);
+  };
+
   // Toast trigger
   const triggerToast = (type, text) => {
     setToastMessage({ type, text });
@@ -360,7 +415,7 @@ export default function SuperAdminDashboard() {
             setIsAuthorized(false);
             setAuthChecking(false);
             setLoading(false);
-            router.replace("/admin/login");
+            router.replace("/login");
           }
           return;
         }
@@ -373,7 +428,7 @@ export default function SuperAdminDashboard() {
             setIsAuthorized(false);
             setAuthChecking(false);
             setLoading(false);
-            router.replace("/admin/login?error=unauthorized");
+            router.replace("/dashboard");
           }
           return;
         }
@@ -392,6 +447,7 @@ export default function SuperAdminDashboard() {
         if (isMounted && overviewData) {
           if (overviewData.summary) setSummary(overviewData.summary);
           if (overviewData.tenants) setTenants(overviewData.tenants);
+          if (overviewData.payments) setPayments(overviewData.payments);
           if (overviewData.courierBreakdown)
             setCourierBreakdown(overviewData.courierBreakdown);
           if (overviewData.recentOrders) setRecentOrders(overviewData.recentOrders);
@@ -429,6 +485,7 @@ export default function SuperAdminDashboard() {
       ]);
       if (overviewData?.summary) setSummary(overviewData.summary);
       if (overviewData?.tenants) setTenants(overviewData.tenants);
+      if (overviewData?.payments) setPayments(overviewData.payments);
       if (overviewData?.courierBreakdown)
         setCourierBreakdown(overviewData.courierBreakdown);
       if (overviewData?.recentOrders) setRecentOrders(overviewData.recentOrders);
@@ -494,15 +551,242 @@ export default function SuperAdminDashboard() {
     }
   }
 
+  // ── Provision New Store Handler ───────────────────────────
+  async function handleProvisionStore(e) {
+    e.preventDefault();
+    if (!newStoreForm.name || !newStoreForm.ownerEmail || !newStoreForm.initialPassword) {
+      triggerToast("error", "Store name, owner email, and password are required.");
+      return;
+    }
+    setProvisioningStore(true);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newStoreForm),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to provision merchant store.");
+      }
+      triggerToast("success", `Store "${newStoreForm.name}" provisioned successfully!`);
+      setProvisionedStoreResult(
+        json.credentials || {
+          storeName: newStoreForm.name,
+          email: newStoreForm.ownerEmail,
+          password: newStoreForm.initialPassword,
+          loginUrl: typeof window !== "undefined" ? `${window.location.origin}/login` : "/login",
+        }
+      );
+      setShowProvisionModal(false);
+      handleManualRefresh();
+    } catch (err) {
+      triggerToast("error", err.message || "Failed to provision store.");
+    } finally {
+      setProvisioningStore(false);
+    }
+  }
+
   // ── Tenant Status Toggle ───────────────────────────────────
-  function toggleTenantStatus(tenantId) {
-    setTenants((prev) =>
-      prev.map((t) =>
-        t.id === tenantId
-          ? { ...t, status: t.status === "Active" ? "Suspended" : "Active" }
-          : t
-      )
-    );
+  async function handleToggleTenantStatus(tenantId, currentStatus) {
+    const nextStatus = currentStatus === "Active" ? "Suspended" : "Active";
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "toggle_status",
+          tenantId,
+          status: nextStatus,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to toggle status.");
+      }
+      setTenants((prev) =>
+        prev.map((t) => (t.id === tenantId ? { ...t, status: nextStatus } : t))
+      );
+      if (selectedTenantForGodMode?.id === tenantId) {
+        setSelectedTenantForGodMode((prev) => ({ ...prev, status: nextStatus }));
+      }
+      triggerToast("success", `Store status updated to ${nextStatus}.`);
+    } catch (err) {
+      triggerToast("error", err.message || "Error updating store status.");
+    }
+  }
+
+  // ── God-Mode: Plan & Validity Update ───────────────────────
+  async function handleGodModePlanUpdate(plan, addDays) {
+    if (!selectedTenantForGodMode) return;
+    setGodModeSaving(true);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_plan",
+          tenantId: selectedTenantForGodMode.id,
+          plan,
+          addDays,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to update plan.");
+      }
+      triggerToast("success", "Store plan and validity updated!");
+      setSelectedTenantForGodMode((prev) => ({
+        ...prev,
+        plan: json.config?.plan || plan,
+        config: json.config || prev.config,
+      }));
+      handleManualRefresh();
+    } catch (err) {
+      triggerToast("error", err.message || "Error updating plan.");
+    } finally {
+      setGodModeSaving(false);
+    }
+  }
+
+  // ── God-Mode: Toggle Per-Tenant Feature ─────────────────────
+  async function handleGodModeFeatureToggle(featureKey, enabled) {
+    if (!selectedTenantForGodMode) return;
+    setGodModeSaving(true);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "toggle_feature",
+          tenantId: selectedTenantForGodMode.id,
+          featureKey,
+          enabled,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to toggle feature.");
+      }
+      triggerToast("success", `Feature updated.`);
+      setSelectedTenantForGodMode((prev) => ({
+        ...prev,
+        config: json.config || prev.config,
+      }));
+    } catch (err) {
+      triggerToast("error", err.message || "Error updating feature.");
+    } finally {
+      setGodModeSaving(false);
+    }
+  }
+
+  // ── God-Mode: Reset Merchant Password ──────────────────────
+  async function handleGodModeResetPassword() {
+    if (!selectedTenantForGodMode || !godModeNewPassword) return;
+    if (godModeNewPassword.length < 6) {
+      triggerToast("error", "Password must be at least 6 characters.");
+      return;
+    }
+    setGodModeSaving(true);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "reset_password",
+          tenantId: selectedTenantForGodMode.id,
+          ownerEmail: selectedTenantForGodMode.ownerEmail,
+          newPassword: godModeNewPassword,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to reset password.");
+      }
+      triggerToast("success", "Owner password updated successfully!");
+      setGodModeNewPassword("");
+    } catch (err) {
+      triggerToast("error", err.message || "Error resetting password.");
+    } finally {
+      setGodModeSaving(false);
+    }
+  }
+
+  // ── Subscription Approvals: Approve ────────────────────────
+  async function handleApprovePayment(paymentId, businessId) {
+    setApprovingPaymentId(paymentId);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "approve_payment",
+          paymentId,
+          targetBusinessId: businessId,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to approve payment.");
+      }
+      triggerToast("success", "Payment approved! Store subscription extended by 30 days.");
+      handleManualRefresh();
+    } catch (err) {
+      triggerToast("error", err.message || "Error approving payment.");
+    } finally {
+      setApprovingPaymentId(null);
+    }
+  }
+
+  // ── Subscription Approvals: Record Offline Payment ─────────
+  async function handleRecordOfflinePayment(e) {
+    e.preventDefault();
+    if (!offlinePaymentForm.tenantId || !offlinePaymentForm.amount) {
+      triggerToast("error", "Select a store and enter the payment amount.");
+      return;
+    }
+    const targetTenant = tenants.find((t) => t.id === offlinePaymentForm.tenantId);
+    setRecordingPayment(true);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "create_payment",
+          tenantId: offlinePaymentForm.tenantId,
+          storeName: targetTenant?.name || offlinePaymentForm.storeName,
+          ownerEmail: targetTenant?.ownerEmail || offlinePaymentForm.ownerEmail,
+          amount: offlinePaymentForm.amount,
+          method: offlinePaymentForm.method,
+          phone: offlinePaymentForm.phone,
+          trxId: offlinePaymentForm.trxId,
+          plan: offlinePaymentForm.plan,
+          notes: offlinePaymentForm.notes,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to record payment.");
+      }
+      triggerToast("success", "Offline payment recorded and store extended by 30 days!");
+      setShowRecordPaymentModal(false);
+      setOfflinePaymentForm({
+        tenantId: "",
+        storeName: "",
+        ownerEmail: "",
+        amount: "1990",
+        method: "bKash Personal",
+        phone: "",
+        trxId: "",
+        plan: "Growth Pro",
+        notes: "",
+      });
+      handleManualRefresh();
+    } catch (err) {
+      triggerToast("error", err.message || "Error recording payment.");
+    } finally {
+      setRecordingPayment(false);
+    }
   }
 
   // ── Delete / Purge Tenant ──────────────────────────────────
@@ -550,77 +834,24 @@ export default function SuperAdminDashboard() {
     window.location.href = "/login";
   }
 
-  // ── 1. LOADING SCREEN ──────────────────────────────────────
+  // ── 1. STEALTH LOADING SCREEN ─────────────────────────────
   if (authChecking) {
     return (
-      <main className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4 text-slate-700 font-sans">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-          <div className="text-center space-y-1">
-            <p className="text-sm font-bold text-slate-900 tracking-wide">
-              Authenticating Super Admin Clearance…
-            </p>
-            <p className="text-xs text-slate-500 font-mono">
-              Verifying Platform Owner Session
-            </p>
-          </div>
+      <main className="min-h-screen bg-[#F4F6F8] flex flex-col items-center justify-center p-4 text-slate-700 font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+          <p className="text-xs text-slate-400 font-mono">Loading…</p>
         </div>
       </main>
     );
   }
 
-  // ── 2. ACCESS DENIED SCREEN (403 FORBIDDEN) ────────────────
+  // ── 2. STEALTH ACCESS GUARD (SILENT REDIRECT - NO 403 LEAKS) ──
   if (!isAuthorized) {
-    return (
-      <main className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 sm:p-6 font-sans">
-        <div className="max-w-md w-full rounded-3xl bg-white border border-slate-200 p-8 shadow-xl text-center space-y-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-orange-500 to-rose-600" />
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 shadow-inner">
-            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-rose-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-              403 Access Denied
-            </div>
-            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
-              Platform Owner Restricted
-            </h1>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              This master control plane is reserved strictly for the SaaS platform owner.
-              Your current account does not have super admin authorization.
-            </p>
-          </div>
-          <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 text-left text-xs font-mono space-y-1">
-            <div className="text-[10px] text-slate-500 uppercase tracking-wider">
-              Signed in account:
-            </div>
-            <div className="text-slate-800 font-bold truncate">
-              {currentUserEmail || "Anonymous"}
-            </div>
-          </div>
-          <div className="pt-2 flex flex-col gap-2.5">
-            <Link
-              href="/admin/login"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition cursor-pointer"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-              </svg>
-              <span>Sign In to Super Admin</span>
-            </Link>
-            <Link
-              href="/dashboard"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
-            >
-              <span>← Go to Merchant Dashboard</span>
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
+    if (typeof window !== "undefined") {
+      window.location.replace("/dashboard");
+    }
+    return null;
   }
 
   // ── Filtered Orders ────────────────────────────────────────
@@ -1338,17 +1569,32 @@ export default function SuperAdminDashboard() {
                       Multi-tenant workspaces, connected API keys, and active store quotas.
                     </p>
                   </div>
-                  <div className="relative w-full sm:w-64">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <SearchIcon className="w-3.5 h-3.5 text-slate-400" />
-                    </span>
-                    <input
-                      type="text"
-                      value={tenantSearchQuery}
-                      onChange={(e) => setTenantSearchQuery(e.target.value)}
-                      placeholder="Search store name or email…"
-                      className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500 transition"
-                    />
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-60">
+                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <SearchIcon className="w-3.5 h-3.5 text-slate-400" />
+                      </span>
+                      <input
+                        type="text"
+                        value={tenantSearchQuery}
+                        onChange={(e) => setTenantSearchQuery(e.target.value)}
+                        placeholder="Search store name or email…"
+                        className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-slate-900 transition"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        generateNewStorePassword();
+                        setShowProvisionModal(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition shrink-0"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span>Provision Store</span>
+                    </button>
                   </div>
                 </div>
 
@@ -1373,9 +1619,20 @@ export default function SuperAdminDashboard() {
                         </tr>
                       ) : (
                         filteredTenants.map((t) => (
-                          <tr key={t.id} className="hover:bg-slate-50/70 transition">
+                          <tr
+                            key={t.id}
+                            className="hover:bg-slate-50/70 transition cursor-pointer"
+                            onClick={() => setSelectedTenantForGodMode(t)}
+                          >
                             <td className="px-6 py-4 font-semibold text-slate-900">
-                              {t.name}
+                              <div className="flex items-center gap-2">
+                                <span>{t.name}</span>
+                                {(t.config?.plan || t.plan) && (
+                                  <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                                    {t.config?.plan || t.plan}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4 text-slate-600 font-mono text-[11px]">{t.ownerEmail}</td>
                             <td className="px-6 py-4 text-orange-700 font-semibold font-mono">
@@ -1402,11 +1659,18 @@ export default function SuperAdminDashboard() {
                                 {t.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-right">
+                            <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                               <div className="inline-flex items-center gap-2">
                                 <button
                                   type="button"
-                                  onClick={() => toggleTenantStatus(t.id)}
+                                  onClick={() => setSelectedTenantForGodMode(t)}
+                                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition cursor-pointer"
+                                >
+                                  God Mode
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleTenantStatus(t.id, t.status)}
                                   className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition cursor-pointer"
                                 >
                                   {t.status === "Active" ? "Suspend" : "Activate"}
@@ -1730,8 +1994,140 @@ export default function SuperAdminDashboard() {
         {/* TAB: PAYMENT GATEWAYS (SSLCOMMERZ & STRIPE)               */}
         {/* ========================================================= */}
         {activeTab === "payments" && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* 1. Subscription Payments & Approvals Desk */}
+            <div className="rounded-xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+              <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CreditCardIcon className="w-4 h-4 text-slate-700" />
+                    <h2 className="text-sm font-semibold text-slate-900">
+                      Subscription Payments &amp; TrxID Approvals Desk
+                    </h2>
+                    {payments.filter((p) => p.status === "PENDING").length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                        {payments.filter((p) => p.status === "PENDING").length} Pending
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    1-click bKash, Nagad &amp; Bank TrxID approvals to activate plans and credit 30 days validity.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowRecordPaymentModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition self-start sm:self-auto shrink-0"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Record Offline Payment</span>
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200 text-left text-xs font-mono">
+                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 text-[11px]">
+                    <tr>
+                      <th className="px-5 py-3 font-semibold">Date</th>
+                      <th className="px-5 py-3 font-semibold">Store / Owner</th>
+                      <th className="px-5 py-3 font-semibold">Method &amp; TrxID</th>
+                      <th className="px-5 py-3 font-semibold">Amount</th>
+                      <th className="px-5 py-3 font-semibold">Plan</th>
+                      <th className="px-5 py-3 font-semibold">Status</th>
+                      <th className="px-5 py-3 font-semibold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white font-sans">
+                    {payments.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="px-5 py-8 text-center text-slate-400 text-xs font-sans">
+                          No merchant subscription payment submissions found.
+                        </td>
+                      </tr>
+                    ) : (
+                      payments.map((p) => (
+                        <tr key={p.id} className="hover:bg-slate-50/70 transition">
+                          <td className="px-5 py-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
+                            {new Date(p.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="font-medium text-slate-900 text-xs">
+                              {p.store_name || "Store #" + (p.business_id ? p.business_id.slice(0, 6) : "Direct")}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-mono">
+                              {p.owner_email || "—"}
+                            </div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="font-medium text-slate-800 text-xs">{p.method}</div>
+                            <div className="font-mono text-[11px] text-slate-600 select-all">
+                              TrxID: {p.trx_id || p.phone || "—"}
+                            </div>
+                          </td>
+                          <td className="px-5 py-3 font-mono font-semibold text-slate-900">
+                            ৳{p.amount}
+                          </td>
+                          <td className="px-5 py-3">
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                              {p.plan}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
+                                p.status === "APPROVED"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : p.status === "REJECTED"
+                                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                                  : "bg-amber-50 text-amber-700 border-amber-200"
+                              }`}
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  p.status === "APPROVED"
+                                    ? "bg-emerald-500"
+                                    : p.status === "REJECTED"
+                                    ? "bg-rose-500"
+                                    : "bg-amber-500"
+                                }`}
+                              />
+                              {p.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-right whitespace-nowrap">
+                            {p.status === "PENDING" ? (
+                              <div className="inline-flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  disabled={approvingPaymentId === p.id}
+                                  onClick={() => handleApprovePayment(p.id, p.business_id)}
+                                  className="inline-flex items-center gap-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 text-[11px] font-medium shadow-2xs transition disabled:opacity-50"
+                                >
+                                  {approvingPaymentId === p.id ? "Approving…" : "Approve & Credit"}
+                                </button>
+                              </div>
+                            ) : p.status === "APPROVED" ? (
+                              <span className="text-emerald-700 text-[11px] font-medium inline-flex items-center gap-1">
+                                <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Credited</span>
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 text-[11px]">Rejected</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 2. Payment Gateway Configurations */}
+            <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
                   <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
@@ -2678,6 +3074,626 @@ export default function SuperAdminDashboard() {
         {/* ── CONTENT & BLOG SEO TAB ──────────────────────────────── */}
         {activeTab === "blog" && (
           <AdminBlogTab triggerToast={triggerToast} />
+        )}
+
+        {/* ── 1. PROVISION NEW STORE MODAL ───────────────────────── */}
+        {showProvisionModal && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">Provision New Merchant Store</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Create an isolated tenant workspace and merchant login credentials.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowProvisionModal(false)}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <CloseIcon className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleProvisionStore} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Store / Business Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Wearzo Dhaka"
+                      value={newStoreForm.name}
+                      onChange={(e) => setNewStoreForm({ ...newStoreForm, name: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Bangladesh Division
+                    </label>
+                    <select
+                      value={newStoreForm.division}
+                      onChange={(e) => setNewStoreForm({ ...newStoreForm, division: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                    >
+                      {["Dhaka", "Chittagong", "Rajshahi", "Khulna", "Barisal", "Sylhet", "Rangpur", "Mymensingh"].map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Merchant Owner Email *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="owner@wearzo.store"
+                    value={newStoreForm.ownerEmail}
+                    onChange={(e) => setNewStoreForm({ ...newStoreForm, ownerEmail: e.target.value })}
+                    className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-medium text-slate-700">
+                      Initial Login Password *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={generateNewStorePassword}
+                      className="text-[11px] text-blue-600 hover:underline font-medium"
+                    >
+                      Generate Strong
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={newStoreForm.initialPassword}
+                    onChange={(e) => setNewStoreForm({ ...newStoreForm, initialPassword: e.target.value })}
+                    placeholder="At least 6 characters"
+                    className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Store Phone / WhatsApp (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="017XXXXXXXX"
+                      value={newStoreForm.phone}
+                      onChange={(e) => setNewStoreForm({ ...newStoreForm, phone: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Initial Plan Tier
+                    </label>
+                    <select
+                      value={newStoreForm.plan}
+                      onChange={(e) => setNewStoreForm({ ...newStoreForm, plan: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                    >
+                      <option value="starter">Starter (৳999/mo - 100 SKUs)</option>
+                      <option value="growth">Growth (৳1,990/mo - 500 SKUs)</option>
+                      <option value="enterprise">Enterprise (৳4,990/mo - Unlimited)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Billing Initial Status
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "Trial", label: "Trial (14 Days)" },
+                      { id: "Active", label: "Active Paid" },
+                      { id: "Exempt", label: "Lifetime / Exempt" },
+                    ].map((st) => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => setNewStoreForm({ ...newStoreForm, billingStatus: st.id })}
+                        className={`py-1.5 px-2 rounded-md border text-xs font-medium transition ${
+                          newStoreForm.billingStatus === st.id
+                            ? "border-slate-900 bg-slate-900 text-white shadow-2xs"
+                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newStoreForm.preloadSampleProducts}
+                      onChange={(e) => setNewStoreForm({ ...newStoreForm, preloadSampleProducts: e.target.checked })}
+                      className="rounded text-slate-900"
+                    />
+                    <span className="text-xs text-slate-700 font-medium">
+                      Preload 3 starter catalog products (Oversized Tee, Heavyweight Hoodie, Polo)
+                    </span>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowProvisionModal(false)}
+                    className="px-3.5 py-1.5 rounded-md border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={provisioningStore}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition disabled:opacity-50"
+                  >
+                    {provisioningStore && (
+                      <svg className="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                      </svg>
+                    )}
+                    <span>Provision Store Workspace</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ── 2. PROVISIONED STORE RESULT & WHATSAPP MODAL ──────── */}
+        {provisionedStoreResult && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200">
+                    <CheckIcon className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">Store Successfully Provisioned</h3>
+                    <p className="text-[11px] text-slate-500">
+                      Share access credentials securely with the merchant owner.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setProvisionedStoreResult(null)}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <CloseIcon className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-50 rounded-lg border border-slate-200 p-3.5 space-y-2.5">
+                  <div>
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Store Name</div>
+                    <div className="text-xs font-semibold text-slate-900">{provisionedStoreResult.storeName}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Login URL</div>
+                    <div className="font-mono text-xs text-blue-600 select-all">{provisionedStoreResult.loginUrl}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Owner Email</div>
+                    <div className="font-mono text-xs font-semibold text-slate-900 select-all">{provisionedStoreResult.email}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Temporary Password</div>
+                    <div className="font-mono text-xs font-semibold text-slate-900 select-all">{provisionedStoreResult.password}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const msg = `Salam! Your Dynamic Inventory store is ready.\n\nStore: ${provisionedStoreResult.storeName}\nPortal: ${provisionedStoreResult.loginUrl}\nEmail: ${provisionedStoreResult.email}\nPassword: ${provisionedStoreResult.password}\n\nPlease sign in and update your password under settings.`;
+                      navigator.clipboard.writeText(msg);
+                      triggerToast("success", "Credentials copied to clipboard!");
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 shadow-2xs transition"
+                  >
+                    <span>Copy Login Info</span>
+                  </button>
+
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      `Salam! Your Dynamic Inventory store is ready.\n\nStore: ${provisionedStoreResult.storeName}\nPortal: ${provisionedStoreResult.loginUrl}\nEmail: ${provisionedStoreResult.email}\nPassword: ${provisionedStoreResult.password}\n\nPlease sign in and update your password under settings.`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium shadow-2xs transition"
+                  >
+                    <span>Share WhatsApp</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── 3. GOD-MODE MERCHANT CONTROL DRAWER ────────────────── */}
+        {selectedTenantForGodMode && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex justify-end">
+            <div className="bg-white w-full max-w-lg h-full border-l border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
+              {/* Drawer Header */}
+              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/60">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-slate-900">{selectedTenantForGodMode.name}</h3>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${
+                        selectedTenantForGodMode.status === "Active"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : "bg-rose-50 text-rose-700 border-rose-200"
+                      }`}
+                    >
+                      {selectedTenantForGodMode.status}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                    {selectedTenantForGodMode.ownerEmail} • ID: {selectedTenantForGodMode.id.slice(0, 8)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTenantForGodMode(null)}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <CloseIcon className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Drawer Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Metric Strip */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-center">
+                    <div className="text-[10px] font-medium text-slate-500 uppercase">Products</div>
+                    <div className="font-mono text-sm font-semibold text-slate-900 mt-0.5">
+                      {selectedTenantForGodMode.skuCount ?? selectedTenantForGodMode.totalSkus ?? 0}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-center">
+                    <div className="text-[10px] font-medium text-slate-500 uppercase">Orders</div>
+                    <div className="font-mono text-sm font-semibold text-slate-900 mt-0.5">
+                      {selectedTenantForGodMode.orderCount ?? selectedTenantForGodMode.totalOrders ?? 0}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-center">
+                    <div className="text-[10px] font-medium text-slate-500 uppercase">Plan</div>
+                    <div className="font-mono text-xs font-semibold text-blue-700 uppercase mt-1 truncate">
+                      {selectedTenantForGodMode.config?.plan || selectedTenantForGodMode.plan || "Growth"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section: Subscription & Plan Control */}
+                <div className="rounded-lg border border-slate-200 p-4 space-y-3 bg-white shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-semibold text-slate-900">Subscription &amp; Validity</h4>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {selectedTenantForGodMode.config?.expires_at
+                        ? `Expires: ${new Date(selectedTenantForGodMode.config.expires_at).toLocaleDateString()}`
+                        : "Active"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                      Assigned Plan Tier
+                    </label>
+                    <select
+                      value={selectedTenantForGodMode.config?.plan || selectedTenantForGodMode.plan || "growth"}
+                      onChange={(e) => handleGodModePlanUpdate(e.target.value, 0)}
+                      disabled={godModeSaving}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                    >
+                      <option value="starter">Starter Plan (৳999/mo - 100 SKUs)</option>
+                      <option value="growth">Growth Plan (৳1,990/mo - 500 SKUs)</option>
+                      <option value="enterprise">Enterprise Plan (৳4,990/mo - Unlimited)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                      Quick Validity Extension
+                    </label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[
+                        { label: "+30 Days", days: 30 },
+                        { label: "+90 Days", days: 90 },
+                        { label: "+1 Year", days: 365 },
+                        { label: "+5 Years", days: 1825 },
+                      ].map((btn) => (
+                        <button
+                          key={btn.label}
+                          type="button"
+                          disabled={godModeSaving}
+                          onClick={() => handleGodModePlanUpdate(null, btn.days)}
+                          className="px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-mono text-slate-700 shadow-2xs transition disabled:opacity-50"
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-xs text-slate-600 font-medium">Store Operational Access</span>
+                    <button
+                      type="button"
+                      disabled={godModeSaving}
+                      onClick={() => handleToggleTenantStatus(selectedTenantForGodMode.id, selectedTenantForGodMode.status)}
+                      className={`px-3 py-1 rounded text-xs font-medium transition ${
+                        selectedTenantForGodMode.status === "Active"
+                          ? "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
+                          : "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                      }`}
+                    >
+                      {selectedTenantForGodMode.status === "Active" ? "Suspend Store Access" : "Activate Store Access"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Section: Feature Toggles */}
+                <div className="rounded-lg border border-slate-200 p-4 space-y-3 bg-white shadow-2xs">
+                  <h4 className="text-xs font-semibold text-slate-900">Per-Tenant Feature Overrides</h4>
+                  <div className="space-y-2.5">
+                    {[
+                      { key: "courier_sync", label: "Courier Auto-Sync & Webhooks", desc: "Real-time Steadfast, Pathao & RedX order syncing" },
+                      { key: "barcode_scanner", label: "Barcode & Thermal Label Printing", desc: "4x6 label generator & fast camera barcode scanner" },
+                      { key: "multi_user", label: "Multi-User Staff Access", desc: "Warehouse staff operator accounts with RBAC" },
+                      { key: "profit_analytics", label: "Profit & Loss Margin Reports", desc: "COGS calculations, net profit & expense tracking" },
+                    ].map((feat) => {
+                      const isEnabled = selectedTenantForGodMode.config?.features?.[feat.key] ?? true;
+                      return (
+                        <div key={feat.key} className="flex items-center justify-between py-1 border-b border-slate-100 last:border-0">
+                          <div>
+                            <div className="text-xs font-medium text-slate-900">{feat.label}</div>
+                            <div className="text-[11px] text-slate-500">{feat.desc}</div>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={godModeSaving}
+                            onClick={() => handleGodModeFeatureToggle(feat.key, !isEnabled)}
+                            className={`w-10 h-5 flex items-center rounded-full p-0.5 transition duration-200 ${
+                              isEnabled ? "bg-slate-900 justify-end" : "bg-slate-200 justify-start"
+                            }`}
+                          >
+                            <span className="w-4 h-4 rounded-full bg-white shadow-md transform transition" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section: Reset Merchant Password */}
+                <div className="rounded-lg border border-slate-200 p-4 space-y-3 bg-white shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-semibold text-slate-900">Reset Merchant Owner Password</h4>
+                    <button
+                      type="button"
+                      onClick={generateGodModePassword}
+                      className="text-[11px] text-blue-600 hover:underline font-medium"
+                    >
+                      Generate Strong
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter new password"
+                      value={godModeNewPassword}
+                      onChange={(e) => setGodModeNewPassword(e.target.value)}
+                      className="flex-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      disabled={godModeSaving || !godModeNewPassword}
+                      onClick={handleGodModeResetPassword}
+                      className="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition disabled:opacity-50 shrink-0"
+                    >
+                      Update
+                    </button>
+                  </div>
+                </div>
+
+                {/* Danger Zone */}
+                <div className="rounded-lg border border-rose-200 bg-rose-50/40 p-4 space-y-2">
+                  <h4 className="text-xs font-semibold text-rose-900">Danger Zone</h4>
+                  <p className="text-[11px] text-rose-700">
+                    Permanently delete this merchant workspace, associated staff accounts, catalog products, and order records.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDeleteTenant(selectedTenantForGodMode.id, selectedTenantForGodMode.name);
+                      setSelectedTenantForGodMode(null);
+                    }}
+                    className="px-3 py-1.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium shadow-2xs transition"
+                  >
+                    Purge Store Workspace
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── 4. RECORD OFFLINE PAYMENT MODAL ────────────────────── */}
+        {showRecordPaymentModal && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">Record Direct Merchant Payment</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Credit a merchant store for bKash, Nagad, or direct bank payment.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRecordPaymentModal(false)}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <CloseIcon className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleRecordOfflinePayment} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Select Merchant Store *
+                  </label>
+                  <select
+                    required
+                    value={offlinePaymentForm.tenantId}
+                    onChange={(e) => {
+                      const t = tenants.find((item) => item.id === e.target.value);
+                      setOfflinePaymentForm({
+                        ...offlinePaymentForm,
+                        tenantId: e.target.value,
+                        storeName: t?.name || "",
+                        ownerEmail: t?.ownerEmail || "",
+                      });
+                    }}
+                    className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                  >
+                    <option value="">Select store…</option>
+                    {tenants.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name} ({t.ownerEmail})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Payment Method
+                    </label>
+                    <select
+                      value={offlinePaymentForm.method}
+                      onChange={(e) => setOfflinePaymentForm({ ...offlinePaymentForm, method: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                    >
+                      <option value="bKash Personal">bKash Personal</option>
+                      <option value="Nagad Personal">Nagad Personal</option>
+                      <option value="Rocket">Rocket</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                      <option value="Direct Cash">Direct Cash</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Amount (৳) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={offlinePaymentForm.amount}
+                      onChange={(e) => setOfflinePaymentForm({ ...offlinePaymentForm, amount: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Transaction ID (TrxID)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 9J4K2L1M"
+                      value={offlinePaymentForm.trxId}
+                      onChange={(e) => setOfflinePaymentForm({ ...offlinePaymentForm, trxId: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                      Plan Credited
+                    </label>
+                    <select
+                      value={offlinePaymentForm.plan}
+                      onChange={(e) => setOfflinePaymentForm({ ...offlinePaymentForm, plan: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                    >
+                      <option value="Starter">Starter (৳999)</option>
+                      <option value="Growth Pro">Growth (৳1,990)</option>
+                      <option value="Enterprise">Enterprise (৳4,990)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Reference / Notes
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Paid via offline personal bKash, 1 month credit"
+                    value={offlinePaymentForm.notes}
+                    onChange={(e) => setOfflinePaymentForm({ ...offlinePaymentForm, notes: e.target.value })}
+                    className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowRecordPaymentModal(false)}
+                    className="px-3.5 py-1.5 rounded-md border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={recordingPayment}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition disabled:opacity-50"
+                  >
+                    {recordingPayment && (
+                      <svg className="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                      </svg>
+                    )}
+                    <span>Record &amp; Credit 30 Days</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
         </main>
       </div>

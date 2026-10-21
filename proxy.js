@@ -143,20 +143,23 @@ export async function proxy(request) {
   // 7. Enforce Redirect to Login for Unauthenticated Access to Protected Routes
   if (!currentUser) {
     if (isAdminRoute) {
-      const adminLoginUrl = new URL("/admin/login", request.url);
-      return NextResponse.redirect(adminLoginUrl);
+      // 100% Stealth: Never reveal /admin exists or redirect to /admin/login.
+      // Silently redirect unauthenticated visitors to regular /login.
+      const loginUrl = new URL("/login", request.url);
+      return NextResponse.redirect(loginUrl);
     }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // 8. Strict Super Admin Route Protection
+  // 8. Strict Stealth Super Admin Route Protection
   if (isAdminRoute) {
     if (userEmail !== ADMIN_EMAIL) {
-      const adminLoginUrl = new URL("/admin/login", request.url);
-      adminLoginUrl.searchParams.set("error", "unauthorized");
-      return NextResponse.redirect(adminLoginUrl);
+      // 100% Stealth: If a regular merchant visits /admin, silently redirect them
+      // straight to their merchant dashboard without any error notice or admin clues.
+      const dashUrl = new URL("/dashboard", request.url);
+      return NextResponse.redirect(dashUrl);
     }
   }
 

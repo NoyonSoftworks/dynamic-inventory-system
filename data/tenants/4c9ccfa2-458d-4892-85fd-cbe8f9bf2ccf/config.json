@@ -1,0 +1,19 @@
+{
+  "business_id": "4c9ccfa2-458d-4892-85fd-cbe8f9bf2ccf",
+  "plan": "growth",
+  "status": "Active",
+  "expires_at": "2026-11-20T19:13:43.419Z",
+  "phone": "",
+  "division": "Dhaka",
+  "order_limit": 1000,
+  "sku_limit": 250,
+  "features": {
+    "courier_reconciliation": true,
+    "expense_profit_tracker": true,
+    "ai_reorder_hub": true,
+    "thermal_printing": true
+  },
+  "suspension_notice": "",
+  "created_at": "2026-10-21T19:13:43.419Z",
+  "updated_at": "2026-10-21T19:13:43.419Z"
+}

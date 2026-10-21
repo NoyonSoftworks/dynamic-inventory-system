@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyAdminRequest } from "@/utils/admin-auth";
+import {
+  getTenantConfig,
+  getAllTenantPayments,
+} from "@/utils/storage/tenant-store";
 
 export async function GET(request) {
   try {
@@ -128,13 +132,22 @@ export async function GET(request) {
       const ownerEmail = primaryUser?.email || "Unassigned Account";
       const isOwnerWorkspace = false; // Super Admin does not own a merchant workspace
 
+      const conf = getTenantConfig(biz.id) || {};
+
       return {
         id: biz.id,
         name: biz.name || "Unnamed Store",
         ownerEmail,
         isOwnerWorkspace,
         created_at: biz.created_at,
-        status: "Active",
+        status: conf.status || "Active",
+        plan: conf.plan || "growth",
+        expires_at: conf.expires_at || null,
+        phone: conf.phone || "",
+        division: conf.division || "Dhaka",
+        features: conf.features || {},
+        order_limit: conf.order_limit || 1000,
+        sku_limit: conf.sku_limit || 250,
         totalSkus: bizProds.length,
         totalOrders: bizOrders.length,
         skuCount: bizProds.length,
@@ -202,6 +215,7 @@ export async function GET(request) {
       },
       courierBreakdown,
       tenants,
+      payments: getAllTenantPayments(),
       recentOrders: enrichedRecentOrders,
     });
   } catch (err) {

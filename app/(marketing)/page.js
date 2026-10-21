@@ -323,16 +323,8 @@ export default function MarketingLandingPage() {
 
             {!sessionLoading && user ? (
               <div className="flex items-center gap-2">
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="btn-tactile hidden sm:inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition shadow-2xs"
-                  >
-                    Super Admin
-                  </Link>
-                )}
                 <Link
-                  href="/dashboard/products"
+                  href="/dashboard"
                   className="btn-tactile inline-flex items-center gap-1.5 rounded-md bg-[#EA580C] hover:bg-[#D94E07] px-3.5 py-1.5 text-[13px] font-medium text-white transition shadow-sm"
                 >
                   <span>Dashboard</span>

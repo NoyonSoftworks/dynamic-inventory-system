@@ -480,3 +480,148 @@ export async function updateTenantReconciliation(businessId, recordId, updates) 
   writeJsonFile(filePath, modified);
   return updatedRecord;
 }
+
+// ─────────────────────────────────────────────────────────────────
+// TENANT CONFIGURATION & PERMISSION REPOSITORY
+// ─────────────────────────────────────────────────────────────────
+
+export function getTenantConfig(businessId) {
+  if (!businessId) return null;
+  const filePath = getTenantFilePath(businessId, "config.json");
+  const defaultConfig = {
+    business_id: businessId,
+    plan: "growth",
+    status: "Active",
+    expires_at: new Date(Date.now() + 30 * 86400000).toISOString(),
+    phone: "",
+    division: "Dhaka",
+    order_limit: 1000,
+    sku_limit: 250,
+    features: {
+      courier_reconciliation: true,
+      expense_profit_tracker: true,
+      ai_reorder_hub: true,
+      thermal_printing: true,
+    },
+    suspension_notice: "",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const existing = readJsonFile(filePath, null);
+  if (!existing) {
+    writeJsonFile(filePath, defaultConfig);
+    return defaultConfig;
+  }
+  return { ...defaultConfig, ...existing };
+}
+
+export function saveTenantConfig(businessId, updates = {}) {
+  if (!businessId) return null;
+  const current = getTenantConfig(businessId);
+  const updated = {
+    ...current,
+    ...updates,
+    features: {
+      ...current.features,
+      ...(updates.features || {}),
+    },
+    updated_at: new Date().toISOString(),
+  };
+  const filePath = getTenantFilePath(businessId, "config.json");
+  writeJsonFile(filePath, updated);
+  return updated;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// TENANT SUBSCRIPTION PAYMENTS & APPROVAL DESK
+// ─────────────────────────────────────────────────────────────────
+
+const PAYMENTS_FILE = path.join(process.cwd(), "data", "tenant_payments.json");
+
+function getDefaultPayments() {
+  const now = new Date();
+  return [
+    {
+      id: "pay-101",
+      business_id: "demo-tenant-1",
+      store_name: "Dhaka Silk & Fashion",
+      owner_email: "dhakafashion@smartinventory.app",
+      method: "bKash Merchant",
+      phone: "01755123456",
+      trx_id: "9KLA876B12",
+      amount: 1990,
+      plan: "Growth Pro",
+      status: "PENDING",
+      submitted_at: new Date(now.getTime() - 3600000 * 2).toISOString(),
+      notes: "Monthly renewal via bKash",
+    },
+    {
+      id: "pay-102",
+      business_id: "demo-tenant-2",
+      store_name: "Chittagong Gadgets Hub",
+      owner_email: "ctgtech@smartinventory.app",
+      method: "Nagad Personal",
+      phone: "01822987654",
+      trx_id: "7MNA991C45",
+      amount: 990,
+      plan: "Starter Tier",
+      status: "APPROVED",
+      submitted_at: new Date(now.getTime() - 86400000).toISOString(),
+      approved_at: new Date(now.getTime() - 86400000 + 1800000).toISOString(),
+      notes: "Starter quota activation",
+    },
+  ];
+}
+
+export function getAllTenantPayments() {
+  const existing = readJsonFile(PAYMENTS_FILE, null);
+  if (!existing) {
+    const defaults = getDefaultPayments();
+    writeJsonFile(PAYMENTS_FILE, defaults);
+    return defaults;
+  }
+  return existing;
+}
+
+export function saveTenantPayment(paymentData) {
+  const existing = getAllTenantPayments();
+  const newRecord = {
+    id: paymentData.id || `pay-${Date.now()}`,
+    business_id: paymentData.business_id,
+    store_name: paymentData.store_name || "Merchant Store",
+    owner_email: paymentData.owner_email || "",
+    method: paymentData.method || "bKash",
+    phone: paymentData.phone || "",
+    trx_id: paymentData.trx_id || `MANUAL-${Date.now().toString().slice(-6)}`,
+    amount: Number(paymentData.amount) || 1990,
+    plan: paymentData.plan || "Growth Pro",
+    status: paymentData.status || "PENDING",
+    submitted_at: paymentData.submitted_at || new Date().toISOString(),
+    approved_at: paymentData.status === "APPROVED" ? new Date().toISOString() : null,
+    notes: paymentData.notes || "",
+  };
+
+  const updated = [newRecord, ...existing];
+  writeJsonFile(PAYMENTS_FILE, updated);
+  return newRecord;
+}
+
+export function updateTenantPaymentStatus(paymentId, status = "APPROVED") {
+  const existing = getAllTenantPayments();
+  let updatedPayment = null;
+  const modified = existing.map((p) => {
+    if (p.id === paymentId) {
+      updatedPayment = {
+        ...p,
+        status,
+        approved_at: status === "APPROVED" ? new Date().toISOString() : p.approved_at,
+      };
+      return updatedPayment;
+    }
+    return p;
+  });
+
+  writeJsonFile(PAYMENTS_FILE, modified);
+  return updatedPayment;
+}

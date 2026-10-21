@@ -13,14 +13,9 @@ import {
   TopProductsList,
 } from "@/components/DashboardCharts";
 
-const ADMIN_EMAIL = (
-  process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
-).toLowerCase().trim();
-
 export default function MerchantDashboard() {
   const { businessId, businessName, userEmail, loading: ctxLoading } = useBusinessContext();
   const searchParams = useSearchParams();
-  const isDenied = searchParams?.get("denied") === "1";
 
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -316,31 +311,6 @@ export default function MerchantDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F4F6F8] p-4 sm:p-6 lg:p-8 space-y-6 text-slate-800 font-sans">
-      {/* ── ACCESS DENIED ALERT (if restricted) ─────────────── */}
-      {isDenied && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-3">
-            <span className="p-2 rounded-lg bg-rose-100 text-rose-700 shrink-0">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </span>
-            <div>
-              <p className="text-sm font-semibold">Super Admin Console Restricted</p>
-              <p className="text-xs text-rose-700 mt-0.5">
-                The Platform Owner Console is strictly restricted to {ADMIN_EMAIL}.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/login?redirect=/admin"
-            className="px-3.5 py-1.5 rounded-lg bg-slate-900 text-white text-[13px] font-medium transition"
-          >
-            Sign in as Platform Owner
-          </Link>
-        </div>
-      )}
-
       {/* ── TOP GREETING & CONTROLS BAR ───────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
