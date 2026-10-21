@@ -9,9 +9,10 @@
     "trx_id": "9KLA876B12",
     "amount": 1990,
     "plan": "Growth Pro",
-    "status": "PENDING",
+    "status": "APPROVED",
     "submitted_at": "2026-10-21T17:13:43.423Z",
-    "notes": "Monthly renewal via bKash"
+    "notes": "Monthly renewal via bKash",
+    "approved_at": "2026-10-21T19:36:29.594Z"
   },
   {
     "id": "pay-102",

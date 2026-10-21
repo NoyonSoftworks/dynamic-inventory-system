@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
+import { getTenantConfig } from "@/utils/storage/tenant-store";
 
 /**
  * GET/POST /api/auth/business-context

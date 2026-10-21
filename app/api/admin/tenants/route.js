@@ -282,12 +282,14 @@ export async function POST(request) {
       ];
 
       for (const item of sampleCatalog) {
+        const uniqueSku = `${item.base_sku}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         const { data: pRec } = await supabaseAdmin
           .from("products")
           .insert({
             name: item.name,
             category: item.category,
-            base_sku: item.base_sku,
+            base_sku: uniqueSku,
+            price: item.price,
             business_id: newBusinessId,
           })
           .select("id")
@@ -297,6 +299,8 @@ export async function POST(request) {
           seededCount++;
           await supabaseAdmin.from("variants").insert({
             product_id: pRec.id,
+            business_id: newBusinessId,
+            sku: uniqueSku,
             price: item.price,
             stock_quantity: item.stock,
             attributes: { size: "Standard", color: "Assorted" },

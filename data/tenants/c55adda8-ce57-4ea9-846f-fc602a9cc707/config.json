@@ -1,8 +1,8 @@
 {
   "business_id": "c55adda8-ce57-4ea9-846f-fc602a9cc707",
   "plan": "growth",
-  "status": "Active",
-  "expires_at": "2026-11-20T19:23:39.138Z",
+  "status": "Trial",
+  "expires_at": "2026-11-05T19:35:43.611Z",
   "phone": "",
   "division": "Dhaka",
   "order_limit": 1000,

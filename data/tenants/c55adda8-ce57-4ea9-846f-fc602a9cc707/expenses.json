@@ -1,0 +1,67 @@
+[
+  {
+    "id": "exp-demo-1",
+    "business_id": "c55adda8-ce57-4ea9-846f-fc602a9cc707",
+    "category": "ad_spend",
+    "amount": 2450,
+    "platform": "Facebook / Meta Ads",
+    "campaign_name": "Mega Festive Clearance CBO (High Purchase ROAS)",
+    "notes": "Daily ad budget for Dhaka & Chittagong delivery clusters",
+    "payment_method": "bKash Merchant",
+    "expense_date": "2026-10-21",
+    "user_email": "operator@smartinventory.app",
+    "created_at": "2026-10-21T19:32:55.258Z"
+  },
+  {
+    "id": "exp-demo-2",
+    "business_id": "c55adda8-ce57-4ea9-846f-fc602a9cc707",
+    "category": "packaging",
+    "amount": 1650,
+    "platform": "Local Packaging Mart",
+    "campaign_name": "",
+    "notes": "1,000 Poly Mailer Bags (10x14) + 4 rolls custom tamper-evident security tape",
+    "payment_method": "Cash",
+    "expense_date": "2026-10-21",
+    "user_email": "operator@smartinventory.app",
+    "created_at": "2026-10-21T15:32:55.258Z"
+  },
+  {
+    "id": "exp-demo-3",
+    "business_id": "c55adda8-ce57-4ea9-846f-fc602a9cc707",
+    "category": "ad_spend",
+    "amount": 1200,
+    "platform": "TikTok Ads",
+    "campaign_name": "Oversized Tee UGC Video Funnel",
+    "notes": "Creator spark ad boost targeting fashion shoppers",
+    "payment_method": "Card",
+    "expense_date": "2026-10-20",
+    "user_email": "operator@smartinventory.app",
+    "created_at": "2026-10-20T19:32:55.258Z"
+  },
+  {
+    "id": "exp-demo-4",
+    "business_id": "c55adda8-ce57-4ea9-846f-fc602a9cc707",
+    "category": "salaries_rent",
+    "amount": 3000,
+    "platform": "Staff Payroll",
+    "campaign_name": "",
+    "notes": "Weekly warehouse packing boy & dispatch handler wage allowance",
+    "payment_method": "bKash Merchant",
+    "expense_date": "2026-10-20",
+    "user_email": "admin@smartinventory.app",
+    "created_at": "2026-10-20T07:32:55.258Z"
+  },
+  {
+    "id": "exp-demo-5",
+    "business_id": "c55adda8-ce57-4ea9-846f-fc602a9cc707",
+    "category": "utilities_misc",
+    "amount": 850,
+    "platform": "Office & Internet",
+    "campaign_name": "",
+    "notes": "High-speed broadband optical fiber line + evening tea snacks for packing team",
+    "payment_method": "Cash",
+    "expense_date": "2026-10-18",
+    "user_email": "operator@smartinventory.app",
+    "created_at": "2026-10-18T19:32:55.258Z"
+  }
+]

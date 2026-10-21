@@ -183,6 +183,9 @@ export async function GET(request) {
           stripe_public_key: mergedSettings.stripe_public_key || "",
           sslcommerz_configured: Boolean(mergedSettings.sslcommerz_store_id),
           sslcommerz_is_live: Boolean(mergedSettings.sslcommerz_is_live),
+          bkash_number: mergedSettings.bkash_number || mergedSettings.admin_recovery_phone || "01753082749",
+          nagad_number: mergedSettings.nagad_number || mergedSettings.admin_recovery_phone || "01753082749",
+          admin_phone: mergedSettings.admin_recovery_phone || "01753082749",
         },
       });
     }
@@ -202,6 +205,9 @@ export async function GET(request) {
           stripe_public_key: mergedSettings.stripe_public_key || "",
           sslcommerz_configured: Boolean(mergedSettings.sslcommerz_store_id),
           sslcommerz_is_live: Boolean(mergedSettings.sslcommerz_is_live),
+          bkash_number: mergedSettings.bkash_number || mergedSettings.admin_recovery_phone || "01753082749",
+          nagad_number: mergedSettings.nagad_number || mergedSettings.admin_recovery_phone || "01753082749",
+          admin_phone: mergedSettings.admin_recovery_phone || "01753082749",
         },
       });
     }

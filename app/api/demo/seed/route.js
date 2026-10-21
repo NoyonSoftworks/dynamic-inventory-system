@@ -81,73 +81,114 @@ export async function POST(request) {
       );
     }
 
-    // 2. Sample 5 Products
+    // 2. Sample 5 Products with unique SKUs
     const starterProducts = [
       {
         name: "Classic Heavyweight Cotton T-Shirt",
         category: "Apparel",
-        base_sku: "TSHIRT-BLK-M",
+        sku_prefix: "TSHIRT-BLK",
         price: 850,
         initial_stock: 25,
+        attributes: { size: "L", color: "Black" },
       },
       {
         name: "Wireless Noise-Canceling Earbuds",
         category: "Electronics",
-        base_sku: "AUDIO-ANC-01",
+        sku_prefix: "AUDIO-ANC",
         price: 2450,
         initial_stock: 15,
+        attributes: { model: "Pro ANC", color: "White" },
       },
       {
         name: "Ceramic Pour-Over Coffee Dripper Set",
         category: "Home & Kitchen",
-        base_sku: "DRIP-SET-01",
+        sku_prefix: "DRIP-SET",
         price: 1200,
         initial_stock: 20,
+        attributes: { capacity: "600ml", material: "Ceramic" },
       },
       {
         name: "Ergonomic Silent Wireless Mouse",
         category: "Electronics",
-        base_sku: "MOUSE-W-02",
+        sku_prefix: "MOUSE-W",
         price: 1650,
         initial_stock: 18,
+        attributes: { connectivity: "2.4GHz + BT", dpi: "4000" },
       },
       {
         name: "Heavy Canvas Messenger Bag",
         category: "Accessories",
-        base_sku: "BAG-CANV-01",
+        sku_prefix: "BAG-CANV",
         price: 1400,
         initial_stock: 30,
+        attributes: { size: "15-inch", color: "Olive Green" },
       },
     ];
 
-    const productPayloads = starterProducts.map((p) => ({
-      name: p.name,
-      category: p.category,
-      base_sku: p.base_sku,
-      price: p.price,
-      business_id: businessId,
-    }));
+    // Generate guaranteed unique base_sku for each product to prevent constraint collisions
+    const productPayloads = starterProducts.map((p) => {
+      const uniqueSuffix = generateRandomCode(4);
+      const generatedSku = `${p.sku_prefix}-${uniqueSuffix}`;
+      return {
+        name: p.name,
+        category: p.category,
+        base_sku: generatedSku,
+        price: p.price,
+        business_id: businessId,
+        _itemRef: p,
+      };
+    });
 
     const { data: insertedProducts, error: prodErr } = await adminClient
       .from("products")
-      .insert(productPayloads)
-      .select("id, base_sku, name");
+      .insert(productPayloads.map(({ _itemRef, ...payload }) => payload))
+      .select("id, base_sku, name, price");
 
-    if (prodErr) {
+    if (prodErr || !insertedProducts) {
       console.error("Demo seeding products error:", prodErr);
       return NextResponse.json(
-        { success: false, error: "Failed to create sample products." },
+        { success: false, error: prodErr?.message || "Failed to create sample products." },
         { status: 500 }
       );
     }
 
-    // 3. Generate Serialized Barcodes for Inventory Items
+    // 3. Insert Product Variants
+    const variantPayloads = [];
+    insertedProducts.forEach((prod) => {
+      const match = productPayloads.find((p) => p.base_sku === prod.base_sku);
+      if (match) {
+        variantPayloads.push({
+          product_id: prod.id,
+          business_id: businessId,
+          sku: prod.base_sku,
+          price: prod.price || match._itemRef.price,
+          stock_quantity: match._itemRef.initial_stock,
+          attributes: match._itemRef.attributes || { size: "Standard" },
+        });
+      }
+    });
+
+    let insertedVariants = [];
+    if (variantPayloads.length > 0) {
+      const { data: vData, error: vErr } = await adminClient
+        .from("variants")
+        .insert(variantPayloads)
+        .select("id, product_id, stock_quantity");
+      if (vErr) {
+        console.warn("Variants seeding notice:", vErr);
+      } else {
+        insertedVariants = vData || [];
+      }
+    }
+
+    // 4. Generate Serialized Barcodes for Inventory Items & Stock Transactions
     const inventoryRows = [];
     const transactionRows = [];
 
     insertedProducts.forEach((prod) => {
-      const match = starterProducts.find((p) => p.base_sku === prod.base_sku);
-      const qty = match ? match.initial_stock : 10;
+      const match = productPayloads.find((p) => p.base_sku === prod.base_sku);
+      const qty = match ? match._itemRef.initial_stock : 10;
+      const variant = insertedVariants.find((v) => v.product_id === prod.id);
 
       for (let i = 0; i < qty; i++) {
         inventoryRows.push({
@@ -158,13 +199,16 @@ export async function POST(request) {
         });
       }
 
-      transactionRows.push({
-        product_id: prod.id,
-        transaction_type: "IN",
-        quantity: qty,
-        reference_note: "Sample Starter Inventory Stock",
-        business_id: businessId,
-      });
+      if (variant?.id) {
+        transactionRows.push({
+          product_id: prod.id,
+          variant_id: variant.id,
+          transaction_type: "IN",
+          quantity: qty,
+          reference_note: "Sample Starter Inventory Stock",
+          business_id: businessId,
+        });
+      }
     });
 
     if (inventoryRows.length > 0) {
@@ -173,10 +217,16 @@ export async function POST(request) {
     if (transactionRows.length > 0) {
       try {
         await adminClient.from("stock_transactions").insert(transactionRows);
-      } catch {}
+      } catch (txErr) {
+        console.warn("Stock transaction insert notice:", txErr);
+      }
     }
 
-    // 4. Create 3 Sample Orders to showcase RTO verification & Thermal Print
+    // 5. Create 3 Sample Orders to showcase RTO verification & Thermal Print
+    const firstProd = insertedProducts[0];
+    const secondProd = insertedProducts[1] || firstProd;
+    const thirdProd = insertedProducts[2] || firstProd;
+
     const sampleOrders = [
       {
         customer_name: "Tariqul Islam",
@@ -184,9 +234,11 @@ export async function POST(request) {
         customer_address: "House 14, Road 8, Dhanmondi, Dhaka",
         total_amount: 1700,
         status: "PENDING",
-        courier: "Steadfast",
+        courier_name: "Steadfast",
         consignment_id: `SF-${generateRandomCode(7)}`,
         business_id: businessId,
+        product_id: firstProd?.id || null,
+        quantity: 2,
       },
       {
         customer_name: "Farhana Akter",
@@ -194,9 +246,11 @@ export async function POST(request) {
         customer_address: "Flat 4B, Plot 22, Section 10, Mirpur, Dhaka",
         total_amount: 2450,
         status: "PACKED",
-        courier: "Pathao",
+        courier_name: "Pathao",
         consignment_id: `PT-${generateRandomCode(7)}`,
         business_id: businessId,
+        product_id: secondProd?.id || null,
+        quantity: 1,
       },
       {
         customer_name: "Anisur Rahman (High COD Alert)",
@@ -204,9 +258,11 @@ export async function POST(request) {
         customer_address: "Near bazar, Village road, Narayanganj",
         total_amount: 4800,
         status: "FLAGGED_RISK",
-        courier: "Steadfast",
+        courier_name: "Steadfast",
         consignment_id: `SF-${generateRandomCode(7)}`,
         business_id: businessId,
+        product_id: thirdProd?.id || null,
+        quantity: 3,
       },
     ];
 
