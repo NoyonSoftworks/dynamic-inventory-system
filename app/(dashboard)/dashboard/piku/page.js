@@ -91,14 +91,14 @@ function MarkdownText({ content }) {
 
         if (trimmed.startsWith("### ")) {
           return (
-            <h4 key={idx} className="font-bold text-sm text-slate-900 mt-3 mb-1">
+            <h4 key={idx} className="font-bold text-sm text-slate-900 mt-3 mb-1 leading-snug">
               {renderInline(trimmed.replace("### ", ""))}
             </h4>
           );
         }
         if (trimmed.startsWith("## ")) {
           return (
-            <h3 key={idx} className="font-bold text-base text-slate-900 mt-3.5 mb-1.5">
+            <h3 key={idx} className="font-bold text-base text-slate-900 mt-3.5 mb-1.5 leading-snug">
               {renderInline(trimmed.replace("## ", ""))}
             </h3>
           );
@@ -108,7 +108,7 @@ function MarkdownText({ content }) {
           return (
             <div key={idx} className="flex items-start gap-2 pl-1.5 my-1">
               <span className="text-orange-500 font-bold select-none">•</span>
-              <span className="flex-1 text-slate-700">{renderInline(text)}</span>
+              <span className="flex-1 text-slate-700 leading-relaxed">{renderInline(text)}</span>
             </div>
           );
         }
@@ -119,7 +119,7 @@ function MarkdownText({ content }) {
               <span className="font-mono text-xs font-semibold text-orange-600 select-none">
                 {numMatch[1]}.
               </span>
-              <span className="flex-1 text-slate-700">{renderInline(numMatch[2])}</span>
+              <span className="flex-1 text-slate-700 leading-relaxed">{renderInline(numMatch[2])}</span>
             </div>
           );
         }
@@ -127,14 +127,14 @@ function MarkdownText({ content }) {
           return (
             <blockquote
               key={idx}
-              className="border-l-3 border-orange-400 pl-3 py-1.5 text-slate-600 bg-orange-50/50 rounded-r-md text-xs my-1.5"
+              className="border-l-3 border-orange-400 pl-3 py-1.5 text-slate-600 bg-orange-50/50 rounded-r-md text-xs my-1.5 leading-relaxed"
             >
               {renderInline(trimmed.replace("> ", ""))}
             </blockquote>
           );
         }
         return (
-          <p key={idx} className="text-slate-700">
+          <p key={idx} className="text-slate-700 leading-relaxed">
             {renderInline(line)}
           </p>
         );
@@ -143,7 +143,7 @@ function MarkdownText({ content }) {
   );
 }
 
-function buildWelcomeMessage(name = "Tuku", nameBn = "টুকু", businessName = "আপনার স্টোর") {
+function buildWelcomeMessage(name = "Shongi", nameBn = "সঙ্গী", businessName = "আপনার স্টোর") {
   return {
     sender: "piku",
     text: `### 👋 আসসালামু আলাইকুম! আমি **${nameBn} (${name})**, আপনার স্টোরের সার্বক্ষণিক এআই অ্যাডভাইজার। 🤖✨\n\nআমি **${
@@ -168,14 +168,14 @@ function buildWelcomeMessage(name = "Tuku", nameBn = "টুকু", businessNam
 export default function PikuFullPage() {
   const { businessName, role } = useBusinessContext();
   const [aiConfig, setAiConfig] = useState({
-    name: "Tuku",
-    nameBn: "টুকু",
-    tagline: "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট",
+    name: "Shongi",
+    nameBn: "সঙ্গী",
+    tagline: "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
     isActive: true,
   });
 
   const [messages, setMessages] = useState(() => [
-    buildWelcomeMessage("Tuku", "টুকু", businessName),
+    buildWelcomeMessage("Shongi", "সঙ্গী", businessName),
   ]);
 
   const [inputMessage, setInputMessage] = useState("");
@@ -194,9 +194,9 @@ export default function PikuFullPage() {
         if (res.ok) {
           const json = await res.json();
           if (json.settings) {
-            const nextName = json.settings.ai_name || "Tuku";
-            const nextNameBn = json.settings.ai_name_bn || "টুকু";
-            const nextTagline = json.settings.ai_tagline || "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট";
+            const nextName = json.settings.ai_name || "Shongi";
+            const nextNameBn = json.settings.ai_name_bn || "সঙ্গী";
+            const nextTagline = json.settings.ai_tagline || "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট";
             const nextActive = json.settings.ai_is_active !== false;
 
             setAiConfig({

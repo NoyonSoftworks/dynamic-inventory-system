@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
 import { SEED_BLOG_POSTS } from "@/utils/blog-seed";
+import { calculateSeoScore, extractDefaultKeyword } from "@/utils/seo-analyzer";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const BLOG_FILE = path.join(DATA_DIR, "blog_posts.json");
@@ -46,6 +47,39 @@ function writeJsonFile(filePath, data) {
   }
 }
 
+function enrichPostWithSeoAndMetrics(p) {
+  if (!p) return p;
+  const views = Number(p.views_count) || 0;
+  const uniques = Number(p.unique_visitors_count) || Math.max(1, Math.round(views * 0.74));
+  const focusKw = p.focus_keyword || extractDefaultKeyword(p.title);
+
+  let score = Number(p.seo_score);
+  let grade = p.seo_grade;
+  if (!score || !grade || grade === "Pending") {
+    const analysis = calculateSeoScore({
+      title: p.title,
+      slug: p.slug,
+      excerpt: p.excerpt,
+      meta_title: p.meta_title,
+      meta_description: p.meta_description,
+      content: p.content,
+      focus_keyword: focusKw,
+    });
+    score = analysis.score;
+    grade = analysis.grade;
+  }
+
+  return {
+    ...p,
+    views_count: views,
+    unique_visitors_count: uniques,
+    last_viewed_at: p.last_viewed_at || p.updated_at || p.created_at,
+    focus_keyword: focusKw,
+    seo_score: score,
+    seo_grade: grade,
+  };
+}
+
 /**
  * Get all blog posts (published & draft)
  * Returns from local storage or seeds if empty, and syncs with Supabase if available.
@@ -72,8 +106,8 @@ export async function getAllBlogPosts() {
       if (!error && Array.isArray(data) && data.length > 0) {
         // Merge Supabase data with local data (Supabase takes precedence by ID)
         const postMap = new Map();
-        for (const p of localPosts) postMap.set(p.id, p);
-        for (const p of data) postMap.set(p.id, p);
+        for (const p of localPosts) postMap.set(p.id, enrichPostWithSeoAndMetrics(p));
+        for (const p of data) postMap.set(p.id, enrichPostWithSeoAndMetrics(p));
         const merged = Array.from(postMap.values()).sort(
           (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
         );
@@ -83,9 +117,9 @@ export async function getAllBlogPosts() {
     } catch {}
   }
 
-  return localPosts.sort(
-    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
-  );
+  return localPosts
+    .map(enrichPostWithSeoAndMetrics)
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 }
 
 /**
@@ -115,6 +149,17 @@ export async function saveBlogPost(postData) {
   const id = postData.id || `post-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const now = new Date().toISOString();
 
+  const focusKw = postData.focus_keyword || extractDefaultKeyword(postData.title);
+  const autoSeo = calculateSeoScore({
+    title: postData.title,
+    slug: postData.slug,
+    excerpt: postData.excerpt,
+    meta_title: postData.meta_title,
+    meta_description: postData.meta_description,
+    content: postData.content,
+    focus_keyword: focusKw,
+  });
+
   const newPost = {
     id,
     slug: postData.slug,
@@ -132,6 +177,11 @@ export async function saveBlogPost(postData) {
     reading_time: postData.reading_time || "5 min read",
     is_published: postData.is_published !== undefined ? Boolean(postData.is_published) : true,
     views_count: Number(postData.views_count) || 0,
+    unique_visitors_count: Number(postData.unique_visitors_count) || 0,
+    last_viewed_at: postData.last_viewed_at || null,
+    focus_keyword: focusKw,
+    seo_score: Number(postData.seo_score) || autoSeo.score,
+    seo_grade: postData.seo_grade || autoSeo.grade,
     meta_title: postData.meta_title || postData.title,
     meta_description: postData.meta_description || postData.excerpt || "",
     canonical_url: postData.canonical_url || `https://smartinventory.io/blog/${postData.slug}`,
@@ -166,10 +216,28 @@ export async function updateBlogPost(id, updates) {
   if (existingIdx === -1) return null;
 
   const now = new Date().toISOString();
+  const focusKw =
+    updates.focus_keyword ||
+    allPosts[existingIdx].focus_keyword ||
+    extractDefaultKeyword(updates.title || allPosts[existingIdx].title);
+  const mergedForSeo = { ...allPosts[existingIdx], ...updates, focus_keyword: focusKw };
+  const autoSeo = calculateSeoScore({
+    title: mergedForSeo.title,
+    slug: mergedForSeo.slug,
+    excerpt: mergedForSeo.excerpt,
+    meta_title: mergedForSeo.meta_title,
+    meta_description: mergedForSeo.meta_description,
+    content: mergedForSeo.content,
+    focus_keyword: focusKw,
+  });
+
   const updatedPost = {
     ...allPosts[existingIdx],
     ...updates,
     id, // Preserve ID
+    focus_keyword: focusKw,
+    seo_score: updates.seo_score !== undefined ? Number(updates.seo_score) : autoSeo.score,
+    seo_grade: updates.seo_grade || autoSeo.grade,
     updated_at: now,
   };
 
@@ -216,14 +284,18 @@ export async function deleteBlogPost(id) {
 }
 
 /**
- * Increment blog post view count by slug
+ * Increment blog post view count and unique visitors by slug
  */
-export async function incrementBlogViews(slug) {
+export async function incrementBlogViews(slug, isUniqueVisitor = false) {
   if (!slug) return false;
   const allPosts = await getAllBlogPosts();
   const post = allPosts.find((p) => String(p.slug).toLowerCase() === String(slug).toLowerCase());
   if (post) {
-    post.views_count = (post.views_count || 0) + 1;
+    post.views_count = (Number(post.views_count) || 0) + 1;
+    if (isUniqueVisitor) {
+      post.unique_visitors_count = (Number(post.unique_visitors_count) || 0) + 1;
+    }
+    post.last_viewed_at = new Date().toISOString();
     writeJsonFile(BLOG_FILE, allPosts);
     return true;
   }

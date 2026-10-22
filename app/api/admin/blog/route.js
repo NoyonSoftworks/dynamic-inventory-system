@@ -82,6 +82,9 @@ export async function POST(request) {
       canonical_url,
       reading_time,
       is_published,
+      focus_keyword,
+      seo_score,
+      seo_grade,
     } = body;
 
     if (!title?.trim() || !content?.trim()) {
@@ -114,7 +117,11 @@ export async function POST(request) {
       canonical_url: canonical_url?.trim() || `https://smartinventory.io/blog/${sanitizedSlug}`,
       reading_time: reading_time?.trim() || "5 min read",
       is_published: Boolean(is_published),
+      focus_keyword: focus_keyword?.trim() || "",
+      seo_score: Number(seo_score) || 0,
+      seo_grade: seo_grade || "Pending",
       views_count: 0,
+      unique_visitors_count: 0,
     });
 
     return NextResponse.json({

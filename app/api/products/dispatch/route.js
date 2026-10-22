@@ -45,6 +45,13 @@ export async function POST(request) {
       if (byEmail?.business_id) businessId = byEmail.business_id;
     }
 
+    if (!businessId) {
+      return NextResponse.json(
+        { success: false, error: "No merchant workspace associated with this account." },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const { orderPayload, scannedItemIds = [] } = body;
 
@@ -57,7 +64,7 @@ export async function POST(request) {
 
     const finalOrderPayload = {
       ...orderPayload,
-      business_id: businessId || orderPayload.business_id,
+      business_id: businessId, // strictly enforced from authenticated session
     };
 
     let { data: orderData, error: orderErr } = await adminClient
@@ -74,7 +81,7 @@ export async function POST(request) {
       );
     }
 
-    // Update scanned items to SHIPPED
+    // Update scanned items to SHIPPED (strictly scoped to this merchant's business_id)
     if (scannedItemIds.length > 0) {
       await adminClient
         .from("inventory_items")
@@ -82,7 +89,8 @@ export async function POST(request) {
           status: "SHIPPED",
           order_id: orderData?.id || null,
         })
-        .in("id", scannedItemIds);
+        .in("id", scannedItemIds)
+        .eq("business_id", businessId);
     }
 
     return NextResponse.json({

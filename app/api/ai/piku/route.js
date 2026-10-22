@@ -19,9 +19,9 @@ function getPikuGlobalSupportContacts() {
         whatsappNumber: data.support_whatsapp || "8801753082749",
         supportEmail: data.support_email || "support@smartinventory.app",
         supportHours: data.support_hours || "10:00 AM - 11:00 PM (Daily)",
-        aiName: data.ai_name || "Tuku",
-        aiNameBn: data.ai_name_bn || "টুকু",
-        aiTagline: data.ai_tagline || "Smart Inventory & 24/7 E-Commerce Advisor",
+        aiName: data.ai_name || "Shongi",
+        aiNameBn: data.ai_name_bn || "সঙ্গী",
+        aiTagline: data.ai_tagline || "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
         aiIsActive: data.ai_is_active !== false,
         aiWelcomeMessage: data.ai_welcome_message || "",
         aiCustomInstructions: data.ai_custom_instructions || "",
@@ -36,9 +36,9 @@ function getPikuGlobalSupportContacts() {
     whatsappNumber: "8801753082749",
     supportEmail: "support@smartinventory.app",
     supportHours: "10:00 AM - 11:00 PM (Daily)",
-    aiName: "Tuku",
-    aiNameBn: "টুকু",
-    aiTagline: "Smart Inventory & 24/7 E-Commerce Advisor",
+    aiName: "Shongi",
+    aiNameBn: "সঙ্গী",
+    aiTagline: "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
     aiIsActive: true,
     aiWelcomeMessage: "",
     aiCustomInstructions: "",
@@ -165,7 +165,7 @@ function findOrderOrParcel(identifier, ordersList = [], reconciliationsList = []
 export async function POST(request) {
   try {
     const globalContact = getPikuGlobalSupportContacts();
-    const aiName = globalContact.aiName || "Tuku";
+    const aiName = globalContact.aiName || "Shongi";
     const aiNameBn = globalContact.aiNameBn || "টুকু";
 
     // ── 1. Authentication Guard ─────────────────────────────────
@@ -1051,7 +1051,7 @@ Type **"Raise issue for [tracking id]"** anytime and ${aiName} will open a high-
       else if (
         hasAny([
           "hi", "hello", "hey", "kemon", "কেমন", "tumi k", "তুমি কে", "who are you",
-          "help", "sahajjo", "সাহায্য", "piku", "পিকু", "tuku", "টুকু",
+          "help", "sahajjo", "সাহায্য", "shongi", "সঙ্গী", "shongi ai", "সঙ্গী এআই", "piku", "পিকু", "tuku", "টুকু",
           aiName.toLowerCase(), aiNameBn, "salam", "সালাম"
         ])
       ) {

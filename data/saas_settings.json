@@ -17,6 +17,7 @@
   "stripe_secret_key": "",
   "admin_recovery_email": "hossainmdnoyon528@gmail.com",
   "admin_recovery_phone": "01753082749",
+  "admin_recovery_pin": "882194",
   "support_phone": "01753082749",
   "support_whatsapp": "8801753082749",
   "support_email": "support@smartinventory.app",
@@ -32,12 +33,12 @@
   "enterprise_plan_price_bdt": 4990,
   "enterprise_plan_price_usd": 99,
   "enterprise_order_limit": 5000,
-  "ai_name": "Tuku",
-  "ai_name_bn": "টুকু",
-  "ai_tagline": "Smart Inventory & 24/7 E-Commerce Advisor",
+  "ai_name": "Shongi",
+  "ai_name_bn": "সঙ্গী",
+  "ai_tagline": "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
   "ai_is_active": true,
   "ai_model_mode": "balanced",
-  "ai_welcome_message": "আসসালামু আলাইকুম! আমি {ai_name_bn} ({ai_name}), আপনার স্টোরের স্মার্ট এআই সহচর। ইনভেন্টরি স্টক, পার্সেল ট্র্যাকিং ও কুরিয়ার ইস্যু সমাধানে আমি আপনাকে যেকোনো সময় সাহায্য করতে প্রস্তুত!",
+  "ai_welcome_message": "আসসালামু আলাইকুম! আমি {ai_name_bn} ({ai_name}), আপনার স্টোরের সার্বক্ষণিক বিশ্বস্ত এআই সহকারী। ইনভেন্টরি স্টক, পার্সেল ট্র্যাকিং ও কুরিয়ার ইস্যু সমাধানে আমি আপনাকে যেকোনো সময় সাহায্য করতে প্রস্তুত!",
   "ai_custom_instructions": "Always be friendly, encouraging, and focused on helping Bangladeshi online store owners prevent courier RTO, protect profit margins, and manage stock efficiently.",
-  "updated_at": "2026-10-22T09:10:00.000Z"
+  "updated_at": "2026-10-22T09:48:00.000Z"
 }

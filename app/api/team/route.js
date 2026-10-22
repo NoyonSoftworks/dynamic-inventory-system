@@ -144,6 +144,15 @@ export async function POST(request) {
     const cleanEmail = email.toLowerCase().trim();
     const assignedRole = role === "manager" ? "manager" : "staff";
 
+    // Security Check: Protect Super Admin from being targeted as staff
+    const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com").toLowerCase().trim();
+    if (cleanEmail === adminEmail) {
+      return NextResponse.json(
+        { success: false, error: "Cannot provision or reassign the Super Administrator account as store staff." },
+        { status: 400 }
+      );
+    }
+
     // 1. Create or retrieve auth account via Supabase Admin
     let staffUserId = null;
     const { data: createdUser, error: createAuthErr } =
@@ -156,19 +165,55 @@ export async function POST(request) {
     if (createdUser?.user) {
       staffUserId = createdUser.user.id;
     } else if (createAuthErr?.message?.toLowerCase().includes("already registered") || createAuthErr?.code === "email_exists") {
-      // Find existing user id
+      // Security Check: Prevent account takeover of other merchants or external users
+      const { data: existingRole } = await adminClient
+        .from("user_roles")
+        .select("id, email, business_id, role")
+        .eq("email", cleanEmail)
+        .maybeSingle();
+
+      if (existingRole && existingRole.business_id && existingRole.business_id !== callerRole.business_id) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Security Alert: This email is already associated with another active store. Staff members must use dedicated email addresses.",
+          },
+          { status: 403 }
+        );
+      }
+
+      // Check if user owns an independent store
       const { data: listData } = await adminClient.auth.admin.listUsers();
       const existing = (listData?.users || []).find(
         (u) => u.email?.toLowerCase().trim() === cleanEmail
       );
-      if (existing) {
-        staffUserId = existing.id;
-        // Update password
+
+      if (!existing) {
+        throw new Error(createAuthErr.message);
+      }
+
+      const { data: ownedBiz } = await adminClient
+        .from("businesses")
+        .select("id")
+        .eq("owner_id", existing.id)
+        .maybeSingle();
+
+      if (ownedBiz && ownedBiz.id !== callerRole.business_id) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Security Alert: This email owns an independent merchant store and cannot be reassigned as staff.",
+          },
+          { status: 403 }
+        );
+      }
+
+      staffUserId = existing.id;
+      // Only update password if this staff member already belongs to the caller's store
+      if (existingRole?.business_id === callerRole.business_id) {
         await adminClient.auth.admin.updateUserById(existing.id, {
           password: password,
         });
-      } else {
-        throw new Error(createAuthErr.message);
       }
     } else {
       throw new Error(createAuthErr?.message || "Failed to create staff auth user.");

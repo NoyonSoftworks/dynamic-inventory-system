@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 import { logActivity, AUDIT_ACTIONS } from "@/utils/audit-logger";
+import { checkRateLimit, getClientIp } from "@/utils/rate-limit";
 
 const ADMIN_EMAIL = (
   process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mdnoyon356268@gmail.com"
@@ -12,21 +13,38 @@ const ADMIN_EMAIL = (
 
 const SETTINGS_FILE_PATH = path.join(process.cwd(), "data", "saas_settings.json");
 
-function getRecoveryPhone() {
+function getRecoveryCredentials() {
   try {
     if (fs.existsSync(SETTINGS_FILE_PATH)) {
       const raw = fs.readFileSync(SETTINGS_FILE_PATH, "utf8");
       const json = JSON.parse(raw);
-      if (json.admin_recovery_phone) {
-        return json.admin_recovery_phone;
-      }
+      return {
+        phone: json.admin_recovery_phone || "",
+        pin: json.admin_recovery_pin || process.env.ADMIN_RECOVERY_PIN || "882194",
+      };
     }
   } catch {}
-  return "";
+  return { phone: "", pin: process.env.ADMIN_RECOVERY_PIN || "882194" };
 }
 
 export async function POST(request) {
   try {
+    // ── 0. RATE LIMITING (5 attempts per 10 minutes to prevent brute-force) ──
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(`admin-reset:${clientIp}`, {
+      limit: 5,
+      windowMs: 10 * 60 * 1000,
+    });
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Too many password reset attempts. Please wait ${rateLimit.retryAfterSec} seconds before retrying.`,
+        },
+        { status: 429 }
+      );
+    }
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -158,7 +176,7 @@ export async function POST(request) {
       });
     }
 
-    // ── MODE 3: EMERGENCY RESET VIA RECOVERY PHONE ─────────────
+    // ── MODE 3: EMERGENCY RESET VIA RECOVERY PHONE & SECRET PIN ───
     if (mode === "recovery_phone") {
       if (!cleanEmail || cleanEmail !== ADMIN_EMAIL) {
         return NextResponse.json(
@@ -167,9 +185,10 @@ export async function POST(request) {
         );
       }
 
-      const savedPhone = getRecoveryPhone();
+      const { phone: savedPhone, pin: savedPin } = getRecoveryCredentials();
       const cleanInputPhone = String(recoveryPhone || "").replace(/\D/g, "");
       const cleanConfigPhone = String(savedPhone || "").replace(/\D/g, "");
+      const cleanInputPin = String(body?.recoveryPin || "").trim();
 
       if (
         !cleanConfigPhone ||
@@ -182,6 +201,18 @@ export async function POST(request) {
             success: false,
             error:
               "Emergency phone verification failed. The provided phone number does not match the configured Recovery Phone.",
+          },
+          { status: 403 }
+        );
+      }
+
+      // Strict Pentester Check: Require secret Admin Recovery PIN
+      if (!savedPin || !cleanInputPin || cleanInputPin !== savedPin) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Security Alert: Valid 6-digit Emergency Admin Recovery PIN is required to authorize instant password reset.",
           },
           { status: 403 }
         );

@@ -74,11 +74,12 @@ export async function GET(request) {
         .from("products")
         .select("*")
         .eq("id", targetProductId)
+        .eq("business_id", businessId)
         .maybeSingle();
 
       if (sErr || !singleProd) {
         return NextResponse.json(
-          { success: false, error: sErr?.message || "Product not found." },
+          { success: false, error: "Product not found or unauthorized access." },
           { status: 404 }
         );
       }
@@ -86,7 +87,8 @@ export async function GET(request) {
       const { data: invItems } = await adminClient
         .from("inventory_items")
         .select("*")
-        .eq("product_id", targetProductId);
+        .eq("product_id", targetProductId)
+        .eq("business_id", businessId);
 
       const meta = getProductMeta(targetProductId) || {};
 

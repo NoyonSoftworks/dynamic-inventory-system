@@ -11,7 +11,7 @@ export async function GET(request) {
       const authRes = await supabase.auth.getUser();
       user = authRes.data?.user || null;
     } catch (e) {
-      // In static prerender pass or when cookies() is unavailable
+      // In dynamic environment or when cookies() is unavailable
     }
 
     if (!user) {
@@ -20,7 +20,8 @@ export async function GET(request) {
         ? authHeader.substring(7)
         : request.cookies?.get?.("sb-access-token")?.value;
       if (token) {
-        const { data: fbData } = await supabase.auth.getUser(token);
+        const adminAuthClient = createAdminClient();
+        const { data: fbData } = await adminAuthClient.auth.getUser(token);
         if (fbData?.user) user = fbData.user;
       }
     }

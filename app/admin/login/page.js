@@ -92,6 +92,7 @@ function AdminLoginForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [recoveryPhone, setRecoveryPhone] = useState("");
+  const [recoveryPin, setRecoveryPin] = useState("");
   const [otpDispatched, setOtpDispatched] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -458,6 +459,8 @@ function AdminLoginForm() {
 
       if (!cleanEmail) throw new Error("Administrator email is required.");
       if (!cleanPhone) throw new Error("Registered recovery phone number is required.");
+      if (!recoveryPin || recoveryPin.trim().length < 6)
+        throw new Error("Secret 6-digit Emergency Admin Recovery PIN is required.");
       if (!password || password.length < 6)
         throw new Error("New password must be at least 6 characters in length.");
       if (password !== confirmPassword)
@@ -470,6 +473,7 @@ function AdminLoginForm() {
           mode: "recovery_phone",
           email: cleanEmail,
           recoveryPhone: cleanPhone,
+          recoveryPin: recoveryPin.trim(),
           newPassword: password,
         }),
       });
@@ -920,6 +924,25 @@ function AdminLoginForm() {
                     />
                     <p className="text-[11px] text-slate-400">
                       Must match the recovery phone number configured in Admin Settings.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                      <span>Secret Recovery PIN</span>
+                      <span className="text-[10px] text-orange-400 font-mono">6-DIGIT PIN</span>
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      maxLength={6}
+                      value={recoveryPin}
+                      onChange={(e) => setRecoveryPin(e.target.value)}
+                      placeholder="••••••"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900/80 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 font-mono tracking-widest transition"
+                    />
+                    <p className="text-[11px] text-slate-400">
+                      Secret 6-digit emergency PIN configured by platform owner.
                     </p>
                   </div>
 

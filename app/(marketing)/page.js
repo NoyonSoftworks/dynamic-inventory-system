@@ -59,6 +59,11 @@ export default function MarketingLandingPage() {
   // ── Interactive ROI Calculator State ─────────────────────────
   const [monthlyOrders, setMonthlyOrders] = useState(1500);
 
+  // ── Merchant AI Copilot Showcase State ───────────────────────
+  const [aiName, setAiName] = useState("Shongi");
+  const [aiNameBn, setAiNameBn] = useState("সঙ্গী");
+  const [aiDemoTab, setAiDemoTab] = useState("tracking"); // "tracking" | "rto" | "reconciliation" | "stock"
+
   // ── FAQ Accordion State ──────────────────────────────────────
   const [openFaq, setOpenFaq] = useState(0);
 
@@ -177,6 +182,13 @@ export default function MarketingLandingPage() {
               supportEmail: json.settings.support_email || "support@smartinventory.app",
             });
 
+            if (json.settings.ai_name) {
+              setAiName(json.settings.ai_name);
+            }
+            if (json.settings.ai_name_bn) {
+              setAiNameBn(json.settings.ai_name_bn);
+            }
+
             if (json.settings.currency_mode === "USD") {
               setCurrency("USD");
             }
@@ -283,9 +295,16 @@ export default function MarketingLandingPage() {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-[13px] font-medium text-slate-600">
+          <nav className="hidden md:flex items-center gap-6 text-[13px] font-medium text-slate-600">
             <a href="#how-it-works" className="hover:text-slate-900 transition">How It Works</a>
             <a href="#features" className="hover:text-slate-900 transition">Features</a>
+            <a href="#ai-copilot" className="hover:text-orange-600 transition flex items-center gap-1.5 font-medium text-slate-700">
+              <span className="text-orange-500 text-xs">✨</span>
+              <span>{aiName} AI</span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                PRO
+              </span>
+            </a>
             <a href="#simulator" className="hover:text-slate-900 transition">Terminal</a>
             <a href="#pricing" className="hover:text-slate-900 transition">Pricing</a>
             <Link href="/blog" className="hover:text-slate-900 transition">Blog</Link>
@@ -1153,6 +1172,415 @@ export default function MarketingLandingPage() {
               <div className="pt-2 text-xs font-mono font-semibold text-slate-700 flex items-center gap-1">
                 <span>Zero cross-tenant data leakage</span>
                 <span>→</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── EXCLUSIVE MERCHANT AI COPILOT SHOWCASE (#ai-copilot) ─────── */}
+      <section id="ai-copilot" className="py-20 sm:py-28 bg-gradient-to-b from-[#f8fafc] via-white to-[#f8fafc] border-b border-slate-200/80 relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
+
+        <div className="mx-auto max-w-6xl px-4 sm:px-8">
+          {/* Header Title & Badges */}
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1 shadow-2xs">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-orange-700">
+                🔒 Registered Merchant Exclusive
+              </span>
+            </div>
+
+            <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
+              Meet {aiName} ({aiNameBn}) — Your 24/7 E-Commerce Store Copilot ✨
+            </h2>
+
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
+              শুধুমাত্র আমাদের রেজিস্টার্ড মার্চেন্টদের জন্য সরাসরি কানেক্টেড ইন্টেলিজেন্ট এআই। বাংলা, Banglish বা English—যেকোনো ভাষায় ইনভেন্টরি, পার্সেল ট্র্যাকিং, RTO রিটার্ন প্রতিরোধ ও কুরিয়ার রিকনসিলিয়েশনের তাৎক্ষণিক নির্ভুল সমাধান।
+            </p>
+          </div>
+
+          {/* Interactive AI Preview Container */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Column: 4 Real-World Scenario Pills & Pillars */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="space-y-2">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
+                  Select Real-World Merchant Scenario:
+                </span>
+
+                <div className="space-y-2">
+                  {/* Scenario 1: Parcel Tracking */}
+                  <button
+                    type="button"
+                    onClick={() => setAiDemoTab("tracking")}
+                    className={`w-full text-left p-3.5 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${
+                      aiDemoTab === "tracking"
+                        ? "border-orange-500 bg-orange-50/70 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 text-base">
+                      📦
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-slate-900">পার্সেল ট্র্যাকিং ও ১-ক্লিক টিকিট</h4>
+                        {aiDemoTab === "tracking" && (
+                          <span className="text-[10px] font-bold text-orange-600 font-mono">ACTIVE</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                        &quot;SF-8841029 পার্সেল আটকে আছে কেন? সাপোর্ট টিকিট ওপেন করো&quot;
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Scenario 2: RTO & Fraud Prevention */}
+                  <button
+                    type="button"
+                    onClick={() => setAiDemoTab("rto")}
+                    className={`w-full text-left p-3.5 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${
+                      aiDemoTab === "rto"
+                        ? "border-orange-500 bg-orange-50/70 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-base">
+                      🛡️
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-slate-900">RTO রিটার্ন প্রতিরোধ কৌশল</h4>
+                        {aiDemoTab === "rto" && (
+                          <span className="text-[10px] font-bold text-orange-600 font-mono">ACTIVE</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                        &quot;Steadfast ও Pathao এ রিটার্ন পার্সেল (RTO) কিভাবে কমাব?&quot;
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Scenario 3: Courier Reconciliation */}
+                  <button
+                    type="button"
+                    onClick={() => setAiDemoTab("reconciliation")}
+                    className={`w-full text-left p-3.5 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${
+                      aiDemoTab === "reconciliation"
+                        ? "border-orange-500 bg-orange-50/70 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-base">
+                      💰
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-slate-900">কুরিয়ার অটো-রিকনসিলিয়েশন</h4>
+                        {aiDemoTab === "reconciliation" && (
+                          <span className="text-[10px] font-bold text-orange-600 font-mono">ACTIVE</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                        &quot;কুরিয়ারের বকেয়া COD টাকা কিভাবে মেলাব ও অডিট করব?&quot;
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Scenario 4: Stock Alerts */}
+                  <button
+                    type="button"
+                    onClick={() => setAiDemoTab("stock")}
+                    className={`w-full text-left p-3.5 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${
+                      aiDemoTab === "stock"
+                        ? "border-orange-500 bg-orange-50/70 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 text-base">
+                      📊
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-slate-900">স্টক পূর্বাভাস ও মার্জিন গার্ড</h4>
+                        {aiDemoTab === "stock" && (
+                          <span className="text-[10px] font-bold text-orange-600 font-mono">ACTIVE</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                        &quot;আমার স্টোরে কোন কোন প্রোডাক্টের স্টক শেষ হয়ে যাচ্ছে?&quot;
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Merchant Privacy & Isolation Guarantee */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5 shadow-2xs">
+                <div className="flex items-center gap-2 text-slate-900 font-bold text-xs">
+                  <span className="text-emerald-600">🛡️</span>
+                  <span>100% Tenant Isolation &amp; Zero Public Leakage</span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  {aiName} AI শুধুমাত্র আপনার নিজস্ব স্টোরের ইনভেন্টরি ও কুরিয়ার ডেটাবেজের সাথে এনক্রিপ্টেড সংযোগে কাজ করে। কোনো পাবলিক ডেটা মডেলের সাথে আপনার কাস্টমার বা সেলস ডেটা শেয়ার বা ট্রেইন করা হয় না।
+                </p>
+                <div className="pt-1 flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    PostgreSQL RLS
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Encrypted Token
+                  </span>
+                </div>
+              </div>
+
+              {/* Sign up CTA button */}
+              <div>
+                <Link
+                  href="/login"
+                  className="btn-tactile w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#EA580C] hover:bg-[#D94E07] px-5 py-3 text-xs font-bold text-white shadow-md transition"
+                >
+                  <span>মার্চেন্ট একাউন্ট তৈরি করে {aiName} AI ব্যবহার করুন</span>
+                  <span>→</span>
+                </Link>
+                <p className="text-[11px] text-center text-slate-500 mt-2">
+                  ১০০ অর্ডার পর্যন্ত আজীবন সম্পূর্ণ ফ্রি • কোনো ক্রেডিট কার্ড লাগবে না
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Live Simulated Chat Bubble Window */}
+            <div className="lg:col-span-7">
+              <div className="rounded-3xl border border-slate-200/90 bg-white shadow-xl overflow-hidden flex flex-col h-[560px]">
+                {/* Chat Top Header */}
+                <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-orange-500 via-amber-500 to-yellow-400 text-white shadow-xs">
+                      <span className="text-lg select-none">🤖</span>
+                      <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border border-slate-900" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-white tracking-tight">
+                          {aiName} ({aiNameBn}) AI Copilot
+                        </h4>
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-orange-500/30 text-orange-300 border border-orange-500/40">
+                          PRO
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-300">
+                        24/7 Live Store Operations Copilot • বাংলা &amp; English
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-800/60">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Store Connected</span>
+                  </div>
+                </div>
+
+                {/* Chat Messages Body */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#F8FAFC]">
+                  {/* User Question Bubble */}
+                  <div className="flex justify-end animate-in fade-in duration-200">
+                    <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-slate-900 text-white px-4 py-2.5 shadow-2xs">
+                      <p className="text-xs leading-relaxed font-sans">
+                        {aiDemoTab === "tracking" && "SF-8841029 এই পার্সেল অনেকদিন আটকে আছে, কি করব? একটি টিকিট ওপেন করো"}
+                        {aiDemoTab === "rto" && "Steadfast ও Pathao এ রিটার্ন পার্সেল (RTO) কিভাবে কমাব?"}
+                        {aiDemoTab === "reconciliation" && "কুরিয়ারের বকেয়া COD টাকা কিভাবে মেলাব ও অডিট করব?"}
+                        {aiDemoTab === "stock" && "আমার স্টোরে কোন কোন প্রোডাক্টের স্টক শেষ হয়ে যাচ্ছে?"}
+                      </p>
+                      <span className="text-[9px] text-slate-400 block text-right mt-1 font-mono">
+                        Merchant Query • Just now
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* AI Response Bubble */}
+                  <div className="flex items-start gap-2.5 animate-in fade-in duration-200">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-100 border border-orange-200 text-orange-600 text-xs shadow-2xs mt-0.5">
+                      🤖
+                    </div>
+
+                    <div className="max-w-[88%] space-y-2">
+                      <div className="rounded-2xl rounded-tl-xs bg-white border border-slate-200/90 text-slate-800 p-4 shadow-2xs space-y-2.5">
+                        {/* Scenario 1 Content */}
+                        {aiDemoTab === "tracking" && (
+                          <div className="space-y-2 text-xs leading-relaxed text-slate-800">
+                            <h4 className="font-bold text-[13px] text-slate-900 leading-snug">
+                              📦 পার্সেল লাইভ স্ট্যাটাস: SF-8841029 (Steadfast Courier)
+                            </h4>
+                            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-2.5 text-[11px] text-amber-900 space-y-1">
+                              <div><strong>কাস্টমার:</strong> তানভীর আহমেদ (০১৭১২-XXXXXX) · ধানমন্ডি, ঢাকা</div>
+                              <div><strong>বর্তমান স্ট্যাটাস:</strong> ⏳ ইন-ট্রানজিট (গত ৩ দিন হাব-এ রিটেইন)</div>
+                              <div><strong>COD এমাউন্ট:</strong> ৳ ২,৪৫০ | <strong>ওজন:</strong> ০.৮ কেজি</div>
+                            </div>
+                            <p className="text-slate-700 leading-relaxed">
+                              ✅ <strong>সাপোর্ট টিকিট স্বয়ংক্রিয়ভাবে তৈরি হয়েছে:</strong> পার্সেলটি অতিরিক্ত সময় আটকে থাকায় সরাসরি কুরিয়ার অপারেশন সেন্টারে <strong>টিকিট #TKT-8841</strong> ফাইল করা হয়েছে।
+                            </p>
+                            <p className="text-slate-700 leading-relaxed">
+                              আমাদের ব্যাকঅফিস টিম অবিলম্বে কুরিয়ার রিপ্রেজেনটেটিভের সাথে যোগাযোগ করে কাস্টমার ডেলিভারি নিশ্চিত করবে।
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Scenario 2 Content */}
+                        {aiDemoTab === "rto" && (
+                          <div className="space-y-2 text-xs leading-relaxed text-slate-800">
+                            <h4 className="font-bold text-[13px] text-slate-900 leading-snug">
+                              🛡️ কুরিয়ার RTO রিটার্ন কমানোর ৪টি স্মার্ট কৌশল:
+                            </h4>
+                            <div className="space-y-1.5 text-slate-700 leading-relaxed">
+                              <div className="flex items-start gap-2 pl-1">
+                                <span className="text-orange-500 font-bold">•</span>
+                                <span><strong>১. হাই-রিস্ক কাস্টমার ফ্ল্যাগিং:</strong> যেসকল ক্রেতা পূর্বে ২ বারের বেশি পার্সেল রিফিউজ করেছেন তাদের অগ্রিম সতর্কবার্তা।</span>
+                              </div>
+                              <div className="flex items-start gap-2 pl-1">
+                                <span className="text-orange-500 font-bold">•</span>
+                                <span><strong>২. অটোমেটেড WhatsApp ডেলিভারি নোটিফিকেশন:</strong> অর্ডার প্লেস করার সাথে সাথে লোকেশন কনফার্মেশন পাঠানো।</span>
+                              </div>
+                              <div className="flex items-start gap-2 pl-1">
+                                <span className="text-orange-500 font-bold">•</span>
+                                <span><strong>৩. অগ্রিম ডেলিভারি চার্জ পলিসি:</strong> ঢাকার বাইরের অর্ডারে কমপক্ষে ৳ ১২০-১৫০ অগ্রিম নিলে RTO প্রায় ৬৫% কমে যায়।</span>
+                              </div>
+                              <div className="flex items-start gap-2 pl-1">
+                                <span className="text-orange-500 font-bold">•</span>
+                                <span><strong>৪. সেম-ডে ডেসপ্যাচ স্পিড:</strong> ১২ ঘণ্টার মধ্যে কুরিয়ার হ্যান্ডওভার করলে ক্রেতার মত বদলানোর সুযোগ থাকে না।</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Scenario 3 Content */}
+                        {aiDemoTab === "reconciliation" && (
+                          <div className="space-y-2 text-xs leading-relaxed text-slate-800">
+                            <h4 className="font-bold text-[13px] text-slate-900 leading-snug">
+                              💰 কুরিয়ার অটো-রিকনসিলিয়েশন ও পেমেন্ট অডিট গাইড
+                            </h4>
+                            <p className="text-slate-700 leading-relaxed">
+                              Steadfast বা Pathao থেকে পাওয়া পেমেন্ট ইনভয়েস ফাইল এক ক্লিকে আপলোড করলেই আমাদের সিস্টেম সম্পূর্ণ অডিট সম্পন্ন করে:
+                            </p>
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-[11px] space-y-1 text-slate-700">
+                              <div className="flex justify-between">
+                                <span>মোট ডেলিভারড অর্ডার:</span>
+                                <strong className="font-mono">৪২৮ টি</strong>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>প্রত্যাশিত COD কালেকশন:</span>
+                                <strong className="font-mono text-emerald-700">৳ ৪,৯২,২০০</strong>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>অডিট অসঙ্গতি / মিসিং অ্যামাউন্ট:</span>
+                                <strong className="font-mono text-rose-600">৳ ০ (সম্পূর্ণ মিলেছে)</strong>
+                              </div>
+                            </div>
+                            <p className="text-slate-700 leading-relaxed">
+                              কোনো পার্সেলের অতিরিক্ত চার্জ কাটা হলে সিস্টেম তাৎক্ষণিক ডিসপিউট রিপোর্ট জেনারেট করে।
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Scenario 4 Content */}
+                        {aiDemoTab === "stock" && (
+                          <div className="space-y-2 text-xs leading-relaxed text-slate-800">
+                            <h4 className="font-bold text-[13px] text-slate-900 leading-snug">
+                              ⚠️ লো-স্টক পূর্বাভাস ও রিস্টক গাইডেন্স
+                            </h4>
+                            <div className="space-y-1.5 text-slate-700 leading-relaxed">
+                              <div className="p-2 rounded-lg border border-rose-200 bg-rose-50/60 text-[11px]">
+                                <strong className="text-rose-900">অ্যাকশন প্রয়োজন:</strong> ড্রপ-শোল্ডার ব্ল্যাক টি-শার্ট (L) এর স্টক মাত্র <strong>৪ পিস</strong> অবশিষ্ট। গত সপ্তাহে গড় বিক্রি ছিল দৈনিক ৩টি।
+                              </div>
+                              <div className="p-2 rounded-lg border border-amber-200 bg-amber-50/60 text-[11px]">
+                                <strong className="text-amber-900">রিস্টক সুপারিশ:</strong> স্টকআউট এড়াতে আগামী ৪৮ ঘণ্টার মধ্যে কমপক্ষে <strong>৫০ পিস</strong> রি-অর্ডার করুন।
+                              </div>
+                            </div>
+                            <p className="text-slate-700 leading-relaxed">
+                              প্রোডাক্টের প্রতিটি লটের জন্য থার্মাল বারকোড লেবেল ও তাকের র‍্যাক নম্বর সিস্টেমে সংরক্ষিত আছে।
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
+                          {aiDemoTab === "tracking" && (
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                                🎫 টিকিট #TKT-8841 ওপেন হয়েছে
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                📱 WhatsApp কাস্টমার আপডেট
+                              </span>
+                            </>
+                          )}
+                          {aiDemoTab === "rto" && (
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ⚡ ১২০৳ অ্যাডভান্স পলিসি
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                🚀 ইনস্ট্যান্ট ডেসপ্যাচ
+                              </span>
+                            </>
+                          )}
+                          {aiDemoTab === "reconciliation" && (
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                📑 ১-ক্লিক রিকনসিলিয়েশন
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                📊 প্রফিট অডিট
+                              </span>
+                            </>
+                          )}
+                          {aiDemoTab === "stock" && (
+                            <>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                📦 স্টক ম্যানেজার
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                🏷️ থার্মাল বারকোড প্রিন্ট
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Simulated Input Area */}
+                <div className="p-3.5 bg-white border-t border-slate-200 shrink-0">
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2">
+                    <span className="text-slate-400 text-xs">💬</span>
+                    <input
+                      type="text"
+                      readOnly
+                      value={
+                        aiDemoTab === "tracking"
+                          ? "SF-8841029 এর টিকিট আপডেট দেখাও..."
+                          : aiDemoTab === "rto"
+                          ? "কুরিয়ারে রিটার্ন চার্জ কিভাবে কমাব..."
+                          : aiDemoTab === "reconciliation"
+                          ? "Steadfast এর টাকা মেলাতে ফাইল আপলোড করব..."
+                          : "কোন প্রোডাক্টের রিস্টক রেডি..."
+                      }
+                      className="w-full bg-transparent text-xs text-slate-500 font-sans cursor-default outline-none"
+                    />
+                    <span className="text-[10px] font-semibold text-orange-600 bg-orange-100/80 px-2 py-0.5 rounded border border-orange-200 shrink-0">
+                      Live Merchant AI
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 px-1">
+                    <span>* রেজিস্টার্ড মার্চেন্ট ড্যাশবোর্ডে সার্বক্ষণিক সক্রিয়</span>
+                    <Link href="/login" className="text-orange-600 font-semibold hover:underline">
+                      এখনই ফ্রিতে শুরু করুন →
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

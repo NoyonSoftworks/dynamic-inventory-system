@@ -169,7 +169,7 @@ export async function POST(request) {
     const body = await request.json().catch(() => null);
     const { businessId, plan, amount, method, senderPhone, trxId, notes } = body || {};
 
-    if (!businessId || !trxId || !senderPhone) {
+    if (!trxId || !senderPhone) {
       return NextResponse.json(
         { success: false, error: "Sender phone number and Transaction ID (TrxID) are required." },
         { status: 400 }
@@ -177,15 +177,27 @@ export async function POST(request) {
     }
 
     const adminClient = createAdminClient();
-    const { data: bizData } = await adminClient
-      .from("businesses")
-      .select("name")
-      .eq("id", businessId)
+
+    // Strict Tenant Check: Resolve and verify caller's actual business_id
+    const { data: roleRow } = await adminClient
+      .from("user_roles")
+      .select("business_id, businesses(name)")
+      .eq("id", user.id)
       .maybeSingle();
 
+    const verifiedBusinessId = roleRow?.business_id || businessId;
+    if (!verifiedBusinessId) {
+      return NextResponse.json(
+        { success: false, error: "No active merchant business associated with this account." },
+        { status: 400 }
+      );
+    }
+
+    const storeName = roleRow?.businesses?.name || "Store #" + verifiedBusinessId.slice(0, 6);
+
     const paymentRec = saveTenantPayment({
-      business_id: businessId,
-      store_name: bizData?.name || "Store #" + businessId.slice(0, 6),
+      business_id: verifiedBusinessId,
+      store_name: storeName,
       owner_email: user.email,
       amount: Number(amount) || 1990,
       method: method || "bKash Personal",

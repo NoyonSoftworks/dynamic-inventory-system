@@ -28,14 +28,14 @@ function MarkdownText({ content }) {
         // Headers
         if (trimmed.startsWith("### ")) {
           return (
-            <h4 key={idx} className="font-bold text-[13px] text-slate-900 mt-2 mb-1 flex items-center gap-1.5">
+            <h4 key={idx} className="font-bold text-[13px] text-slate-900 mt-2 mb-1 leading-snug">
               {renderInline(trimmed.replace("### ", ""))}
             </h4>
           );
         }
         if (trimmed.startsWith("## ")) {
           return (
-            <h3 key={idx} className="font-bold text-sm text-slate-900 mt-2.5 mb-1">
+            <h3 key={idx} className="font-bold text-sm text-slate-900 mt-2.5 mb-1 leading-snug">
               {renderInline(trimmed.replace("## ", ""))}
             </h3>
           );
@@ -47,7 +47,7 @@ function MarkdownText({ content }) {
           return (
             <div key={idx} className="flex items-start gap-2 pl-1 my-0.5">
               <span className="text-orange-500 font-bold select-none text-xs leading-4">•</span>
-              <span className="flex-1 text-slate-700">{renderInline(text)}</span>
+              <span className="flex-1 text-slate-700 leading-relaxed">{renderInline(text)}</span>
             </div>
           );
         }
@@ -60,7 +60,7 @@ function MarkdownText({ content }) {
               <span className="font-mono text-[11px] font-semibold text-orange-600 select-none">
                 {numMatch[1]}.
               </span>
-              <span className="flex-1 text-slate-700">{renderInline(numMatch[2])}</span>
+              <span className="flex-1 text-slate-700 leading-relaxed">{renderInline(numMatch[2])}</span>
             </div>
           );
         }
@@ -70,7 +70,7 @@ function MarkdownText({ content }) {
           return (
             <blockquote
               key={idx}
-              className="border-l-2 border-orange-400 pl-2.5 py-1 text-slate-600 bg-orange-50/40 rounded-r-md text-[11px] my-1"
+              className="border-l-2 border-orange-400 pl-2.5 py-1 text-slate-600 bg-orange-50/40 rounded-r-md text-[11px] my-1 leading-relaxed"
             >
               {renderInline(trimmed.replace("> ", ""))}
             </blockquote>
@@ -79,7 +79,7 @@ function MarkdownText({ content }) {
 
         // Regular paragraph line
         return (
-          <p key={idx} className="text-slate-700">
+          <p key={idx} className="text-slate-700 leading-relaxed">
             {renderInline(line)}
           </p>
         );
@@ -153,10 +153,10 @@ function renderInline(text) {
   });
 }
 
-function buildWelcomeMessage(name = "Tuku", nameBn = "টুকু", businessName = "আপনার স্টোর") {
+function buildWelcomeMessage(name = "Shongi", nameBn = "সঙ্গী", businessName = "আপনার স্টোর") {
   return {
     sender: "piku",
-    text: `### 👋 আসসালামু আলাইকুম! আমি **${nameBn} (${name})**, আপনার স্টোরের স্মার্ট এআই সহকারী! 🤖✨\n\nআমি **${
+    text: `### 👋 আসসালামু আলাইকুম! আমি **${nameBn} (${name})**, আপনার স্টোরের সার্বক্ষণিক বিশ্বস্ত এআই সহকারী! 🤖✨\n\nআমি **${
       businessName || "আপনার স্টোর"
     }** এর ইনভেন্টরি, কুরিয়ার ডেলিভারি, রিকনসিলিয়েশন এবং সেলস বাড়ানোর জন্য ২৪/৭ প্রস্তুত।\n\n🌐 **বাংলা, Banglish বা English**—যেকোনো ভাষায় আপনি প্রশ্ন করতে পারেন! ${nameBn} সব বুঝতে পারে এবং নিখুঁত উত্তর প্রদান করে।\n\n**আমি যা যা করতে পারি:**\n- 📦 **পার্সেল লাইভ ট্র্যাকিং:** কুরিয়ারের ট্র্যাকিং কোড বা কনসাইনমেন্ট আইডি দিলেই ডেলিভারি আপডেট!\n- 🎫 **সাপোর্ট টিকিট ইস্যু:** কোনো পার্সেল আটকে গেলে বা সমস্যা হলে চ্যাট থেকেই তাৎক্ষণিক হাই-প্রায়োরিটি টিকিট তৈরি!\n- 📊 **স্টক ও রিস্টক গাইডেন্স:** কোন প্রোডাক্টের স্টক কম এবং কখন অর্ডার করবেন।\n- 🚚 **RTO ও রিটার্ন কমানো:** ফেক কাস্টমার চিহ্নিত করা ও অগ্রিম ডেলিভারি চার্জের কৌশল।\n- 💰 **কুরিয়ার অটো-রিকনসিলিয়েশন:** Steadfast ও Pathao এর পেমেন্ট মেলানো ও বকেয়া উদ্ধার।\n\nনিচের যেকোনো প্রশ্নে ক্লিক করুন অথবা আপনার যা জানার তা বাংলায়, বাংলিশে বা ইংরেজিতে লিখুন!`,
     timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -187,9 +187,9 @@ export default function PikuAIAssistant() {
   const [copiedIndex, setCopiedIndex] = useState(null);
 
   const [aiConfig, setAiConfig] = useState({
-    name: "Tuku",
-    nameBn: "টুকু",
-    tagline: "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট",
+    name: "Shongi",
+    nameBn: "সঙ্গী",
+    tagline: "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
     isActive: true,
   });
 
@@ -197,7 +197,7 @@ export default function PikuAIAssistant() {
   const inputRef = useRef(null);
 
   const [messages, setMessages] = useState(() => [
-    buildWelcomeMessage("Tuku", "টুকু", businessName),
+    buildWelcomeMessage("Shongi", "সঙ্গী", businessName),
   ]);
 
   // Fetch live AI configuration from platform settings
@@ -208,9 +208,9 @@ export default function PikuAIAssistant() {
         if (res.ok) {
           const json = await res.json();
           if (json.settings) {
-            const nextName = json.settings.ai_name || "Tuku";
-            const nextNameBn = json.settings.ai_name_bn || "টুকু";
-            const nextTagline = json.settings.ai_tagline || "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট";
+            const nextName = json.settings.ai_name || "Shongi";
+            const nextNameBn = json.settings.ai_name_bn || "সঙ্গী";
+            const nextTagline = json.settings.ai_tagline || "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট";
             const nextActive = json.settings.ai_is_active !== false;
 
             setAiConfig({
@@ -234,24 +234,31 @@ export default function PikuAIAssistant() {
     fetchAiSettings();
   }, [businessName]);
 
-  // Load chat history from sessionStorage
+  // Load chat history from sessionStorage (migrating from legacy keys)
   useEffect(() => {
     try {
-      const saved = sessionStorage.getItem("piku_chat_messages");
+      sessionStorage.removeItem("piku_chat_messages");
+      sessionStorage.removeItem("tuku_chat_messages");
+
+      const saved = sessionStorage.getItem("shongi_ai_chat_messages_v2");
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed);
+          if (parsed.length === 1 && parsed[0].sender === "piku") {
+            setMessages([buildWelcomeMessage(aiConfig.name, aiConfig.nameBn, businessName)]);
+          } else {
+            setMessages(parsed);
+          }
         }
       }
     } catch {}
-  }, []);
+  }, [aiConfig.name, aiConfig.nameBn, businessName]);
 
   // Save chat history to sessionStorage
   useEffect(() => {
     try {
       if (messages.length > 0) {
-        sessionStorage.setItem("piku_chat_messages", JSON.stringify(messages));
+        sessionStorage.setItem("shongi_ai_chat_messages_v2", JSON.stringify(messages));
       }
     } catch {}
   }, [messages]);
@@ -329,7 +336,9 @@ export default function PikuAIAssistant() {
     if (confirm(`আপনি কি ${aiConfig.nameBn}র সাথে আগের চ্যাট হিস্ট্রি মুছে নতুন কথোপকথন শুরু করতে চান?`)) {
       setMessages([buildWelcomeMessage(aiConfig.name, aiConfig.nameBn, businessName)]);
       try {
+        sessionStorage.removeItem("shongi_ai_chat_messages_v2");
         sessionStorage.removeItem("piku_chat_messages");
+        sessionStorage.removeItem("tuku_chat_messages");
       } catch {}
     }
   }
@@ -459,7 +468,7 @@ export default function PikuAIAssistant() {
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
-                title="Close Piku"
+                title={`Close ${aiConfig.name} AI`}
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

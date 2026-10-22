@@ -146,10 +146,10 @@ export default function AddProductPage() {
     triggerToast("success", "Generated clean SKU prefix!");
   }
 
-  // ── AI Smart Autofill via Tuku AI ─────────────────────────
+  // ── AI Smart Autofill via Shongi AI ─────────────────────────
   async function handleAiSuggest() {
     if (!name.trim()) {
-      triggerToast("error", "Please write a product name (e.g. 'Polo T-Shirt' or 'Wireless Earbuds') for Tuku AI to suggest details.");
+      triggerToast("error", "Please write a product name (e.g. 'Polo T-Shirt' or 'Wireless Earbuds') for Shongi AI to suggest details.");
       return;
     }
 
@@ -209,7 +209,7 @@ export default function AddProductPage() {
         })));
       }
 
-      triggerToast("success", "✨ Tuku AI successfully suggested category, pricing, weight & SKU!");
+      triggerToast("success", "✨ Shongi AI successfully suggested category, pricing, weight & SKU!");
     } catch (err) {
       triggerToast("error", err.message || "Failed to call AI assistant.");
     } finally {
@@ -506,9 +506,9 @@ export default function AddProductPage() {
                     onClick={handleAiSuggest}
                     disabled={aiSuggesting || !name.trim()}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50/80 hover:bg-orange-100 text-orange-800 px-3 py-1.5 text-xs font-bold shadow-2xs transition disabled:opacity-40 cursor-pointer"
-                    title="Auto-fill details with Tuku AI"
+                    title="Auto-fill details with Shongi AI"
                   >
-                    <span>{aiSuggesting ? "Analyzing…" : "✨ Tuku AI Auto-Suggest"}</span>
+                    <span>{aiSuggesting ? "Analyzing…" : "✨ Shongi AI Auto-Suggest"}</span>
                   </button>
                 </div>
 

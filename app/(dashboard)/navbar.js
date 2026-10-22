@@ -24,7 +24,7 @@ const NAV_GROUPS = [
       },
       {
         href: "/dashboard/piku",
-        label: "Tuku AI Assistant",
+        label: "Shongi AI Assistant",
         badge: "AI ✨",
         icon: (
           <svg className="w-4 h-4 shrink-0 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,7 +178,7 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
-  const [aiName, setAiName] = useState("Tuku");
+  const [aiName, setAiName] = useState("Shongi");
 
   useEffect(() => {
     async function fetchAiSettings() {

@@ -260,6 +260,7 @@ export default function SuperAdminDashboard() {
     stripe_secret_key: "",
     admin_recovery_email: "hossainmdnoyon528@gmail.com",
     admin_recovery_phone: "01753082749",
+    admin_recovery_pin: "882194",
     support_phone: "01753082749",
     support_whatsapp: "8801753082749",
     support_email: "support@smartinventory.app",
@@ -275,12 +276,12 @@ export default function SuperAdminDashboard() {
     enterprise_plan_price_bdt: 4990,
     enterprise_plan_price_usd: 99,
     enterprise_order_limit: 5000,
-    ai_name: "Tuku",
-    ai_name_bn: "টুকু",
-    ai_tagline: "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট",
+    ai_name: "Shongi",
+    ai_name_bn: "সঙ্গী",
+    ai_tagline: "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
     ai_is_active: true,
     ai_model_mode: "balanced",
-    ai_welcome_message: "হ্যালো! আমি টুকু (Tuku) — আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট। আমি ইনভেন্টরি, ডেলিভারি ট্র্যাকিং ও সাপোর্ট টিকিট ইস্যু করতে প্রস্তুত।",
+    ai_welcome_message: "আসসালামু আলাইকুম! আমি সঙ্গী (Shongi) — আপনার স্টোরের সার্বক্ষণিক বিশ্বস্ত এআই সহকারী। আমি ইনভেন্টরি, ডেলিভারি ট্র্যাকিং ও সাপোর্ট টিকিট ইস্যু করতে প্রস্তুত।",
     ai_custom_instructions: "",
   });
 
@@ -1517,7 +1518,7 @@ export default function SuperAdminDashboard() {
           label: "AI Copilot & Assistant",
           tab: "security",
           scrollTo: "ai-assistant-control-center",
-          badge: saasSettings.ai_name || "Tuku",
+          badge: saasSettings.ai_name || "Shongi",
           icon: (
             <svg className="w-4 h-4 shrink-0 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -4285,7 +4286,7 @@ export default function SuperAdminDashboard() {
                     <span>Global Support Hotline &amp; Payment Contacts</span>
                   </h2>
                   <p className="mt-1 text-xs text-slate-500 max-w-3xl">
-                    Change support phone, WhatsApp hotline, working hours, and merchant subscription payment numbers in this single place. Any changes saved here automatically propagate across all Merchant Help Desks, Manual Billing modals, Piku AI, and the Landing Page.
+                    Change support phone, WhatsApp hotline, working hours, and merchant subscription payment numbers in this single place. Any changes saved here automatically propagate across all Merchant Help Desks, Manual Billing modals, Shongi AI Copilot, and the Landing Page.
                   </p>
                 </div>
 
@@ -4434,7 +4435,7 @@ export default function SuperAdminDashboard() {
                       className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                     <p className="text-[11px] text-slate-500">
-                      Working hours displayed to merchants on ticket desk, billing, and Piku AI.
+                      Working hours displayed to merchants on ticket desk, billing, and Shongi AI.
                     </p>
                   </div>
 
@@ -4547,7 +4548,7 @@ export default function SuperAdminDashboard() {
                   </div>
                   <h2 className="mt-2 text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                     <span className="text-2xl select-none">🤖</span>
-                    <span>Merchant AI Copilot Control Center ({saasSettings.ai_name || "Tuku"} / {saasSettings.ai_name_bn || "টুকু"})</span>
+                    <span>Merchant AI Copilot Control Center ({saasSettings.ai_name || "Shongi"} / {saasSettings.ai_name_bn || "সঙ্গী"})</span>
                   </h2>
                   <p className="mt-1 text-xs text-slate-500 max-w-3xl">
                     Super Admin master control for the merchant AI assistant. Customize the assistant&apos;s cute name, Bengali identity, model reasoning mode, welcome message, or inject custom store rules directly into the AI system prompt.
@@ -4576,7 +4577,7 @@ export default function SuperAdminDashboard() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="text-sm font-bold text-slate-900">
-                        {saasSettings.ai_name || "Tuku"} ({saasSettings.ai_name_bn || "টুকু"}) AI Assistant
+                        {saasSettings.ai_name || "Shongi"} ({saasSettings.ai_name_bn || "সঙ্গী"}) AI Assistant
                       </h4>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-orange-100 text-orange-800 border border-orange-200">
                         {saasSettings.ai_model_mode === "pro" ? "DEEP PRO" : saasSettings.ai_model_mode === "fast" ? "FAST" : "BALANCED"}
@@ -4626,11 +4627,11 @@ export default function SuperAdminDashboard() {
                           ai_name: e.target.value,
                         }))
                       }
-                      placeholder="Tuku"
+                      placeholder="Shongi"
                       className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-semibold focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                     <p className="text-[11px] text-slate-500">
-                      Primary brand name (e.g. Tuku, Niko, Lumi).
+                      Primary brand name (e.g. Shongi, Niko, Lumi).
                     </p>
                   </div>
 
@@ -4718,7 +4719,7 @@ export default function SuperAdminDashboard() {
                         ai_welcome_message: e.target.value,
                       }))
                     }
-                    placeholder="হ্যালো! আমি টুকু (Tuku) — আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট..."
+                    placeholder="আসসালামু আলাইকুম! আমি সঙ্গী (Shongi) — আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট..."
                     className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition leading-relaxed resize-y"
                   />
                   <p className="text-[11px] text-slate-500">
@@ -4850,7 +4851,7 @@ export default function SuperAdminDashboard() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   {/* Recovery Email */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -4869,14 +4870,14 @@ export default function SuperAdminDashboard() {
                       className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                     <p className="text-[11px] text-slate-500">
-                      Password reset codes and security notifications will be sent to this email.
+                      Password reset codes will be sent to this email.
                     </p>
                   </div>
 
                   {/* Recovery Phone */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Recovery Phone / WhatsApp Number
+                      Recovery Phone Number
                     </label>
                     <input
                       type="tel"
@@ -4891,7 +4892,31 @@ export default function SuperAdminDashboard() {
                       className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
                     />
                     <p className="text-[11px] text-slate-500">
-                      Used for critical SMS alerts, OTP verification, and suspicious access warnings.
+                      Required for emergency phone verification.
+                    </p>
+                  </div>
+
+                  {/* Recovery PIN */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center justify-between">
+                      <span>Secret Recovery PIN</span>
+                      <span className="text-[10px] text-orange-600 font-mono">6 DIGITS</span>
+                    </label>
+                    <input
+                      type="password"
+                      maxLength={6}
+                      value={saasSettings.admin_recovery_pin || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          admin_recovery_pin: e.target.value.replace(/\D/g, ""),
+                        }))
+                      }
+                      placeholder="882194"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono tracking-widest focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Secret authorization PIN required for instant phone recovery.
                     </p>
                   </div>
                 </div>

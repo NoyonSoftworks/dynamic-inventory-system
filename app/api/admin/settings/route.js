@@ -26,6 +26,7 @@ const DEFAULT_SETTINGS = {
   stripe_secret_key: "",
   admin_recovery_email: "hossainmdnoyon528@gmail.com",
   admin_recovery_phone: "01753082749",
+  admin_recovery_pin: "882194",
   support_phone: "01753082749",
   support_whatsapp: "8801753082749",
   support_email: "support@smartinventory.app",
@@ -41,12 +42,12 @@ const DEFAULT_SETTINGS = {
   enterprise_plan_price_bdt: 4990,
   enterprise_plan_price_usd: 99,
   enterprise_order_limit: 5000,
-  ai_name: "Tuku",
-  ai_name_bn: "টুকু",
-  ai_tagline: "Smart Inventory & 24/7 E-Commerce Advisor",
+  ai_name: "Shongi",
+  ai_name_bn: "সঙ্গী",
+  ai_tagline: "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
   ai_is_active: true,
   ai_model_mode: "balanced",
-  ai_welcome_message: "আসসালামু আলাইকুম! আমি {ai_name_bn} ({ai_name}), আপনার স্টোরের স্মার্ট এআই সহচর। ইনভেন্টরি স্টক, পার্সেল ট্র্যাকিং ও কুরিয়ার ইস্যু সমাধানে আমি আপনাকে যেকোনো সময় সাহায্য করতে প্রস্তুত!",
+  ai_welcome_message: "আসসালামু আলাইকুম! আমি {ai_name_bn} ({ai_name}), আপনার স্টোরের সার্বক্ষণিক বিশ্বস্ত এআই সহকারী। ইনভেন্টরি স্টক, পার্সেল ট্র্যাকিং ও কুরিয়ার ইস্যু সমাধানে আমি আপনাকে যেকোনো সময় সাহায্য করতে প্রস্তুত!",
   ai_custom_instructions: "Always be friendly, encouraging, and focused on helping Bangladeshi online store owners prevent courier RTO, protect profit margins, and manage stock efficiently.",
 };
 
@@ -280,9 +281,9 @@ export async function GET(request) {
           bkash_number: mergedSettings.bkash_number || mergedSettings.support_phone || "01753082749",
           nagad_number: mergedSettings.nagad_number || mergedSettings.support_phone || "01753082749",
           admin_phone: mergedSettings.support_phone || mergedSettings.admin_recovery_phone || "01753082749",
-          ai_name: mergedSettings.ai_name || "Tuku",
-          ai_name_bn: mergedSettings.ai_name_bn || "টুকু",
-          ai_tagline: mergedSettings.ai_tagline || "Smart Inventory & 24/7 E-Commerce Advisor",
+          ai_name: mergedSettings.ai_name || "Shongi",
+          ai_name_bn: mergedSettings.ai_name_bn || "সঙ্গী",
+          ai_tagline: mergedSettings.ai_tagline || "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
           ai_is_active: mergedSettings.ai_is_active !== false,
           ai_model_mode: mergedSettings.ai_model_mode || "balanced",
           ai_welcome_message: mergedSettings.ai_welcome_message || DEFAULT_SETTINGS.ai_welcome_message,
@@ -321,9 +322,9 @@ export async function GET(request) {
           bkash_number: mergedSettings.bkash_number || mergedSettings.support_phone || "01753082749",
           nagad_number: mergedSettings.nagad_number || mergedSettings.support_phone || "01753082749",
           admin_phone: mergedSettings.support_phone || mergedSettings.admin_recovery_phone || "01753082749",
-          ai_name: mergedSettings.ai_name || "Tuku",
-          ai_name_bn: mergedSettings.ai_name_bn || "টুকু",
-          ai_tagline: mergedSettings.ai_tagline || "Smart Inventory & 24/7 E-Commerce Advisor",
+          ai_name: mergedSettings.ai_name || "Shongi",
+          ai_name_bn: mergedSettings.ai_name_bn || "সঙ্গী",
+          ai_tagline: mergedSettings.ai_tagline || "আপনার ব্যবসার ২৪/৭ বিশ্বস্ত এআই পার্টনার ও কো-পাইলট",
           ai_is_active: mergedSettings.ai_is_active !== false,
           ai_model_mode: mergedSettings.ai_model_mode || "balanced",
           ai_welcome_message: mergedSettings.ai_welcome_message || DEFAULT_SETTINGS.ai_welcome_message,
@@ -470,6 +471,9 @@ export async function POST(request) {
     if (admin_recovery_phone !== undefined) {
       payload.admin_recovery_phone = String(admin_recovery_phone).trim();
     }
+    if (admin_recovery_pin !== undefined) {
+      payload.admin_recovery_pin = String(admin_recovery_pin).trim();
+    }
     if (support_phone !== undefined) {
       payload.support_phone = String(support_phone).trim();
     }
@@ -516,10 +520,10 @@ export async function POST(request) {
       payload.enterprise_order_limit = Math.max(1, parseInt(enterprise_order_limit, 10) || 5000);
     }
     if (ai_name !== undefined) {
-      payload.ai_name = String(ai_name).trim() || "Tuku";
+      payload.ai_name = String(ai_name).trim() || "Shongi";
     }
     if (ai_name_bn !== undefined) {
-      payload.ai_name_bn = String(ai_name_bn).trim() || "টুকু";
+      payload.ai_name_bn = String(ai_name_bn).trim() || "সঙ্গী";
     }
     if (ai_tagline !== undefined) {
       payload.ai_tagline = String(ai_tagline).trim();

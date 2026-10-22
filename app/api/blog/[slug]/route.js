@@ -21,13 +21,29 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Increment view count asynchronously in background
-    incrementBlogViews(slug).catch(() => {});
+    // Determine unique reader session via cookie
+    const cookieHeader = request.headers.get("cookie") || "";
+    const cleanCookieKey = `si_rd_${String(post.id || slug).replace(/[^a-zA-Z0-9]/g, "_")}`;
+    const isReturning = cookieHeader.includes(cleanCookieKey);
 
-    return NextResponse.json({
+    // Increment view count and unique visitor tracking asynchronously
+    incrementBlogViews(slug, !isReturning).catch(() => {});
+
+    const response = NextResponse.json({
       success: true,
       post,
     });
+
+    if (!isReturning) {
+      // Set 24h reading session cookie
+      response.cookies.set(cleanCookieKey, "1", {
+        maxAge: 86400,
+        path: "/",
+        sameSite: "lax",
+      });
+    }
+
+    return response;
   } catch (err) {
     if (err?.digest) throw err;
     console.error("Public /api/blog/[slug] error:", err);
