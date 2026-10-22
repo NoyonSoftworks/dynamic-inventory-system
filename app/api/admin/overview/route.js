@@ -119,7 +119,7 @@ export async function GET(request) {
       const bizOrders = allOrders.filter((o) => o.business_id === biz.id);
       const bizDispatched = bizOrders.filter((o) => o.status === "DISPATCHED");
       const bizCourierSettings = allCouriers.filter(
-        (c) => !c.business_id || c.business_id === biz.id
+        (c) => c.business_id === biz.id
       );
 
       const uniqueCouriers = [

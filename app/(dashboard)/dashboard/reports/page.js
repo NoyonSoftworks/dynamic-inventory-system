@@ -63,10 +63,10 @@ export default function InventoryRunwayReport() {
         .eq("business_id", businessId)
         .order("created_at", { ascending: false });
 
-      // 2. Fetch Products with Variants
+      // 2. Fetch Products with Variants (including accurate cost_price)
       const { data: prods } = await supabase
         .from("products")
-        .select("id, name, category, variants(id, price, stock_quantity, attributes)")
+        .select("id, name, category, cost_price, variants(id, price, cost_price, stock_quantity, attributes)")
         .eq("business_id", businessId);
 
       // 3. Fetch Stock Transactions (OUT dispatches)
@@ -117,8 +117,25 @@ export default function InventoryRunwayReport() {
       .filter((t) => (t.transaction_type || "").toUpperCase() === "OUT")
       .reduce((sum, t) => sum + (Number(t.quantity) || 1), 0);
 
-    // COGS: 60% of GMV standard wholesale baseline
-    const estimatedCogs = totalGmv * 0.6;
+    // Accurate COGS: Calculate from real product cost_price if recorded, otherwise standard 60% baseline
+    let realCatalogCostRatio = null;
+    if (products.length > 0) {
+      let sumCost = 0;
+      let sumPrice = 0;
+      products.forEach((p) => {
+        const v = p.variants?.[0];
+        const cost = Number(v?.cost_price) || Number(p.cost_price) || 0;
+        const price = Number(v?.price) || 0;
+        if (cost > 0 && price > 0) {
+          sumCost += cost;
+          sumPrice += price;
+        }
+      });
+      if (sumPrice > 0 && sumCost > 0) {
+        realCatalogCostRatio = sumCost / sumPrice;
+      }
+    }
+    const estimatedCogs = realCatalogCostRatio !== null ? totalGmv * realCatalogCostRatio : totalGmv * 0.6;
     // 1% COD Fee standard in Bangladesh logistics
     const codFees = totalGmv * 0.01;
     // Real Digital Ad Spend from Expense Ledger
@@ -177,7 +194,8 @@ export default function InventoryRunwayReport() {
         0
       );
       const retailPrice = Number(variantsList[0]?.price) || 850;
-      const wholesaleCost = Math.round(retailPrice * 0.6);
+      const realCostPrice = Number(variantsList[0]?.cost_price) || Number(product.cost_price) || 0;
+      const wholesaleCost = realCostPrice > 0 ? realCostPrice : Math.round(retailPrice * 0.6);
 
       const unitsSold = productSoldUnits[product.id] || 0;
       const dailyVelocity = unitsSold > 0 ? unitsSold / selectedDays : 0;

@@ -133,7 +133,7 @@ export async function POST(request) {
             storeOrders = ords || [];
             storeTotal = storeOrders.length;
             storeDelivered = storeOrders.filter((o) =>
-              ["DELIVERED", "DISPATCHED"].includes((o.status || "").toUpperCase())
+              ["DELIVERED", "COMPLETED"].includes((o.status || "").toUpperCase())
             ).length;
             storeCancelled = storeOrders.filter((o) =>
               ["CANCELLED", "RETURNED", "FAILED", "RTO"].includes((o.status || "").toUpperCase())
@@ -150,15 +150,31 @@ export async function POST(request) {
 
         if (cleanPhone.length === 11 && hasValidPrefix && !isRepeatedDummy) {
           try {
-            let sQuery = adminClient
-              .from("courier_settings")
-              .select("api_key, api_secret")
-              .eq("courier_name", "Steadfast");
+            let cSettings = null;
 
+            // 1. Try querying settings for caller's business
             if (callerBusinessId) {
-              sQuery = sQuery.eq("business_id", callerBusinessId);
+              const { data: bSettings } = await adminClient
+                .from("courier_settings")
+                .select("api_key, api_secret")
+                .eq("courier_name", "Steadfast")
+                .eq("business_id", callerBusinessId)
+                .maybeSingle();
+              cSettings = bSettings;
             }
-            const { data: cSettings } = await sQuery.maybeSingle();
+
+            // 2. Fallback to any active Steadfast credential in system
+            if (!cSettings?.api_key) {
+              const { data: anySettings } = await adminClient
+                .from("courier_settings")
+                .select("api_key, api_secret")
+                .eq("courier_name", "Steadfast")
+                .not("api_key", "is", null)
+                .limit(1);
+              if (anySettings && anySettings.length > 0) {
+                cSettings = anySettings[0];
+              }
+            }
 
             const apiKey = cSettings?.api_key || process.env.STEADFAST_API_KEY;
             const secretKey = cSettings?.api_secret || process.env.STEADFAST_SECRET_KEY;
@@ -166,35 +182,67 @@ export async function POST(request) {
             if (apiKey && secretKey) {
               courierApiChecked = true;
               const controller = new AbortController();
-              const timeout = setTimeout(() => controller.abort(), 6000);
+              const timeout = setTimeout(() => controller.abort(), 6500);
 
-              const sfRes = await fetch(
+              // Steadfast Fraud Check API endpoints
+              const endpoints = [
                 `https://portal.steadfast.com.bd/api/v1/fraud_check/${cleanPhone}`,
-                {
-                  method: "GET",
-                  headers: {
-                    "Api-Key": apiKey,
-                    "Secret-Key": secretKey,
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                  },
-                  signal: controller.signal,
+                `https://api.steadfast.com.bd/api/v1/fraud_check/${cleanPhone}`,
+              ];
+
+              let sfRes = null;
+              for (const endpoint of endpoints) {
+                try {
+                  sfRes = await fetch(endpoint, {
+                    method: "GET",
+                    headers: {
+                      "Api-Key": apiKey,
+                      "Secret-Key": secretKey,
+                      "Content-Type": "application/json",
+                      Accept: "application/json",
+                    },
+                    signal: controller.signal,
+                  });
+                  if (sfRes && sfRes.status !== 404) break;
+                } catch {
+                  // try fallback endpoint
                 }
-              ).catch((e) => ({ ok: false, status: 500, error: e.message }));
+              }
               clearTimeout(timeout);
 
               if (sfRes?.ok) {
                 const sfJson = await sfRes.json().catch(() => null);
-                if (sfJson && (sfJson.status === 200 || sfJson.total_parcels !== undefined)) {
-                  steadfastData = {
-                    total_parcels: Number(sfJson.total_parcels) || 0,
-                    total_delivered: Number(sfJson.total_delivered) || 0,
-                    total_cancelled: Number(sfJson.total_cancelled ?? sfJson.total_returned) || 0,
-                  };
+                if (sfJson) {
+                  const raw = sfJson.data || sfJson;
+                  const rawParcels = raw.Total_parcels ?? raw.total_parcels ?? raw.total_consignment ?? raw.total_orders;
+                  const rawDelivered = raw.Total_delivered ?? raw.total_delivered ?? raw.delivered ?? raw.total_delivered_parcels;
+                  const rawCancelled = raw.Total_cancelled ?? raw.total_cancelled ?? raw.total_returned ?? raw.cancelled;
+                  const fraudReports = Array.isArray(raw.total_fraud_reports)
+                    ? raw.total_fraud_reports
+                    : Array.isArray(raw.fraud_reports)
+                    ? raw.fraud_reports
+                    : [];
+
+                  if (rawParcels !== undefined && rawParcels !== null) {
+                    steadfastData = {
+                      total_parcels: Number(rawParcels) || 0,
+                      total_delivered: Number(rawDelivered) || 0,
+                      total_cancelled: Number(rawCancelled) || 0,
+                      fraud_reports: fraudReports,
+                    };
+
+                    if (fraudReports.length > 0) {
+                      flags.push(
+                        `Steadfast Courier Fraud Alert: Customer has ${fraudReports.length} complaint/fraud flag(s) registered by merchants.`
+                      );
+                    }
+                  }
                 }
               } else if (sfRes?.status === 401) {
                 courierApiError = "Steadfast API credentials in Settings are invalid or expired.";
               }
+            } else {
+              courierApiError = "Steadfast Courier API credentials are not configured in Settings. Connect your Steadfast account to enable nationwide fraud checking.";
             }
           } catch (err) {
             console.warn("Steadfast API check notice:", err.message);
@@ -217,7 +265,9 @@ export async function POST(request) {
           netParcels = steadfastData.total_parcels;
           netDelivered = steadfastData.total_delivered;
           netCancelled = steadfastData.total_cancelled;
-          dataSource = "Steadfast Courier Nationwide Network";
+          dataSource = storeTotal > 0
+            ? `Steadfast Network (${netParcels} parcels) + Store (${storeTotal} orders)`
+            : "Steadfast Courier Nationwide Network";
         } else if (storeTotal > 0) {
           netParcels = storeTotal;
           netDelivered = storeDelivered;
@@ -225,7 +275,7 @@ export async function POST(request) {
           dataSource = `Your Store Order History (${storeTotal} logged orders)`;
         } else {
           dataSource = courierApiChecked
-            ? "Steadfast Network + Store (0 Prior Consignments)"
+            ? "Steadfast Network (0 Prior Consignments)"
             : "Store Database (No Prior Orders)";
         }
 

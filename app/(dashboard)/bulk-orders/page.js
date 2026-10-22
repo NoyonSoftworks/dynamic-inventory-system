@@ -68,32 +68,36 @@ function computeOrderRisk(order, allOrders = []) {
       o.customer_phone.replace(/[^0-9]/g, "") === phone
   );
   const totalPast = matchingPast.length;
-  const deliveredCount = matchingPast.filter(
-    (o) =>
-      (o.status || "").toUpperCase() === "DISPATCHED" ||
-      (o.status || "").toUpperCase() === "DELIVERED"
+  const deliveredCount = matchingPast.filter((o) =>
+    ["DELIVERED", "COMPLETED"].includes((o.status || "").toUpperCase())
   ).length;
-  const returnedCount = matchingPast.filter(
-    (o) =>
-      ["CANCELLED", "RETURNED", "FAILED", "RTO"].includes((o.status || "").toUpperCase())
+  const returnedCount = matchingPast.filter((o) =>
+    ["CANCELLED", "RETURNED", "FAILED", "RTO"].includes((o.status || "").toUpperCase())
+  ).length;
+  const inTransitCount = matchingPast.filter((o) =>
+    ["DISPATCHED", "PENDING_DISPATCH", "PROCESSING", "IN_TRANSIT"].includes((o.status || "").toUpperCase())
   ).length;
 
-  const realRatio = totalPast > 0 ? Math.round((deliveredCount / totalPast) * 100) : null;
+  const resolvedCount = deliveredCount + returnedCount;
+  const realRatio = resolvedCount > 0 ? Math.round((deliveredCount / resolvedCount) * 100) : null;
 
   let riskBadge = "NEW_CUSTOMER";
   if (phone.length !== 11 || !hasPrefix || /(\d)\1{5,}/.test(phone)) {
     riskBadge = "HIGH_RISK";
-  } else if (totalPast > 0) {
+  } else if (resolvedCount > 0) {
     if (realRatio >= 80) {
       riskBadge = "VERIFIED_BUYER";
       riskScore = Math.max(5, 100 - realRatio);
     } else if (realRatio < 60) {
       riskBadge = "HIGH_RISK";
-      flags.push(`Past order delivery ratio is only ${realRatio}% (${returnedCount} of ${totalPast} cancelled/returned).`);
+      flags.push(`Past order delivery ratio is only ${realRatio}% (${returnedCount} of ${resolvedCount} cancelled/returned).`);
     } else {
       riskBadge = "MODERATE_RISK";
       riskScore = 100 - realRatio;
     }
+  } else if (inTransitCount > 0) {
+    riskBadge = "MODERATE_RISK";
+    flags.push(`Customer has ${inTransitCount} parcel(s) currently in-transit with courier.`);
   } else if (riskScore >= 45) {
     riskBadge = "HIGH_RISK";
   }
@@ -105,6 +109,7 @@ function computeOrderRisk(order, allOrders = []) {
     totalPast,
     deliveredCount,
     returnedCount,
+    inTransitCount,
     realRatio,
   };
 }

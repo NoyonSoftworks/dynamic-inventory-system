@@ -1,3 +1,5 @@
+import { generateSmartSlug } from "@/utils/slug-generator";
+
 /**
  * High-Precision Real-Time SEO & Content Analytics Engine
  * Evaluates on-page SEO, semantic keyword density, AEO (Answer Engine Optimization),
@@ -51,8 +53,26 @@ export function calculateSeoScore({
     });
   }
 
-  // 2. Keyword in Title (H1) (15 pts)
-  const kwInTitle = hasKeyword && cleanTitle.toLowerCase().includes(targetKw);
+  // 2. Keyword in Title (H1) (15 pts) - Flexible Unicode & Stem matching
+  let kwInTitle = false;
+  if (hasKeyword && cleanTitle) {
+    const titleLower = cleanTitle.toLowerCase();
+    if (titleLower.includes(targetKw)) {
+      kwInTitle = true;
+    } else {
+      const kwWords = targetKw.split(/\s+/).filter((w) => w.length >= 2);
+      if (kwWords.length > 0) {
+        const matches = kwWords.filter((w) => {
+          const root = w.replace(/(ের|ার|ে|য়|কে|তে|র|দের)$/u, "");
+          return titleLower.includes(w) || (root.length >= 2 && titleLower.includes(root));
+        });
+        if (matches.length / kwWords.length >= 0.5) {
+          kwInTitle = true;
+        }
+      }
+    }
+  }
+
   if (kwInTitle) {
     score += 15;
     checks.push({
@@ -73,7 +93,20 @@ export function calculateSeoScore({
   }
 
   // 3. Keyword in URL Slug (10 pts)
-  const kwInSlug = hasKeyword && targetKw.split(/\s+/).every((w) => cleanSlug.includes(w.replace(/[^\w]/g, "")));
+  let kwInSlug = false;
+  if (hasKeyword && cleanSlug && !cleanSlug.startsWith("article-")) {
+    const expectedSlug = generateSmartSlug(targetKw);
+    const expectedTokens = expectedSlug.split("-").filter((t) => t.length >= 2);
+    const actualTokens = cleanSlug.split("-").filter((t) => t.length >= 2);
+
+    const directOverlap = expectedTokens.filter((token) => cleanSlug.includes(token));
+    const tokenRatio = expectedTokens.length > 0 ? directOverlap.length / expectedTokens.length : 0;
+
+    if (cleanSlug.includes(expectedSlug) || tokenRatio >= 0.35 || actualTokens.some((t) => expectedSlug.includes(t))) {
+      kwInSlug = true;
+    }
+  }
+
   if (kwInSlug) {
     score += 10;
     checks.push({
@@ -86,15 +119,33 @@ export function calculateSeoScore({
   } else {
     checks.push({
       id: "kw_in_slug",
-      label: "URL slug does not match focus keyword",
+      label: cleanSlug.startsWith("article-") ? "Default placeholder slug detected" : "URL slug does not match focus keyword",
       passed: false,
       impact: "medium",
-      hint: "Include key terms in the slug (e.g. /blog/courier-dispatch-api).",
+      hint: "Click '⚡ Slug' button near Title to generate a clean, keyword-rich English URL.",
     });
   }
 
   // 4. Keyword in Meta Description (10 pts)
-  const kwInDesc = hasKeyword && cleanDesc.toLowerCase().includes(targetKw);
+  let kwInDesc = false;
+  if (hasKeyword && cleanDesc) {
+    const descLower = cleanDesc.toLowerCase();
+    if (descLower.includes(targetKw)) {
+      kwInDesc = true;
+    } else {
+      const kwWords = targetKw.split(/\s+/).filter((w) => w.length >= 2);
+      if (kwWords.length > 0) {
+        const matches = kwWords.filter((w) => {
+          const root = w.replace(/(ের|ার|ে|য়|কে|তে|র|দের)$/u, "");
+          return descLower.includes(w) || (root.length >= 2 && descLower.includes(root));
+        });
+        if (matches.length / kwWords.length >= 0.5) {
+          kwInDesc = true;
+        }
+      }
+    }
+  }
+
   if (kwInDesc) {
     score += 10;
     checks.push({
@@ -291,13 +342,39 @@ export function calculateSeoScore({
     });
   }
 
-  // Calculate keyword density
+  // Calculate keyword density accurately across all languages (Bengali & English)
   let keywordCount = 0;
   let density = "0%";
   if (hasKeyword && words > 0) {
-    const escaped = targetKw.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-    const regex = new RegExp(`\\b${escaped}\\b`, "gi");
-    keywordCount = (cleanContent.match(regex) || []).length;
+    const lowerContent = cleanContent.toLowerCase();
+    const lowerKw = targetKw.toLowerCase();
+
+    // 1. Direct phrase occurrence count (works for English & Bengali)
+    let count = 0;
+    let pos = lowerContent.indexOf(lowerKw);
+    while (pos !== -1) {
+      count++;
+      pos = lowerContent.indexOf(lowerKw, pos + Math.max(1, lowerKw.length));
+    }
+
+    // 2. If phrase is inflected or multi-word with slight variation, count root words
+    if (count === 0) {
+      const kwWords = lowerKw.split(/\s+/).filter((w) => w.length >= 2);
+      if (kwWords.length > 0) {
+        let partialHits = 0;
+        for (const w of kwWords) {
+          const root = w.replace(/(ের|ার|ে|য়|কে|তে|র|দের)$/u, "");
+          let p = lowerContent.indexOf(root);
+          while (p !== -1) {
+            partialHits++;
+            p = lowerContent.indexOf(root, p + Math.max(1, root.length));
+          }
+        }
+        count = Math.round(partialHits / kwWords.length);
+      }
+    }
+
+    keywordCount = count;
     const pct = ((keywordCount / words) * 100).toFixed(1);
     density = `${pct}%`;
   }
@@ -350,10 +427,11 @@ export function calculateSeoScore({
  */
 export function extractDefaultKeyword(title = "") {
   if (!title) return "Inventory SaaS";
-  const cleaned = title
-    .replace(/[^\w\s\u0980-\u09FF]/g, "")
-    .replace(/\b(how to|in|a|the|for|and|with|of|on|to|এর|ও|এবং|কিভাবে)\b/gi, "")
-    .trim();
-  const words = cleaned.split(/\s+/).filter(Boolean);
-  return words.slice(0, 3).join(" ") || "Inventory SaaS";
+  // Convert title using smart slug generator to get key semantic terms
+  const slug = generateSmartSlug(title);
+  const words = slug.split("-").filter((w) => w.length >= 3 && !/^\d+$/.test(w));
+  if (words.length >= 2) {
+    return words.slice(0, 3).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  }
+  return "Inventory Logistics";
 }

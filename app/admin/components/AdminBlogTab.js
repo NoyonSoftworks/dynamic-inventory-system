@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { calculateSeoScore, extractDefaultKeyword } from "@/utils/seo-analyzer";
+import { generateSmartSlug } from "@/utils/slug-generator";
 
 function formatRelativeTime(dateStr) {
   if (!dateStr || dateStr === "Recently") return "Recently";
@@ -403,6 +404,58 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   const [videoUrlOrIframe, setVideoUrlOrIframe] = useState("");
   const [videoCaption, setVideoCaption] = useState("");
 
+  // Google Search Console & GA4 Direct Connect Modals (NO REDIRECT)
+  const [isGscConnectModalOpen, setIsGscConnectModalOpen] = useState(false);
+  const [isGa4ConnectModalOpen, setIsGa4ConnectModalOpen] = useState(false);
+
+  // Shongi AI Free Organic Traffic Blueprint & Growth Strategy State
+  const [aiTrafficBlueprint, setAiTrafficBlueprint] = useState(null);
+  const [loadingTrafficBlueprint, setLoadingTrafficBlueprint] = useState(false);
+  const [trafficStrategyTab, setTrafficStrategyTab] = useState("content_gaps"); // "content_gaps" | "quick_wins" | "ctr_hacks" | "technical"
+
+  async function handleFetchTrafficBlueprint() {
+    try {
+      setLoadingTrafficBlueprint(true);
+      const res = await fetch("/api/admin/blog/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "suggest_traffic_growth" }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setAiTrafficBlueprint(json.blueprint);
+        triggerToast?.("success", "✨ Shongi AI: Free Organic Traffic Blueprint Generated!");
+      } else {
+        throw new Error(json.error || "Failed to load traffic strategy.");
+      }
+    } catch (err) {
+      triggerToast?.("error", err.message);
+    } finally {
+      setLoadingTrafficBlueprint(false);
+    }
+  }
+
+  function handleCreateFromSuggestion(gap) {
+    const slug = gap.suggestedSlug || generateSmartSlug(gap.title, gap.keyword);
+    setFormData({
+      ...emptyPostForm,
+      title: gap.title || "",
+      slug: slug,
+      canonical_url: `https://smartinventory.io/blog/${slug}`,
+      category: gap.category || "Logistics & Courier Automation",
+      focus_keyword: gap.keyword || "",
+      meta_title: gap.meta_title || `${gap.title} | SmartInventory`,
+      meta_description: gap.meta_description || gap.whyItRanks || "",
+      tags: `${gap.keyword || ""}, Bangladesh Ecommerce, Courier Automation`,
+    });
+    setIsEditing(false);
+    setEditorMode("split");
+    setIsAiOpen(true);
+    setAiTopic(gap.topic || gap.title);
+    setIsModalOpen(true);
+    triggerToast?.("success", `✨ Loaded '${gap.title}'. Click 'Generate Article with AI' to write instantly!`);
+  }
+
   // AI Assistant Drawer inside Editor
   const [isAiOpen, setIsAiOpen] = useState(false);
   const [aiTab, setAiTab] = useState("full_post"); // "full_post" | "sections" | "seo_audit" | "keywords"
@@ -589,15 +642,10 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   }
 
   function handleAutoSlug(titleText) {
-    const slug = titleText
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    const slug = generateSmartSlug(titleText, formData.focus_keyword);
     setFormData((prev) => ({
       ...prev,
-      slug: slug || `article-${Date.now().toString().slice(-4)}`,
+      slug: slug,
       canonical_url: `https://smartinventory.io/blog/${slug}`,
     }));
   }
@@ -1432,6 +1480,32 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
       {/* ── OPTION 1: ARTICLES LIBRARY ── */}
       {studioOption === "articles" && (
         <>
+      {/* ── AI FREE TRAFFIC SUGGESTION BANNER ── */}
+      <div className="p-3.5 rounded-2xl bg-linear-to-r from-orange-500/10 via-amber-500/10 to-blue-500/10 border border-orange-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xl">✨</span>
+          <div>
+            <span className="text-xs font-bold text-slate-900 block">
+              Want more Free Organic Traffic from Google?
+            </span>
+            <span className="text-[11px] text-slate-600">
+              Shongi AI scans GSC search queries, visitor devices &amp; content gaps to generate high-ranking article ideas.
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setStudioOption("gsc");
+            if (!aiTrafficBlueprint) handleFetchTrafficBlueprint();
+          }}
+          className="px-3.5 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer shrink-0 inline-flex items-center gap-1.5"
+        >
+          <span>View Free Traffic Blueprint</span>
+          <span>⚡</span>
+        </button>
+      </div>
+
       {/* ── Filter & Search Toolbar ─────────────────────────────── */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -2077,6 +2151,262 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
             </div>
           </div>
 
+          {/* ── SHONGI AI ORGANIC TRAFFIC GROWTH ENGINE (GSC & GA4 DRIVEN) ── */}
+          <div className="rounded-2xl border border-orange-200/90 bg-linear-to-br from-orange-50/70 via-white to-amber-50/50 p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">✨</span>
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <span>Shongi AI: Free Organic Traffic Growth Copilot</span>
+                    <span className="rounded-md bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-800 font-mono">
+                      GSC &amp; GA4 Intelligence
+                    </span>
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-600">
+                  AI scans real Google search queries, rankings, impressions, reader demographics &amp; content gaps to suggest zero-cost traffic strategies.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleFetchTrafficBlueprint}
+                disabled={loadingTrafficBlueprint}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-orange-600/20 transition cursor-pointer self-start sm:self-auto shrink-0"
+              >
+                {loadingTrafficBlueprint ? (
+                  <>
+                    <span className="animate-spin text-sm">⏳</span>
+                    <span>Analyzing Data with AI...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>⚡ {aiTrafficBlueprint ? "Refresh AI Traffic Strategy" : "Generate Free Traffic Blueprint"}</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* If Blueprint Loaded */}
+            {aiTrafficBlueprint ? (
+              <div className="space-y-4 pt-1 animate-fadeIn">
+                {/* Executive Summary Card */}
+                <div className="p-4 rounded-xl bg-white border border-orange-200/80 shadow-2xs space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-lg">💡</span>
+                    <p className="text-xs text-slate-800 leading-relaxed font-medium">
+                      {aiTrafficBlueprint.summary}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-100 text-[11px]">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+                      <span>📈 Potential Reach:</span>
+                      <span className="font-mono">{aiTrafficBlueprint.projectedMonthlyReach}</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 font-bold border border-blue-200">
+                      <span>🎯 Target Audience:</span>
+                      <span>{aiTrafficBlueprint.primaryAudience}</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 font-bold border border-purple-200">
+                      <span>🌐 Search Language:</span>
+                      <span>{aiTrafficBlueprint.topSearchLanguage}</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sub-Tabs Switcher */}
+                <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setTrafficStrategyTab("content_gaps")}
+                    className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                      trafficStrategyTab === "content_gaps"
+                        ? "bg-white text-orange-700 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>🎯 High-Traffic Content Gaps</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-orange-100 text-orange-800 text-[10px] font-mono">
+                      {aiTrafficBlueprint.contentGaps?.length || 0}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTrafficStrategyTab("quick_wins")}
+                    className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                      trafficStrategyTab === "quick_wins"
+                        ? "bg-white text-blue-700 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>🚀 Quick-Win Keywords (Top 3 Push)</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-800 text-[10px] font-mono">
+                      {aiTrafficBlueprint.quickWins?.length || 0}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTrafficStrategyTab("ctr_hacks")}
+                    className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                      trafficStrategyTab === "ctr_hacks"
+                        ? "bg-white text-amber-700 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>📈 SERP CTR Multipliers (Double Clicks)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTrafficStrategyTab("technical")}
+                    className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                      trafficStrategyTab === "technical"
+                        ? "bg-white text-emerald-700 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>⚙️ Technical SEO &amp; Distribution Signals</span>
+                  </button>
+                </div>
+
+                {/* Sub-Tab 1: High-Traffic Content Gaps */}
+                {trafficStrategyTab === "content_gaps" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {aiTrafficBlueprint.contentGaps?.map((gap, idx) => (
+                      <div
+                        key={gap.id || idx}
+                        className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs hover:border-orange-300 hover:shadow-xs transition space-y-3 flex flex-col justify-between"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="px-2 py-0.5 rounded-md bg-orange-100/80 text-orange-800 text-[10px] font-bold font-mono">
+                              {gap.searchVolume} Searches
+                            </span>
+                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                              {gap.difficulty}
+                            </span>
+                          </div>
+                          <h4 className="text-xs font-bold text-slate-900 leading-snug">
+                            {gap.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 line-clamp-2">
+                            {gap.whyItRanks}
+                          </p>
+                          <div className="flex items-center gap-1 text-[11px] font-mono text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            <span className="text-orange-600 font-bold">Key:</span>
+                            <span className="truncate">{gap.keyword}</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-[10px] text-slate-400 font-medium">SEO Score 95+ Template</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCreateFromSuggestion(gap)}
+                            className="px-3.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer flex items-center gap-1.5"
+                          >
+                            <span>Write Article with AI</span>
+                            <span>✍️</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Sub-Tab 2: Quick-Win Keywords */}
+                {trafficStrategyTab === "quick_wins" && (
+                  <div className="space-y-2.5">
+                    {aiTrafficBlueprint.quickWins?.map((win, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl border border-blue-100 bg-white shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-900 font-mono">{win.keyword}</span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 font-mono">
+                              {win.currentRank}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 leading-relaxed">
+                            {win.action}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <span className="text-xs font-bold text-emerald-700 block font-mono">
+                            {win.impact}
+                          </span>
+                          <span className="text-[10px] text-slate-400">{win.difficulty}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Sub-Tab 3: SERP CTR Multipliers */}
+                {trafficStrategyTab === "ctr_hacks" && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {aiTrafficBlueprint.ctrHacks?.map((hack, idx) => (
+                      <div key={idx} className="p-4 rounded-xl border border-amber-200 bg-white shadow-2xs space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                            {hack.strategy}
+                          </span>
+                          <span className="text-xs font-black text-emerald-600 font-mono">{hack.expectedLift}</span>
+                        </div>
+                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 font-mono">
+                          "{hack.example}"
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">
+                          {hack.reason}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Sub-Tab 4: Technical SEO & Distribution */}
+                {trafficStrategyTab === "technical" && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {aiTrafficBlueprint.technicalTactics?.map((tactic, idx) => (
+                      <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-xs font-bold text-slate-900">{tactic.title}</h5>
+                          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">
+                            {tactic.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                          {tactic.description}
+                        </p>
+                        <div className="text-[10px] font-bold text-emerald-600 pt-1">
+                          Cost: {tactic.cost}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-6 rounded-xl border border-dashed border-orange-200 bg-white/70 text-center space-y-2.5">
+                <span className="text-2xl block">🚀</span>
+                <h4 className="text-xs font-bold text-slate-800">Ready to Discover High-Volume Free Traffic Opportunities?</h4>
+                <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+                  Click the button above to let Shongi AI scan your Google Search Console queries, articles, and indexation status to reveal high-ranking keyword targets and click-boosting formulas.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleFetchTrafficBlueprint}
+                  disabled={loadingTrafficBlueprint}
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-md shadow-orange-600/20 transition cursor-pointer"
+                >
+                  ⚡ Generate Free Traffic Blueprint Now
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Top Queries Table & Google Indexing Coverage Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Top Queries (2 cols) */}
@@ -2109,22 +2439,30 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
                       : "To track live Google organic keyword rankings, CTR, and search impressions, verify domain ownership by adding your Google Site Verification meta tag in Webmaster Settings."}
                   </p>
                   {!gscData?.is_google_verified && (
-                    <div className="max-w-md mx-auto pt-2 space-y-3">
-                      <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs text-left space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-slate-700">
-                            Paste Verification Tag / Token:
-                          </span>
-                          <a
-                            href="https://search.google.com/search-console"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:underline"
-                          >
-                            <span>Open Search Console</span>
-                            <span>↗</span>
-                          </a>
-                        </div>
+                    <div className="pt-2 space-y-3">
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setIsGscConnectModalOpen(true)}
+                          className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-md shadow-orange-600/20 transition cursor-pointer flex items-center gap-2"
+                        >
+                          <span>Connect Google Search Console ↗</span>
+                        </button>
+                        <a
+                          href="https://search.google.com/search-console"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition inline-flex items-center gap-1.5"
+                        >
+                          <span>Open Google Search Console</span>
+                          <span>↗</span>
+                        </a>
+                      </div>
+
+                      <div className="max-w-md mx-auto p-3 bg-white rounded-xl border border-slate-200 shadow-2xs text-left space-y-2">
+                        <span className="text-[11px] font-bold text-slate-700 block">
+                          Or quick paste Google Verification Tag/Token here:
+                        </span>
                         <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="text"
@@ -2145,16 +2483,6 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
                             className="px-3.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-xs font-bold shadow-2xs transition cursor-pointer shrink-0"
                           >
                             {savingWebmaster ? "Saving..." : "Save & Connect"}
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between pt-0.5 text-[11px]">
-                          <span className="text-[10px] text-slate-400">Auto-injected into HTML &lt;head&gt;</span>
-                          <button
-                            type="button"
-                            onClick={() => setStudioOption("settings")}
-                            className="text-slate-500 hover:text-slate-800 font-medium cursor-pointer"
-                          >
-                            Webmaster &amp; Sitemap Setup ⚙️
                           </button>
                         </div>
                       </div>
@@ -2464,21 +2792,30 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
             </div>
 
             {!gscData?.is_ga4_connected && (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-base">📊</span>
                     <span>Google Analytics 4 Measurement ID is not connected yet. Paste your <strong>G-XXXXXXXXXX</strong> tag below to start tracking live visitors.</span>
                   </div>
-                  <a
-                    href="https://analytics.google.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 hover:text-amber-950 underline shrink-0"
-                  >
-                    <span>Open Google Analytics</span>
-                    <span>↗</span>
-                  </a>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setIsGa4ConnectModalOpen(true)}
+                      className="px-3.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
+                    >
+                      Configure GA4 ID ↗
+                    </button>
+                    <a
+                      href="https://analytics.google.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 hover:text-amber-950 underline shrink-0"
+                    >
+                      <span>Open GA4</span>
+                      <span>↗</span>
+                    </a>
+                  </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 max-w-lg">
                   <input
@@ -2495,13 +2832,6 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
                     className="px-4 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-bold shadow-2xs transition cursor-pointer shrink-0"
                   >
                     {savingWebmaster ? "Connecting..." : "Save & Connect GA4"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStudioOption("settings")}
-                    className="px-3 py-1.5 rounded-xl border border-amber-300 bg-white hover:bg-amber-100 text-amber-900 text-xs font-semibold shadow-2xs transition cursor-pointer shrink-0"
-                  >
-                    Webmaster Setup ⚙️
                   </button>
                 </div>
               </div>
@@ -4675,6 +5005,200 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
           </div>
         );
       })()}
+
+      {/* ── GOOGLE SEARCH CONSOLE CONNECT MODAL (NO REDIRECT) ── */}
+      {isGscConnectModalOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden space-y-4 p-5 sm:p-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base font-bold shadow-2xs">
+                  🔍
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Connect Google Search Console</h3>
+                  <span className="text-[11px] text-slate-500">Verify domain ownership to track live keyword rankings</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGscConnectModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-mono cursor-pointer p-1 rounded-md"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Quick 3-Step Guide */}
+            <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-950 space-y-2">
+              <span className="font-bold block text-blue-900">Quick 3-Step Setup:</span>
+              <ol className="list-decimal list-inside space-y-1 text-[11px] text-blue-900/90 leading-relaxed">
+                <li>
+                  Go to{" "}
+                  <a
+                    href="https://search.google.com/search-console"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline text-blue-700 hover:text-blue-900 inline-flex items-center gap-0.5"
+                  >
+                    Google Search Console ↗
+                  </a>
+                  {" "}and add your site property (URL prefix).
+                </li>
+                <li>Under <strong>Verification Methods</strong>, choose <strong>HTML tag</strong>.</li>
+                <li>Copy the verification meta tag or token and paste it below.</li>
+              </ol>
+            </div>
+
+            {/* Input field */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                <span>Google Verification Meta Tag or Token</span>
+                <span className="text-[10px] text-slate-400 font-mono">auto-injected into &lt;head&gt;</span>
+              </label>
+              <textarea
+                rows={3}
+                value={webmasterSettings?.google_site_verification || ""}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  const match = val.match(/content=["']([^"']+)["']/i);
+                  if (match && match[1]) val = match[1];
+                  setWebmasterSettings((prev) => ({ ...(prev || {}), google_site_verification: val }));
+                }}
+                placeholder="Paste full meta tag e.g. <meta name='google-site-verification' content='...' /> or token code"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-mono text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <a
+                href="https://search.google.com/search-console"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
+              >
+                <span>Open Google Search Console</span>
+                <span>↗</span>
+              </a>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsGscConnectModalOpen(false)}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    await handleSaveWebmasterSettings(e);
+                    setIsGscConnectModalOpen(false);
+                  }}
+                  disabled={savingWebmaster}
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-orange-600/20 transition cursor-pointer"
+                >
+                  {savingWebmaster ? "Saving..." : "Save & Verify"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── GOOGLE ANALYTICS 4 (GA4) CONNECT MODAL (NO REDIRECT) ── */}
+      {isGa4ConnectModalOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden space-y-4 p-5 sm:p-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base font-bold shadow-2xs">
+                  📊
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Connect Google Analytics 4 (GA4)</h3>
+                  <span className="text-[11px] text-slate-500">Enable real-time reader and visitor analytics with gtag.js</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGa4ConnectModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-mono cursor-pointer p-1 rounded-md"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Quick 2-Step Setup */}
+            <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-950 space-y-2">
+              <span className="font-bold block text-amber-900">Where to find your Measurement ID:</span>
+              <ol className="list-decimal list-inside space-y-1 text-[11px] text-amber-900/90 leading-relaxed">
+                <li>
+                  Open{" "}
+                  <a
+                    href="https://analytics.google.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline text-amber-800 hover:text-amber-950 inline-flex items-center gap-0.5"
+                  >
+                    Google Analytics ↗
+                  </a>
+                  {" "}and go to <strong>Admin → Data Streams</strong>.
+                </li>
+                <li>Click your Web stream and copy the <strong>Measurement ID</strong> (starts with <code>G-</code>).</li>
+              </ol>
+            </div>
+
+            {/* Input field */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                <span>Google Analytics 4 Measurement ID</span>
+                <span className="text-[10px] text-slate-400 font-mono">gtag.js automatically injected</span>
+              </label>
+              <input
+                type="text"
+                value={webmasterSettings?.google_analytics_id || ""}
+                onChange={(e) => setWebmasterSettings((prev) => ({ ...(prev || {}), google_analytics_id: e.target.value.trim() }))}
+                placeholder="e.g. G-XXXXXXXXXX"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-mono text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <a
+                href="https://analytics.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-amber-600 hover:text-amber-700 hover:underline flex items-center gap-1"
+              >
+                <span>Open Google Analytics</span>
+                <span>↗</span>
+              </a>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsGa4ConnectModalOpen(false)}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={async (e) => {
+                    await handleSaveWebmasterSettings(e);
+                    setIsGa4ConnectModalOpen(false);
+                  }}
+                  disabled={savingWebmaster}
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-orange-600/20 transition cursor-pointer"
+                >
+                  {savingWebmaster ? "Saving..." : "Save & Connect GA4"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

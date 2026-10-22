@@ -192,30 +192,36 @@ export default function MerchantDashboard() {
     return { delivered, inTransit, pending, returned };
   }, [orders]);
 
-  // ── 7-Day Revenue & Orders Trend Points ───────────────────────
+  // ── 7-Day Revenue & Orders Trend Points (Strict Last 7 Calendar Days) ────
   const chartPoints = useMemo(() => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const grouped = {};
+    const points = [];
+    const dateMap = {};
 
-    // Initialize past 7 days
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().split("T")[0];
       const dayName = days[d.getDay()];
-      grouped[dayName] = { day: dayName, revenue: 0, orders: 0 };
+      const item = { day: dayName, dateKey, revenue: 0, orders: 0 };
+      points.push(item);
+      dateMap[dateKey] = item;
     }
 
     orders.forEach((o) => {
       if (!o.created_at) return;
-      const d = new Date(o.created_at);
-      const dayName = days[d.getDay()];
-      if (grouped[dayName]) {
-        grouped[dayName].revenue += Number(o.total_amount) || 0;
-        grouped[dayName].orders += 1;
+      try {
+        const orderDateKey = new Date(o.created_at).toISOString().split("T")[0];
+        if (dateMap[orderDateKey]) {
+          dateMap[orderDateKey].revenue += Number(o.total_amount) || 0;
+          dateMap[orderDateKey].orders += 1;
+        }
+      } catch {
+        // Skip unparseable dates
       }
     });
 
-    return Object.values(grouped);
+    return points;
   }, [orders]);
 
   // ── Bangladesh 8 Divisions Order Distribution ─────────────────
