@@ -225,6 +225,23 @@ export default function AddProductPage() {
     ]);
   }
 
+  function handleDuplicateVariantRow(idx) {
+    setVariantsList((prev) => {
+      const target = prev[idx];
+      if (!target) return prev;
+      const copy = {
+        size: target.size || "M",
+        color: target.color || "",
+        price: target.price || sellingPrice || "",
+        quantity: target.quantity || "10",
+      };
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      return next;
+    });
+    triggerToast("success", "Row duplicated! You can now adjust size or color.");
+  }
+
   function handleRemoveVariantRow(idx) {
     setVariantsList((prev) => prev.filter((_, i) => i !== idx));
   }
@@ -1087,15 +1104,30 @@ export default function AddProductPage() {
                             />
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveVariantRow(idx)}
-                            disabled={variantsList.length <= 1}
-                            className="text-rose-500 hover:text-rose-700 p-1.5 self-end disabled:opacity-30"
-                            title="Remove variant"
-                          >
-                            ✕
-                          </button>
+                          <div className="flex items-center gap-1 self-end pb-0.5">
+                            <button
+                              type="button"
+                              onClick={() => handleDuplicateVariantRow(idx)}
+                              className="text-slate-400 hover:text-orange-600 hover:bg-orange-50 p-1.5 rounded-lg transition"
+                              title="Duplicate row (এই ভ্যারিয়েন্ট কপি করুন)"
+                              aria-label="Duplicate variant row"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveVariantRow(idx)}
+                              disabled={variantsList.length <= 1}
+                              className="text-rose-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition disabled:opacity-30 disabled:hover:bg-transparent"
+                              title="Remove variant"
+                              aria-label="Remove variant"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
