@@ -18,8 +18,8 @@
     "status": "SHORT_PAID",
     "days_in_transit": 3,
     "settlement_date": "2026-10-20",
-    "claim_status": "NONE",
-    "claim_notes": "Discrepancy: Courier deducted excess ৳450 return charge on successfully delivered consignment.",
+    "claim_status": "CLAIM_FILED",
+    "claim_notes": "Discrepancy: Consignment was successfully delivered to customer, but settlement statement deducted ৳450 without valid justification or charged improper return fee.",
     "batch_reference": "SF-PAYOUT-BATCH-2026-904",
     "created_at": "2026-10-19T20:03:33.618Z"
   },
