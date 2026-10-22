@@ -238,88 +238,7 @@ export default function BulkOrdersPage() {
         .eq("business_id", businessId)
         .order("created_at", { ascending: false });
 
-      if (ords && ords.length > 0) {
-        setOrders(ords);
-      } else {
-        // Demonstration orders for empty stores with comprehensive status lifecycles
-        const sampleOrders = [
-          {
-            id: "ord-8841",
-            customer_name: "Tamim Ahmed",
-            customer_phone: "01700000000",
-            customer_address: "House 12, Road 4, Dhanmondi, Dhaka",
-            courier_name: "Steadfast Courier",
-            consignment_id: "SF-8841029",
-            status: "PENDING_DISPATCH",
-            total_amount: 1750,
-            product_name: "Vintage Oversized Heavyweight Tee",
-            product_sku: "TSHIRT-BLK-M",
-            quantity: 1,
-            created_at: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-          },
-          {
-            id: "ord-8842",
-            customer_name: "Sabbir Hossain",
-            customer_phone: "01712345678",
-            customer_address: "House 24, Road 7, Sector 3, Uttara, Dhaka",
-            courier_name: "Steadfast Courier",
-            consignment_id: "SF-8842194",
-            status: "PENDING_DISPATCH",
-            total_amount: 1850,
-            product_name: "True Wireless Stereo Earbuds Pro",
-            product_sku: "AUDIO-WH-1000",
-            quantity: 1,
-            created_at: new Date(Date.now() - 1000 * 60 * 85).toISOString(),
-          },
-          {
-            id: "ord-8843",
-            customer_name: "Farhana Yasmin",
-            customer_phone: "01819283746",
-            customer_address: "Flat 4B, Green View Tower, Mirpur DOHS, Dhaka",
-            courier_name: "Pathao Express",
-            consignment_id: "PT-9482103",
-            status: "IN_TRANSIT",
-            total_amount: 3200,
-            product_name: "Ceramic Pour-Over Coffee Dripper",
-            product_sku: "HOME-DRIP-01",
-            quantity: 2,
-            created_at: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
-          },
-          {
-            id: "ord-8844",
-            customer_name: "Mustafizur Rahman",
-            customer_phone: "01912987654",
-            customer_address: "Holding 15, CDA Avenue, GEC Circle, Chattogram",
-            courier_name: "Steadfast Courier",
-            consignment_id: "SF-8844510",
-            status: "DELIVERED",
-            total_amount: 2400,
-            product_name: "Minimalist Linen Long Sleeve Shirt",
-            product_sku: "SHIRT-LIN-NVY",
-            quantity: 1,
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
-          },
-          {
-            id: "ord-8845",
-            customer_name: "Nusrat Jahan",
-            customer_phone: "01611223344",
-            customer_address: "House 3, Road 18, Block D, Banani, Dhaka",
-            courier_name: "Pathao Express",
-            consignment_id: "PT-8845921",
-            status: "RETURNED",
-            total_amount: 0,
-            courier_fee: 60,
-            return_reason: "Customer Refused COD (Size Too Small)",
-            return_note: "[RETURN: INTACT] Order #PT-8845921 returned via Pathao. Reason: Size did not fit customer. Inspected parcel: intact with tags and verified into Warehouse Shelf A2.",
-            returned_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-            product_name: "Slim Fit Chino Pants",
-            product_sku: "PANTS-CHN-KHK",
-            quantity: 1,
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-          },
-        ];
-        setOrders(sampleOrders);
-      }
+      setOrders(ords || []);
 
       // 2. Fetch Catalog Products
       const { data: prods } = await supabase
@@ -529,6 +448,54 @@ export default function BulkOrdersPage() {
       showToast("success", `Order consignment status updated to ${newStatus}.`);
     } catch (err) {
       showToast("error", err.message || "Failed to update status.");
+    }
+  }
+
+  // ── Delete Single Order ───────────────────────────────────────
+  async function handleDeleteOrder(orderId) {
+    if (!window.confirm("Are you sure you want to delete this order?")) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/orders/bulk-import", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+        body: JSON.stringify({ orderId }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to delete order.");
+      }
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      showToast("success", `Order #${orderId} deleted successfully.`);
+    } catch (err) {
+      showToast("error", err.message || "Could not delete order.");
+    }
+  }
+
+  // ── Clear Sample / Demo / Sync Test Orders ────────────────────
+  async function handleClearTestOrders() {
+    if (!window.confirm("Are you sure you want to clear all sample/demo and website sync test orders? Real orders will not be removed.")) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/orders/bulk-import", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+        body: JSON.stringify({ clearTestOrders: true }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to clear sample orders.");
+      }
+      showToast("success", json.message || "Sample orders cleared.");
+      loadData();
+    } catch (err) {
+      showToast("error", err.message || "Failed to clear sample orders.");
     }
   }
 
@@ -1179,9 +1146,21 @@ export default function BulkOrdersPage() {
             {/* Orders Queue Table */}
             <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
-                <span className="font-bold text-slate-900">
-                  Consignment Queue ({filteredOrders.length})
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-slate-900">
+                    Consignment Queue ({filteredOrders.length})
+                  </span>
+                  {orders.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearTestOrders}
+                      className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-lg transition"
+                      title="Clear demo or website sync test orders from database"
+                    >
+                      Clear Sample Orders
+                    </button>
+                  )}
+                </div>
                 <span className="text-[11px] text-slate-400">
                   Click &quot;Scan &amp; Pack&quot; to pick items with physical barcode scanner gun
                 </span>
@@ -1343,6 +1322,18 @@ export default function BulkOrdersPage() {
                                   <span>WA</span>
                                 </a>
                               )}
+
+                              {/* Delete Order Action */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteOrder(o.id)}
+                                className="inline-flex items-center px-2 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-200 text-slate-400 hover:text-rose-600 font-semibold text-xs transition"
+                                title="Delete Order"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
                             </td>
                           </tr>
                         );
@@ -1789,6 +1780,18 @@ export default function BulkOrdersPage() {
                                 <option value="RETURN_IN_TRANSIT">Return In Transit</option>
                                 <option value="RETURNED">Mark Returned</option>
                               </select>
+
+                              {/* Delete Dispatched Order */}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteOrder(o.id)}
+                                className="inline-flex items-center px-2 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-200 text-slate-400 hover:text-rose-600 font-semibold text-xs transition"
+                                title="Delete Order"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
                             </td>
                           </tr>
                         );
@@ -2911,6 +2914,10 @@ function UploadDailyOrdersModal({ isOpen, onClose, onImported }) {
 // ─────────────────────────────────────────────────────────────
 function SyncFromWebsiteModal({ isOpen, businessId, onClose, onSynced }) {
   const [websiteUrl, setWebsiteUrl] = useState("");
+  const [consumerKey, setConsumerKey] = useState("");
+  const [consumerSecret, setConsumerSecret] = useState("");
+  const [shopifyToken, setShopifyToken] = useState("");
+  const [showApiKeys, setShowApiKeys] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState(null);
 
@@ -2953,6 +2960,9 @@ function SyncFromWebsiteModal({ isOpen, businessId, onClose, onSynced }) {
         body: JSON.stringify({
           action: "fetch_from_website",
           websiteUrl: websiteUrl.trim(),
+          consumerKey: consumerKey.trim(),
+          consumerSecret: consumerSecret.trim(),
+          shopifyToken: shopifyToken.trim(),
         }),
       });
 
@@ -2990,7 +3000,7 @@ function SyncFromWebsiteModal({ isOpen, businessId, onClose, onSynced }) {
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
-            Store Website URL
+            Store Website URL <span className="text-rose-500">*</span>
           </label>
           <input
             type="url"
@@ -3001,9 +3011,77 @@ function SyncFromWebsiteModal({ isOpen, businessId, onClose, onSynced }) {
           />
         </div>
 
+        {/* API Credentials Accordion / Toggle */}
+        <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
+          <button
+            type="button"
+            onClick={() => setShowApiKeys((prev) => !prev)}
+            className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 flex items-center justify-between hover:bg-slate-100 transition"
+          >
+            <span className="flex items-center gap-1.5">
+              <span>🔐</span>
+              <span>API Credentials (WooCommerce / Shopify)</span>
+            </span>
+            <span className="text-slate-400 text-[11px] font-normal">
+              {showApiKeys ? "▲ Hide" : "▼ Optional (for private stores)"}
+            </span>
+          </button>
+
+          {showApiKeys && (
+            <div className="p-4 pt-1 space-y-3 border-t border-slate-100 bg-white animate-in fade-in duration-150">
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                By default WooCommerce &amp; Shopify require authorization keys to read order lists. Create a Read-only key from: <strong className="text-slate-700">WP Admin → WooCommerce → Settings → Advanced → REST API</strong>.
+              </p>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 block">
+                  WooCommerce Consumer Key (ck_...)
+                </label>
+                <input
+                  type="text"
+                  value={consumerKey}
+                  onChange={(e) => setConsumerKey(e.target.value)}
+                  placeholder="ck_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 focus:border-orange-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 block">
+                  WooCommerce Consumer Secret (cs_...)
+                </label>
+                <input
+                  type="password"
+                  value={consumerSecret}
+                  onChange={(e) => setConsumerSecret(e.target.value)}
+                  placeholder="cs_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 focus:border-orange-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 block">
+                  Or Shopify Admin Access Token (shpat_...)
+                </label>
+                <input
+                  type="password"
+                  value={shopifyToken}
+                  onChange={(e) => setShopifyToken(e.target.value)}
+                  placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 focus:border-orange-600 focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         {syncError && (
-          <div className="p-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs">
-            {syncError}
+          <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs leading-relaxed space-y-1">
+            <div className="font-bold flex items-center gap-1.5">
+              <span>⚠️</span>
+              <span>Sync Note</span>
+            </div>
+            <div>{syncError}</div>
           </div>
         )}
 
@@ -3022,7 +3100,7 @@ function SyncFromWebsiteModal({ isOpen, businessId, onClose, onSynced }) {
             disabled={isSyncing || !websiteUrl.trim()}
             className="px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-600/30 transition disabled:opacity-40"
           >
-            {isSyncing ? "Syncing Website Orders…" : "Fetch Website Orders Now"}
+            {isSyncing ? "Connecting & Fetching…" : "Fetch Website Orders Now"}
           </button>
         </div>
       </div>
