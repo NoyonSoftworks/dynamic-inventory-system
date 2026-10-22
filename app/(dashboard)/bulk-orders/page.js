@@ -483,22 +483,24 @@ export default function BulkOrdersPage() {
       {/* ── 1. Fast Barcode Pick & Pack Scanner Modal ─────────── */}
       {orderForScanAndPack && (
         <ScanAndPackModal
+          key={orderForScanAndPack.id}
           order={orderForScanAndPack}
           businessId={businessId}
           businessName={businessName}
           allPendingOrders={remainingPendingOrders}
           onClose={() => setOrderForScanAndPack(null)}
           onDispatched={(updatedOrder, nextOrderToPack) => {
-            // Update local order state
-            setOrders((prev) =>
-              prev.map((o) => (o.id === updatedOrder.id ? { ...o, ...updatedOrder, status: "DISPATCHED" } : o))
-            );
-            showToast("success", `Order #${updatedOrder.consignment_id || updatedOrder.id} dispatched! Stock updated.`);
+            // Update local order state immediately when dispatched
+            if (updatedOrder) {
+              setOrders((prev) =>
+                prev.map((o) => (o.id === updatedOrder.id ? { ...o, ...updatedOrder, status: "DISPATCHED" } : o))
+              );
+              showToast("success", `Order #${updatedOrder.consignment_id || updatedOrder.id} dispatched! Stock updated.`);
+            }
 
-            if (nextOrderToPack) {
+            // Transition to next order or close modal
+            if (nextOrderToPack !== undefined) {
               setOrderForScanAndPack(nextOrderToPack);
-            } else {
-              setOrderForScanAndPack(null);
             }
           }}
           onPrintLabel={(ord) => {
@@ -1099,6 +1101,16 @@ function ScanAndPackModal({
   const targetSku = order.product_sku || order.products?.base_sku || "";
   const targetProductName = order.product_name || order.products?.name || "Ordered Product";
 
+  // Reset all internal modal states whenever switching to a new order
+  useEffect(() => {
+    setScannedItems([]);
+    setBarcodeInput("");
+    setScanNotice(null);
+    setIsSubmitting(false);
+    setDispatchedSuccessOrder(null);
+    setSelectedCourier(order.courier_name || "Steadfast Courier");
+  }, [order.id, order.courier_name]);
+
   // Auto-focus barcode input
   useEffect(() => {
     barcodeInputRef.current?.focus();
@@ -1204,7 +1216,13 @@ function ScanAndPackModal({
         throw new Error(json.error || "Failed to dispatch order.");
       }
 
-      setDispatchedSuccessOrder(json.order || { ...order, status: "DISPATCHED" });
+      const completedOrder = json.order || { ...order, status: "DISPATCHED" };
+      setDispatchedSuccessOrder(completedOrder);
+
+      // Immediately notify parent component so orders list and metrics update in background
+      if (onDispatched) {
+        onDispatched(completedOrder);
+      }
     } catch (err) {
       setScanNotice({ type: "error", text: err.message || "Dispatch failed." });
     } finally {
@@ -1212,8 +1230,15 @@ function ScanAndPackModal({
     }
   }
 
-  // Next pending order in queue
-  const nextOrder = allPendingOrders.find((o) => o.id !== order.id);
+  // Next pending order in queue (exclude current, dispatched, or already-handled orders)
+  const nextOrder = useMemo(() => {
+    return allPendingOrders.find(
+      (o) =>
+        o.id !== order.id &&
+        (!dispatchedSuccessOrder || o.id !== dispatchedSuccessOrder.id) &&
+        (o.status || "").toUpperCase() !== "DISPATCHED"
+    );
+  }, [allPendingOrders, order.id, dispatchedSuccessOrder]);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
@@ -1274,9 +1299,9 @@ function ScanAndPackModal({
                 <button
                   type="button"
                   onClick={() => {
-                    onDispatched(dispatchedSuccessOrder, nextOrder);
+                    onDispatched(null, nextOrder);
                   }}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-600/30 transition"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-600/30 transition cursor-pointer"
                 >
                   <span>Pack Next Order ({nextOrder.customer_name}) →</span>
                 </button>
@@ -1284,9 +1309,9 @@ function ScanAndPackModal({
                 <button
                   type="button"
                   onClick={() => {
-                    onDispatched(dispatchedSuccessOrder, null);
+                    onDispatched(null, null);
                   }}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition"
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer"
                 >
                   Done / Close
                 </button>
