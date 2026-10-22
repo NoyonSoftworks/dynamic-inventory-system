@@ -143,28 +143,39 @@ function MarkdownText({ content }) {
   );
 }
 
+function buildWelcomeMessage(name = "Tuku", nameBn = "টুকু", businessName = "আপনার স্টোর") {
+  return {
+    sender: "piku",
+    text: `### 👋 আসসালামু আলাইকুম! আমি **${nameBn} (${name})**, আপনার স্টোরের সার্বক্ষণিক এআই অ্যাডভাইজার। 🤖✨\n\nআমি **${
+      businessName || "আপনার স্টোর"
+    }** এর লাইভ ইনভেন্টরি, অর্ডার ভলিউম, কুরিয়ার পার্সেল ট্র্যাকিং ও খরচ বিশ্লেষণ করে আপনাকে সঠিক সিদ্ধান্ত নিতে সাহায্য করি।\n\n🌐 **বাংলা, Banglish বা English**—যেকোনো ভাষায় লিখুন! ${nameBn} সব বুঝতে পারে এবং সমাধান দিতে পারে।\n\n**আপনি যা যা জিজ্ঞাসা করতে পারেন:**\n- 🔎 *\"SF-8841029 এই পার্সেলের আপডেট কি?\"* (লাইভ ট্র্যাকিং রিপোর্ট)\n- ⚠️ *\"এই পার্সেল অনেকদিন আটকে আছে, একটি সাপোর্ট টিকিট ওপেন করো\"* (তাৎক্ষণিক সাপোর্ট ইস্যু ফাইল)\n- 📦 *\"আমার কোন কোন প্রোডাক্টের স্টক শেষ হয়ে যাচ্ছে?\"* (বা *\"amr stock sesh kon product?\"*)\n- 🚚 *\"Steadfast ও Pathao এ রিটার্ন পার্সেল কমানোর উপায় কি?\"* (বা *\"rto kivabe komabo?\"*)\n- 💰 *\"কুরিয়ার অটো-রিকনসিলিয়েশন কিভাবে করব?\"* (বা *\"courier taka kemne milabo?\"*)\n\nনিচের সাজেস্টেড প্রশ্নে ক্লিক করুন বা নিজের ভাষায় লিখুন!`,
+    timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    suggestedQuestions: [
+      "🏬 আমার স্টোরের বর্তমান লাইভ অবস্থা কি? (Store Status)",
+      "📦 পার্সেল ট্র্যাকিং ও আপডেট (SF-8841029)",
+      "⚠️ পার্সেল সমস্যা নিয়ে টিকিট ওপেন করো (SF-8841029)",
+      "💰 Steadfast & Pathao অটো-রিকনসিলিয়েশন গাইড",
+      "🛡️ কুরিয়ারে RTO রিটার্ন পার্সেল কমানোর কৌশল",
+    ],
+    quickActions: [
+      { label: "🚀 অর্ডার ডিসপ্যাচ", href: "/bulk-orders" },
+      { label: "📑 কুরিয়ার রিকনসিলিয়েশন", href: "/dashboard/reconciliation" },
+      { label: "📦 প্রোডাক্ট ক্যাটালগ", href: "/dashboard/products" },
+    ],
+  };
+}
+
 export default function PikuFullPage() {
   const { businessName, role } = useBusinessContext();
-  const [messages, setMessages] = useState([
-    {
-      sender: "piku",
-      text: `### 👋 আসসালামু আলাইকুম! আমি **পিকু (Piku)**, আপনার স্টোরের সার্বক্ষণিক এআই অ্যাডভাইজার। 🤖✨\n\nআমি **${
-        businessName || "আপনার স্টোর"
-      }** এর লাইভ ইনভেন্টরি, অর্ডার ভলিউম, কুরিয়ার পার্সেল ট্র্যাকিং ও খরচ বিশ্লেষণ করে আপনাকে সঠিক সিদ্ধান্ত নিতে সাহায্য করি।\n\n🌐 **বাংলা, Banglish বা English**—যেকোনো ভাষায় লিখুন! পিকু সব বুঝতে পারে এবং সমাধান দিতে পারে।\n\n**আপনি যা যা জিজ্ঞাসা করতে পারেন:**\n- 🔎 *\"SF-8841029 এই পার্সেলের আপডেট কি?\"* (লাইভ ট্র্যাকিং রিপোর্ট)\n- ⚠️ *\"এই পার্সেল অনেকদিন আটকে আছে, একটি সাপোর্ট টিকিট ওপেন করো\"* (তাৎক্ষণিক সাপোর্ট ইস্যু ফাইল)\n- 📦 *\"আমার কোন কোন প্রোডাক্টের স্টক শেষ হয়ে যাচ্ছে?\"* (বা *\"amr stock sesh kon product?\"*)\n- 🚚 *\"Steadfast ও Pathao এ রিটার্ন পার্সেল কমানোর উপায় কি?\"* (বা *\"rto kivabe komabo?\"*)\n- 💰 *\"কুরিয়ার অটো-রিকনসিলিয়েশন কিভাবে করব?\"* (বা *\"courier taka kemne milabo?\"*)\n\nনিচের সাজেস্টেড প্রশ্নে ক্লিক করুন বা নিজের ভাষায় লিখুন!`,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      suggestedQuestions: [
-        "🏬 আমার স্টোরের বর্তমান লাইভ অবস্থা কি? (Store Status)",
-        "📦 পার্সেল ট্র্যাকিং ও আপডেট (SF-8841029)",
-        "⚠️ পার্সেল সমস্যা নিয়ে টিকিট ওপেন করো (SF-8841029)",
-        "💰 Steadfast & Pathao অটো-রিকনসিলিয়েশন গাইড",
-        "🛡️ কুরিয়ারে RTO রিটার্ন পার্সেল কমানোর কৌশল",
-      ],
-      quickActions: [
-        { label: "🚀 অর্ডার ডিসপ্যাচ", href: "/bulk-orders" },
-        { label: "📑 কুরিয়ার রিকনসিলিয়েশন", href: "/dashboard/reconciliation" },
-        { label: "📦 প্রোডাক্ট ক্যাটালগ", href: "/dashboard/products" },
-      ],
-    },
+  const [aiConfig, setAiConfig] = useState({
+    name: "Tuku",
+    nameBn: "টুকু",
+    tagline: "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট",
+    isActive: true,
+  });
+
+  const [messages, setMessages] = useState(() => [
+    buildWelcomeMessage("Tuku", "টুকু", businessName),
   ]);
 
   const [inputMessage, setInputMessage] = useState("");
@@ -174,6 +185,39 @@ export default function PikuFullPage() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Sync AI settings from platform configurations
+  useEffect(() => {
+    async function loadAiSettings() {
+      try {
+        const res = await fetch("/api/admin/settings?public=true");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.settings) {
+            const nextName = json.settings.ai_name || "Tuku";
+            const nextNameBn = json.settings.ai_name_bn || "টুকু";
+            const nextTagline = json.settings.ai_tagline || "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট";
+            const nextActive = json.settings.ai_is_active !== false;
+
+            setAiConfig({
+              name: nextName,
+              nameBn: nextNameBn,
+              tagline: nextTagline,
+              isActive: nextActive,
+            });
+
+            setMessages((prev) => {
+              if (prev.length === 1 && prev[0].sender === "piku") {
+                return [buildWelcomeMessage(nextName, nextNameBn, businessName)];
+              }
+              return prev;
+            });
+          }
+        }
+      } catch {}
+    }
+    loadAiSettings();
+  }, [businessName]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -219,14 +263,14 @@ export default function PikuFullPage() {
         };
         setMessages((prev) => [...prev, pikuReply]);
       } else {
-        throw new Error(data.error || "পিকুর রেসপন্স পেতে সমস্যা হচ্ছে।");
+        throw new Error(data.error || `${aiConfig.nameBn}র রেসপন্স পেতে সমস্যা হচ্ছে।`);
       }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
         {
           sender: "piku",
-          text: `⚠️ **পিকুর সংযোগে সমস্যা:** ${err.message || "দয়া করে কিছুক্ষণ পর আবার চেষ্টা করুন।"}\n\nজরুরি সহায়তার জন্য আমাদের [Help & Support](/dashboard/support) ডেস্কে যোগাযোগ করুন।`,
+          text: `⚠️ **${aiConfig.nameBn}র সংযোগে সমস্যা:** ${err.message || "দয়া করে কিছুক্ষণ পর আবার চেষ্টা করুন।"}\n\nজরুরি সহায়তার জন্য আমাদের [Help & Support](/dashboard/support) ডেস্কে যোগাযোগ করুন।`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
@@ -243,7 +287,7 @@ export default function PikuFullPage() {
 
   function handleClearChat() {
     if (confirm("আপনি কি চ্যাট ক্লিয়ার করতে চান?")) {
-      setMessages([messages[0]]);
+      setMessages([buildWelcomeMessage(aiConfig.name, aiConfig.nameBn, businessName)]);
     }
   }
 
@@ -297,7 +341,7 @@ export default function PikuFullPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-                Piku AI Assistant &amp; Store Copilot
+                {aiConfig.name} ({aiConfig.nameBn}) AI Assistant &amp; Store Copilot
               </h1>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200 uppercase font-mono">
                 <SparkleIcon className="w-2.5 h-2.5 text-orange-600" />
@@ -499,7 +543,7 @@ export default function PikuFullPage() {
                     <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: "150ms" }} />
                     <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
-                  <p className="text-[11px] text-slate-400 font-medium">পিকু আপনার স্টোরের তথ্য বিশ্লেষণ করছে...</p>
+                  <p className="text-[11px] text-slate-400 font-medium">{aiConfig.nameBn} আপনার স্টোরের তথ্য বিশ্লেষণ করছে...</p>
                 </div>
               </div>
             )}
@@ -528,7 +572,7 @@ export default function PikuFullPage() {
                       handleSendMessage();
                     }
                   }}
-                  placeholder="পিকুকে যেকোনো প্রশ্ন করুন... (e.g. স্টকের কি অবস্থা? / RTO kivabe komabo? / How to calculate net profit?)"
+                  placeholder={`${aiConfig.nameBn}কে যেকোনো প্রশ্ন করুন... (e.g. স্টকের কি অবস্থা? / RTO kivabe komabo? / How to calculate net profit?)`}
                   className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none transition leading-relaxed"
                 />
               </div>
@@ -545,7 +589,7 @@ export default function PikuFullPage() {
 
             <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 font-sans">
               <span>Press <kbd className="font-mono bg-slate-100 px-1 rounded border border-slate-200">Enter</kbd> to send, <kbd className="font-mono bg-slate-100 px-1 rounded border border-slate-200">Shift+Enter</kbd> for new line</span>
-              <span>Piku AI Assistant • 24/7 E-Commerce Copilot</span>
+              <span>{aiConfig.name} AI Assistant • 24/7 E-Commerce Copilot</span>
             </div>
           </div>
         </div>

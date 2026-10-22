@@ -19,6 +19,13 @@ function getPikuGlobalSupportContacts() {
         whatsappNumber: data.support_whatsapp || "8801753082749",
         supportEmail: data.support_email || "support@smartinventory.app",
         supportHours: data.support_hours || "10:00 AM - 11:00 PM (Daily)",
+        aiName: data.ai_name || "Tuku",
+        aiNameBn: data.ai_name_bn || "টুকু",
+        aiTagline: data.ai_tagline || "Smart Inventory & 24/7 E-Commerce Advisor",
+        aiIsActive: data.ai_is_active !== false,
+        aiWelcomeMessage: data.ai_welcome_message || "",
+        aiCustomInstructions: data.ai_custom_instructions || "",
+        aiModelMode: data.ai_model_mode || "balanced",
       };
     }
   } catch (err) {
@@ -29,6 +36,13 @@ function getPikuGlobalSupportContacts() {
     whatsappNumber: "8801753082749",
     supportEmail: "support@smartinventory.app",
     supportHours: "10:00 AM - 11:00 PM (Daily)",
+    aiName: "Tuku",
+    aiNameBn: "টুকু",
+    aiTagline: "Smart Inventory & 24/7 E-Commerce Advisor",
+    aiIsActive: true,
+    aiWelcomeMessage: "",
+    aiCustomInstructions: "",
+    aiModelMode: "balanced",
   };
 }
 
@@ -150,6 +164,10 @@ function findOrderOrParcel(identifier, ordersList = [], reconciliationsList = []
  */
 export async function POST(request) {
   try {
+    const globalContact = getPikuGlobalSupportContacts();
+    const aiName = globalContact.aiName || "Tuku";
+    const aiNameBn = globalContact.aiNameBn || "টুকু";
+
     // ── 1. Authentication Guard ─────────────────────────────────
     const supabase = await createClient();
     let {
@@ -180,7 +198,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          error: "অনুগ্রহ করে সাইন ইন করুন যাতে পিকু আপনার স্টোরের তথ্য দেখে সাহায্য করতে পারে।",
+          error: `অনুগ্রহ করে সাইন ইন করুন যাতে ${aiNameBn} আপনার স্টোরের তথ্য দেখে সাহায্য করতে পারে।`,
         },
         { status: 401 }
       );
@@ -301,7 +319,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          error: "মেসেজ লিখুন যাতে পিকু আপনাকে উত্তর দিতে পারে।",
+          error: `মেসেজ লিখুন যাতে ${aiNameBn} আপনাকে উত্তর দিতে পারে।`,
         },
         { status: 400 }
       );
@@ -310,6 +328,19 @@ export async function POST(request) {
     const detectedLang = detectLanguage(message); // "bn" | "banglish" | "en"
     const isEnglish = detectedLang === "en";
     const q = message.toLowerCase().trim();
+
+    // Super Admin Kill-Switch / Maintenance Mode
+    if (globalContact.aiIsActive === false) {
+      return NextResponse.json({
+        success: true,
+        reply: `### ⏸️ **${aiNameBn} (${aiName}) বর্তমানে সাময়িকভাবে মেইনটেন্যান্সে রয়েছে**\n\nআমাদের প্ল্যাটফর্ম অ্যাডমিন এআই সহকারী আপডেট করছেন। যেকোনো জরুরি জিজ্ঞাসা বা পার্সেল সহায়তার জন্য আমাদের সাপোর্ট সেন্টারে যোগাযোগ করুন:\n- 📞 ফোন হটলাইন: **${globalContact.supportPhone}**\n- 💬 WhatsApp: **${globalContact.whatsappNumber}** (${globalContact.supportHours})\n- ✉️ ইমেইল: **${globalContact.supportEmail}**`,
+        quickActions: [
+          { label: "🎫 সাপোর্ট টিকিট ডেস্ক", href: "/dashboard/support" },
+          { label: "🚀 অর্ডার ডিসপ্যাচ", href: "/bulk-orders" },
+        ],
+        suggestedQuestions: [],
+      });
+    }
 
     // Check helper
     const hasAny = (keywords) => keywords.some((k) => q.includes(k));
@@ -335,14 +366,14 @@ export async function POST(request) {
     if (isExplainingTrackingOrTicket) {
       let reply = "";
       if (isEnglish) {
-        reply = `### 📦 **Piku AI Parcel Tracking & Issue Escalation Guide** 🤖✨
+        reply = `### 📦 **${aiName} AI Parcel Tracking & Issue Escalation Guide** 🤖✨
 
-**Yes, absolutely!** Piku is fully integrated with your store's logistics to track parcels in real time and automatically raise official support tickets:
+**Yes, absolutely!** ${aiName} is fully integrated with your store's logistics to track parcels in real time and automatically raise official support tickets:
 
 ---
 
-### 1. 🔍 **What updates does Piku provide with a Tracking ID?**
-Simply provide any courier Tracking ID or Consignment ID (e.g. \`SF-8841029\` or \`PT-9482103\`). Piku immediately checks your store's database and displays:
+### 1. 🔍 **What updates does ${aiName} provide with a Tracking ID?**
+Simply provide any courier Tracking ID or Consignment ID (e.g. \`SF-8841029\` or \`PT-9482103\`). ${aiName} immediately checks your store's database and displays:
 - 🟢 **Live Delivery Status Badge:** \`IN TRANSIT\`, \`DELIVERED\`, \`HOLD / RESCHEDULED\`, or \`RETURN TO ORIGIN\`.
 - 🚚 **Courier Logistics Partner:** Steadfast, Pathao, RedX, Paperfly, etc.
 - 👤 **Customer Recipient Details:** Customer name, privacy-masked phone number, and destination address.
@@ -352,27 +383,27 @@ Simply provide any courier Tracking ID or Consignment ID (e.g. \`SF-8841029\` or
 
 ---
 
-### 2. 🎫 **What can Piku do if an Issue or Ticket needs to be raised?**
+### 2. 🎫 **What can ${aiName} do if an Issue or Ticket needs to be raised?**
 If a parcel is delayed, lost, rejected without reason, or courier settlement is short:
-- **Simply ask Piku directly in chat:**
+- **Simply ask ${aiName} directly in chat:**
   > *"SF-8841029 parcel delivery delay, open a support ticket"*
   > or *"Raise issue for parcel SF-8841029"*
 - **What happens automatically?**
-  1. Piku generates an official **High-Priority Support Ticket** (e.g. \`#TICK-884102\`) tagged under Courier Logistics Dispute.
+  1. ${aiName} generates an official **High-Priority Support Ticket** (e.g. \`#TICK-884102\`) tagged under Courier Logistics Dispute.
   2. The ticket is immediately routed to the platform Operations & Super Admin console in \`/admin\`.
   3. You can review live responses and status updates anytime in your [Help & Support](/dashboard/support) desk!
 
 ---
 💡 **Try it now:** Click any of the demonstration buttons below!`;
       } else {
-        reply = `### 📦 **পিকু এআই (Piku AI) পার্সেল ট্র্যাকিং ও ইস্যু টিকিট গাইড** 🤖✨
+        reply = `### 📦 **${aiNameBn} এআই (${aiName} AI) পার্সেল ট্র্যাকিং ও ইস্যু টিকিট গাইড** 🤖✨
 
-**হ্যাঁ, ১০০% পারবে!** পিকু আপনার স্টোরের সমস্ত কুরিয়ার পার্সেল লাইভ ট্র্যাক করতে পারে এবং যেকোনো সমস্যায় চ্যাট থেকেই সরাসরি অফিসিয়াল সাপোর্ট টিকিট তৈরি করতে পারে:
+**হ্যাঁ, ১০০% পারবে!** ${aiNameBn} আপনার স্টোরের সমস্ত কুরিয়ার পার্সেল লাইভ ট্র্যাক করতে পারে এবং যেকোনো সমস্যায় চ্যাট থেকেই সরাসরি অফিসিয়াল সাপোর্ট টিকিট তৈরি করতে পারে:
 
 ---
 
-### ১. 🔍 **প্রোডাক্ট বা পার্সেল ট্র্যাকিং আইডি দিলে পিকু কী কী আপডেট দিবে?**
-আপনি চ্যাটে কুরিয়ারের যেকোনো **Tracking ID বা Consignment ID** (যেমন: \`SF-8841029\` বা \`PT-9482103\`) দিলেই পিকু মুহূর্তের মধ্যে বিস্তারিত রিপোর্ট প্রদর্শন করবে:
+### ১. 🔍 **প্রোডাক্ট বা পার্সেল ট্র্যাকিং আইডি দিলে ${aiNameBn} কী কী আপডেট দিবে?**
+আপনি চ্যাটে কুরিয়ারের যেকোনো **Tracking ID বা Consignment ID** (যেমন: \`SF-8841029\` বা \`PT-9482103\`) দিলেই ${aiNameBn} মুহূর্তের মধ্যে বিস্তারিত রিপোর্ট প্রদর্শন করবে:
 - 🟢 **লাইভ ডেলিভারি স্ট্যাটাস:** In Transit (চলমান), Delivered (ডেলিভার্ড সম্পন্ন), Hold / Rescheduled (স্থগিত), বা Return (রিটার্ন হচ্ছে কিনা)।
 - 🚚 **কুরিয়ার পার্টনার:** Steadfast, Pathao ইত্যাদি।
 - 👤 **প্রাপকের তথ্য:** ক্রেতার নাম, মোবাইল নম্বর (প্রাইভেসি মাস্কড) এবং ডেলিভারি ঠিকানা।
@@ -387,7 +418,7 @@ If a parcel is delayed, lost, rejected without reason, or courier settlement is 
 - **চ্যাটে সরাসরি বলুন:**
   > *"SF-8841029 এই পার্সেল অনেকদিন আটকে আছে, একটি সাপোর্ট টিকিট ওপেন করো"*
   > বা *"SF-8841029 parcel issue raise koro"*
-- **পিকু কীভাবে সাহায্য করবে?**
+- **${aiNameBn} কীভাবে সাহায্য করবে?**
   ১. চ্যাটের ভেতর থেকেই সাথে সাথে একটি অফিশিয়াল **High-Priority Support Ticket** (যেমন: \`#TICK-884102\`) তৈরি করে দিবে।
   ২. প্ল্যাটফর্ম সাপোর্ট টিম এবং সুপার অ্যাডমিনকে অবিলম্বে অ্যালার্ট পাঠাবে যাতে কুরিয়ার হাবে যোগাযোগ করা হয়।
   ৩. আপনার ড্যাশবোর্ডের [Help & Support](/dashboard/support) পেজে এটি সংরক্ষিত থাকবে, যেখানে অ্যাডমিনের রিপ্লাই ও স্ট্যাটাস লাইভ দেখতে পাবেন।
@@ -427,10 +458,10 @@ If a parcel is delayed, lost, rejected without reason, or courier settlement is 
     if (isTicketRaiseRequested) {
       const ticketSubject = extractedTrackingId
         ? `[Courier Issue] Parcel ${extractedTrackingId} Dispute / Delay`
-        : `[Merchant Support] Issue Reported via Piku AI`;
+        : `[Merchant Support] Issue Reported via ${aiName} AI`;
 
       const ticketCategory = extractedTrackingId ? "courier" : "help";
-      const ticketDescription = `Merchant Ticket filed via Piku AI Assistant:
+      const ticketDescription = `Merchant Ticket filed via ${aiName} AI Assistant:
 • Store: ${businessName} (ID: ${businessId})
 • User Email: ${user.email}
 • Tracking / Consignment: ${extractedTrackingId || "Not specified by merchant"}
@@ -452,7 +483,7 @@ If a parcel is delayed, lost, rejected without reason, or courier settlement is 
       if (isEnglish) {
         reply = `### 🎫 **Support Ticket Created Successfully!**
 
-Piku has filed a **High Priority** ticket directly with our Operations & Support desk:
+${aiName} has filed a **High Priority** ticket directly with our Operations & Support desk:
 
 - 🔖 **Ticket ID:** \`#${newTicket.id}\`
 - 📦 **Tracking Reference:** \`${extractedTrackingId || "General Inquiry"}\`
@@ -466,7 +497,7 @@ Piku has filed a **High Priority** ticket directly with our Operations & Support
       } else {
         reply = `### 🎫 **সাপোর্ট টিকিট সফলভাবে ফাইল করা হয়েছে!**
 
-পিকু আপনার জন্য সরাসরি প্ল্যাটফর্ম সাপোর্ট ডেস্কে একটি **হাই-প্রায়োরিটি** টিকিট তৈরি করেছে:
+${aiNameBn} আপনার জন্য সরাসরি প্ল্যাটফর্ম সাপোর্ট ডেস্কে একটি **হাই-প্রায়োরিটি** টিকিট তৈরি করেছে:
 
 - 🔖 **টিকিট কোড:** \`#${newTicket.id}\`
 - 📦 **ট্র্যাকিং রেফারেন্স:** \`${extractedTrackingId || "General Issue"}\`
@@ -572,12 +603,12 @@ ${statusIcon} **বর্তমান স্ট্যাটাস:** **${statusB
 - 💵 **ক্যাশ অন ডেলিভারি (COD):** ৳${totalAmount.toLocaleString()}
 - ⏱️ **ডিসপ্যাচ তারিখ:** ${new Date(orderData.created_at || Date.now()).toLocaleDateString("bn-BD", { month: "short", day: "numeric", year: "numeric" })}
 
-💡 **পিকুর অপারেশনাল পরামর্শ:**
+💡 **${aiNameBn}র অপারেশনাল পরামর্শ:**
 ${statusAdvice}
 
 ---
 ⚠️ **এই পার্সেল নিয়ে কোনো সমস্যা বা বিলম্ব হচ্ছে?**
-কুরিয়ার যদি সময়মতো ডেলিভারি না দেয় বা কাস্টমার না পায়, তবে আপনি সরাসরি পিকু দিয়ে **একটি সাপোর্ট টিকিট ফাইল** করতে পারেন। নিচের বাটনে ক্লিক করুন।`;
+কুরিয়ার যদি সময়মতো ডেলিভারি না দেয় বা কাস্টমার না পায়, তবে আপনি সরাসরি ${aiNameBn} দিয়ে **একটি সাপোর্ট টিকিট ফাইল** করতে পারেন। নিচের বাটনে ক্লিক করুন।`;
 
           quickActions = [
             { label: `⚠️ ${consignmentId} নিয়ে টিকিট তুলুন`, href: "/dashboard/support" },
@@ -601,14 +632,14 @@ ${statusAdvice}
         if (isEnglish) {
           reply = `### 🔍 **Tracking Search for \`${extractedTrackingId}\`:**
 
-Piku could not find a matching parcel for \`${extractedTrackingId}\` in your store's current database. 
+${aiName} could not find a matching parcel for \`${extractedTrackingId}\` in your store's current database. 
 
 **Quick Troubleshooting:**
 1. **Recent Dispatch:** If this consignment was created directly in Steadfast or Pathao portal, check directly:
    - [Steadfast Public Tracking](https://steadfast.com.bd/tracking/${extractedTrackingId})
    - [Pathao Courier Tracking](https://pathao.com/courier/)
 2. **Raise a Courier Dispute Ticket:**
-   If this parcel is missing or delayed, type **"Raise issue for ${extractedTrackingId}"** and Piku will open an expedited support ticket immediately!`;
+   If this parcel is missing or delayed, type **"Raise issue for ${extractedTrackingId}"** and ${aiName} will open an expedited support ticket immediately!`;
 
           quickActions = [
             { label: `⚠️ Open Ticket for ${extractedTrackingId}`, href: "/dashboard/support" },
@@ -617,14 +648,14 @@ Piku could not find a matching parcel for \`${extractedTrackingId}\` in your sto
         } else {
           reply = `### 🔍 **ট্র্যাকিং আইডি \`${extractedTrackingId}\` এর রেজাল্ট:**
 
-পিকু আপনার স্টোরের বর্তমান ডাটাবেজে \`${extractedTrackingId}\` কোডযুক্ত কোনো পার্সেল খুঁজে পায়নি।
+${aiNameBn} আপনার স্টোরের বর্তমান ডাটাবেজে \`${extractedTrackingId}\` কোডযুক্ত কোনো পার্সেল খুঁজে পায়নি।
 
-**পিকুর পরামর্শ:**
+**${aiNameBn}র পরামর্শ:**
 ১. **সরাসরি কুরিয়ার পোর্টালে চেক:** আপনি যদি এই পার্সেলটি সরাসরি Steadfast বা Pathao পোর্টালে বুক করে থাকেন:
    - [Steadfast লাইভ ট্র্যাকিং](https://steadfast.com.bd/tracking/${extractedTrackingId})
    - [Pathao কুরিয়ার ট্র্যাকিং](https://pathao.com/courier/)
 ২. **সাপোর্ট টিকিট ওপেন করুন:**
-   এই পার্সেলটি নিয়ে কোনো সমস্যা বা ডেলিভারি বিলম্ব হলে আপনি চ্যাটে লিখুন: **"Raise issue for ${extractedTrackingId}"** — পিকু সাথে সাথে একটি অফিশিয়াল সাপোর্ট টিকিট খুলে দেবে!`;
+   এই পার্সেলটি নিয়ে কোনো সমস্যা বা ডেলিভারি বিলম্ব হলে আপনি চ্যাটে লিখুন: **"Raise issue for ${extractedTrackingId}"** — ${aiNameBn} সাথে সাথে একটি অফিশিয়াল সাপোর্ট টিকিট খুলে দেবে!`;
 
           quickActions = [
             { label: `⚠️ ${extractedTrackingId} নিয়ে টিকিট তুলুন`, href: "/dashboard/support" },
@@ -654,9 +685,9 @@ Piku could not find a matching parcel for \`${extractedTrackingId}\` in your sto
     let reply = "";
     let quickActions = [];
     let suggestedQuestions = [];
-    const globalContact = getPikuGlobalSupportContacts();
 
-    const systemPrompt = `You are "Piku" (পিকু), an intelligent, friendly, senior AI Store Copilot & E-Commerce Operations Advisor designed for online store merchants and D2C brands in Bangladesh.
+    const systemPrompt = `You are "${aiName}" (${aiNameBn}), an intelligent, friendly, senior AI Store Copilot & E-Commerce Operations Advisor designed for online store merchants and D2C brands in Bangladesh.
+${globalContact.aiCustomInstructions ? `\nSUPER ADMIN OPERATIONAL GUIDANCE:\n${globalContact.aiCustomInstructions}\n` : ""}
 You assist merchants with:
 1. Live parcel tracking and issue/ticket raising.
 2. Inventory management, reorder points, low stock alerts, barcode scanning, thermal printing.
@@ -806,7 +837,7 @@ Here is your real-time operations snapshot:
         } else {
           reply = `### 🏬 **${storeSnapshot.businessName}** এর লাইভ স্টোর রিপোর্ট:
 
-পিকু আপনার স্টোরের বর্তমান ডাটা এনালাইসিস করেছে:
+${aiNameBn} আপনার স্টোরের বর্তমান ডাটা এনালাইসিস করেছে:
 
 - 📦 **মোট প্রোডাক্ট ক্যাটালগ:** ${storeSnapshot.totalProductsCount} টি আইটেম
 - ⚠️ **লো স্টক প্রোডাক্ট (≤ ৫ পিস):** ${storeSnapshot.lowStockCount} টি
@@ -845,14 +876,14 @@ Here is your real-time operations snapshot:
         if (isEnglish) {
           reply = `### 🛡️ **Top Strategies to Reduce Courier RTO (Return-to-Origin) in Bangladesh:**
 
-In Bangladesh e-commerce, every returned parcel costs online merchants **৳150 – ৳200** on average (courier return fees + ruined packaging boxes). Here is Piku's proven playbook:
+In Bangladesh e-commerce, every returned parcel costs online merchants **৳150 – ৳200** on average (courier return fees + ruined packaging boxes). Here is ${aiName}'s proven playbook:
 
 1. **Collect Advance Delivery Charges (৳100 – ৳150):**
    - Take ৳70–৳80 for inside Dhaka and ৳130–৳150 for outside Dhaka via bKash/Nagad before shipping. This filters out 90% of fake or impulse buyers.
 2. **Phone Verification Call:**
    - Always verify the customer's district, upazila, and exact address by phone before confirming.
 3. **Check High RTO Risk Signals:**
-   - In our [Orders & Dispatch](/bulk-orders) queue, Piku automatically tags suspicious orders with **High RTO Risk** badges based on repeat cancellations.
+   - In our [Orders & Dispatch](/bulk-orders) queue, ${aiName} automatically tags suspicious orders with **High RTO Risk** badges based on repeat cancellations.
 4. **Fast 24-Hour Dispatch:**
    - Hand parcels to Steadfast or Pathao within 12–24 hours. The faster the delivery, the lower the refusal rate!
 
@@ -870,7 +901,7 @@ In Bangladesh e-commerce, every returned parcel costs online merchants **৳150 
         } else {
           reply = `### 🛡️ **কুরিয়ারে রিটার্ন (RTO) কমানোর শীর্ষ কার্যকরী কৌশল:**
 
-বাংলাদেশে ই-কমার্সে প্রতিটি রিটার্ন পার্সেলের পেছনে গড়ে **৳১৫০ - ৳২০০** ক্ষতি হয় (কুরিয়ার রিটার্ন চার্জ + নষ্ট হওয়া বক্স ও পলি)। এটি রোধে পিকুর ৪টি গোল্ডেন রুল:
+বাংলাদেশে ই-কমার্সে প্রতিটি রিটার্ন পার্সেলের পেছনে গড়ে **৳১৫০ - ৳২০০** ক্ষতি হয় (কুরিয়ার রিটার্ন চার্জ + নষ্ট হওয়া বক্স ও পলি)। এটি রোধে ${aiNameBn}র ৪টি গোল্ডেন রুল:
 
 1. **অগ্রিম ডেলিভারি চার্জ নিশ্চিত করুন:**
    - ঢাকার ভেতরে ৳৭০ - ৳৮০ এবং ঢাকার বাইরে ৳১৩০ - ৳১৫০ টাকা bKash/Nagad এ অগ্রিম নিন। এতে ক্রেতার পার্সেল রিসিভ করার দায়িত্ব তৈরি হয় এবং ফেক অর্ডার ৯০% কমে যায়।
@@ -980,7 +1011,7 @@ Need urgent assistance or have questions about your store, billing, API gateways
 - ⏰ **Support Operating Hours:** \`${globalContact.supportHours}\`
 - 🎫 **Official Support Desk:** You can also open an expedited ticket in our [Merchant Support Desk](/dashboard/support).
 
-Type **"Raise issue for [tracking id]"** anytime and Piku will open a high-priority ticket for you automatically!`;
+Type **"Raise issue for [tracking id]"** anytime and ${aiName} will open a high-priority ticket for you automatically!`;
 
           quickActions = [
             { label: "🎫 Support Desk", href: "/dashboard/support" },
@@ -1020,11 +1051,12 @@ Type **"Raise issue for [tracking id]"** anytime and Piku will open a high-prior
       else if (
         hasAny([
           "hi", "hello", "hey", "kemon", "কেমন", "tumi k", "তুমি কে", "who are you",
-          "help", "sahajjo", "সাহায্য", "piku", "পিকু", "salam", "সালাম"
+          "help", "sahajjo", "সাহায্য", "piku", "পিকু", "tuku", "টুকু",
+          aiName.toLowerCase(), aiNameBn, "salam", "সালাম"
         ])
       ) {
         if (isEnglish) {
-          reply = `### 👋 Hello! I am **Piku**, your 24/7 AI Store Copilot & Operations Advisor! 🤖✨
+          reply = `### 👋 Hello! I am **${aiName}**, your 24/7 AI Store Copilot & Operations Advisor! 🤖✨
 
 I am connected to **${storeSnapshot.businessName}** to help you track parcels, automate inventory, audit courier payouts, and file support tickets instantly.
 
@@ -1048,7 +1080,7 @@ Click any question below or ask me anything in English, Bengali, or Banglish!`;
             { label: "📦 Product Catalog", href: "/dashboard/products" },
           ];
         } else {
-          reply = `### 👋 আসসালামু আলাইকুম! আমি **পিকু (Piku)**, আপনার স্টোরের স্মার্ট এআই সহকারী! 🤖✨
+          reply = `### 👋 আসসালামু আলাইকুম! আমি **${aiNameBn} (${aiName})**, আপনার স্টোরের স্মার্ট এআই সহকারী! 🤖✨
 
 আমি **${storeSnapshot.businessName}** স্টোরের ইনভেন্টরি, কুরিয়ার ডেলিভারি, পার্সেল ট্র্যাকিং এবং টিকেট ফাইল করার জন্য ২৪/৭ প্রস্তুত।
 
@@ -1077,11 +1109,11 @@ Click any question below or ask me anything in English, Bengali, or Banglish!`;
       // INTENT: UNIVERSAL FALLBACK
       else {
         if (isEnglish) {
-          reply = `### 💡 **Piku's Operations Guidance & Recommendations:**
+          reply = `### 💡 **${aiName}'s Operations Guidance & Recommendations:**
 
 You asked: *" ${message} "*
 
-**Piku's Operational Breakdown:**
+**${aiName}'s Operational Breakdown:**
 1. **Live Store Snapshot:** Your store **${storeSnapshot.businessName}** currently has **${storeSnapshot.totalProductsCount} products** and **${storeSnapshot.totalOrdersCount} inbound orders** logged.
 2. **Parcel Tracking:** If you have a tracking code (e.g. \`SF-8841029\`), send it here to view real-time delivery status!
 3. **Raise Support Ticket:** If you are facing any operational bug or courier delivery delay, say *"Raise an issue"* and I will create an expedited support ticket for you.
@@ -1098,11 +1130,11 @@ How else can I assist your store operations today?`;
             { label: "💬 Help & Support", href: "/dashboard/support" },
           ];
         } else {
-          reply = `### 💡 **পিকুর গাইডেন্স ও পরামর্শ:**
+          reply = `### 💡 **${aiNameBn}র গাইডেন্স ও পরামর্শ:**
 
 আপনার প্রশ্ন: *" ${message} "*
 
-**পিকুর সুপারিশকৃত সমাধান:**
+**${aiNameBn}র সুপারিশকৃত সমাধান:**
 1. **স্টোর ওভারভিউ:** আপনার স্টোর **${storeSnapshot.businessName}** তে বর্তমানে **${storeSnapshot.totalProductsCount} টি প্রোডাক্ট** এবং **${storeSnapshot.totalOrdersCount} টি অর্ডার** লোড আছে।
 2. **পার্সেল ট্র্যাকিং:** আপনার কোনো কনসাইনমেন্টের ট্র্যাকিং কোড থাকলে (যেমন \`SF-8841029\`), এখানে মেসেজ দিন; সাথে সাথে লাইভ ডেলিভারি স্ট্যাটাস দেখতে পাবেন।
 3. **সাপোর্ট টিকিট ফাইলিং:** পার্সেল ডেলিভারি বিলম্ব বা কুরিয়ারে কোনো সমস্যা থাকলে বলুন *"এই পার্সেল নিয়ে টিকিট ওপেন করো"*—আমি সাথে সাথে সাপোর্ট টিকিট ফাইল করে দেব।
@@ -1140,7 +1172,7 @@ How else can I assist your store operations today?`;
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "পিকুর সার্ভার রেসপন্স করতে সমস্যা হচ্ছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+        error: error.message || `${aiNameBn || "AI"}র সার্ভার রেসপন্স করতে সমস্যা হচ্ছে। কিছুক্ষণ পর আবার চেষ্টা করুন।`,
       },
       { status: 500 }
     );

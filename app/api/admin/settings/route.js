@@ -41,6 +41,13 @@ const DEFAULT_SETTINGS = {
   enterprise_plan_price_bdt: 4990,
   enterprise_plan_price_usd: 99,
   enterprise_order_limit: 5000,
+  ai_name: "Tuku",
+  ai_name_bn: "টুকু",
+  ai_tagline: "Smart Inventory & 24/7 E-Commerce Advisor",
+  ai_is_active: true,
+  ai_model_mode: "balanced",
+  ai_welcome_message: "আসসালামু আলাইকুম! আমি {ai_name_bn} ({ai_name}), আপনার স্টোরের স্মার্ট এআই সহচর। ইনভেন্টরি স্টক, পার্সেল ট্র্যাকিং ও কুরিয়ার ইস্যু সমাধানে আমি আপনাকে যেকোনো সময় সাহায্য করতে প্রস্তুত!",
+  ai_custom_instructions: "Always be friendly, encouraging, and focused on helping Bangladeshi online store owners prevent courier RTO, protect profit margins, and manage stock efficiently.",
 };
 
 function readLocalSettings() {
@@ -211,6 +218,38 @@ export async function GET(request) {
         dbData?.stripe_secret_key ||
         process.env.STRIPE_SECRET_KEY ||
         DEFAULT_SETTINGS.stripe_secret_key,
+      ai_name:
+        localSettings.ai_name ||
+        dbData?.ai_name ||
+        DEFAULT_SETTINGS.ai_name,
+      ai_name_bn:
+        localSettings.ai_name_bn ||
+        dbData?.ai_name_bn ||
+        DEFAULT_SETTINGS.ai_name_bn,
+      ai_tagline:
+        localSettings.ai_tagline ||
+        dbData?.ai_tagline ||
+        DEFAULT_SETTINGS.ai_tagline,
+      ai_is_active:
+        localSettings.ai_is_active !== undefined
+          ? Boolean(localSettings.ai_is_active)
+          : dbData?.ai_is_active !== undefined
+          ? Boolean(dbData.ai_is_active)
+          : DEFAULT_SETTINGS.ai_is_active,
+      ai_model_mode:
+        localSettings.ai_model_mode ||
+        dbData?.ai_model_mode ||
+        DEFAULT_SETTINGS.ai_model_mode,
+      ai_welcome_message:
+        localSettings.ai_welcome_message ||
+        dbData?.ai_welcome_message ||
+        DEFAULT_SETTINGS.ai_welcome_message,
+      ai_custom_instructions:
+        localSettings.ai_custom_instructions !== undefined
+          ? localSettings.ai_custom_instructions
+          : dbData?.ai_custom_instructions !== undefined
+          ? dbData.ai_custom_instructions
+          : DEFAULT_SETTINGS.ai_custom_instructions,
     };
 
     // If public request, strip sensitive secrets
@@ -241,6 +280,12 @@ export async function GET(request) {
           bkash_number: mergedSettings.bkash_number || mergedSettings.support_phone || "01753082749",
           nagad_number: mergedSettings.nagad_number || mergedSettings.support_phone || "01753082749",
           admin_phone: mergedSettings.support_phone || mergedSettings.admin_recovery_phone || "01753082749",
+          ai_name: mergedSettings.ai_name || "Tuku",
+          ai_name_bn: mergedSettings.ai_name_bn || "টুকু",
+          ai_tagline: mergedSettings.ai_tagline || "Smart Inventory & 24/7 E-Commerce Advisor",
+          ai_is_active: mergedSettings.ai_is_active !== false,
+          ai_model_mode: mergedSettings.ai_model_mode || "balanced",
+          ai_welcome_message: mergedSettings.ai_welcome_message || DEFAULT_SETTINGS.ai_welcome_message,
         },
       });
     }
@@ -276,6 +321,12 @@ export async function GET(request) {
           bkash_number: mergedSettings.bkash_number || mergedSettings.support_phone || "01753082749",
           nagad_number: mergedSettings.nagad_number || mergedSettings.support_phone || "01753082749",
           admin_phone: mergedSettings.support_phone || mergedSettings.admin_recovery_phone || "01753082749",
+          ai_name: mergedSettings.ai_name || "Tuku",
+          ai_name_bn: mergedSettings.ai_name_bn || "টুকু",
+          ai_tagline: mergedSettings.ai_tagline || "Smart Inventory & 24/7 E-Commerce Advisor",
+          ai_is_active: mergedSettings.ai_is_active !== false,
+          ai_model_mode: mergedSettings.ai_model_mode || "balanced",
+          ai_welcome_message: mergedSettings.ai_welcome_message || DEFAULT_SETTINGS.ai_welcome_message,
         },
       });
     }
@@ -354,6 +405,13 @@ export async function POST(request) {
       enterprise_plan_price_bdt,
       enterprise_plan_price_usd,
       enterprise_order_limit,
+      ai_name,
+      ai_name_bn,
+      ai_tagline,
+      ai_is_active,
+      ai_model_mode,
+      ai_welcome_message,
+      ai_custom_instructions,
     } = body || {};
 
     const payload = {
@@ -456,6 +514,27 @@ export async function POST(request) {
     }
     if (enterprise_order_limit !== undefined) {
       payload.enterprise_order_limit = Math.max(1, parseInt(enterprise_order_limit, 10) || 5000);
+    }
+    if (ai_name !== undefined) {
+      payload.ai_name = String(ai_name).trim() || "Tuku";
+    }
+    if (ai_name_bn !== undefined) {
+      payload.ai_name_bn = String(ai_name_bn).trim() || "টুকু";
+    }
+    if (ai_tagline !== undefined) {
+      payload.ai_tagline = String(ai_tagline).trim();
+    }
+    if (ai_is_active !== undefined) {
+      payload.ai_is_active = Boolean(ai_is_active);
+    }
+    if (ai_model_mode !== undefined) {
+      payload.ai_model_mode = String(ai_model_mode).trim();
+    }
+    if (ai_welcome_message !== undefined) {
+      payload.ai_welcome_message = String(ai_welcome_message).trim();
+    }
+    if (ai_custom_instructions !== undefined) {
+      payload.ai_custom_instructions = String(ai_custom_instructions).trim();
     }
 
     // 1. Persist full settings to local storage file

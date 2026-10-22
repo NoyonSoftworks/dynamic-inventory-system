@@ -7,9 +7,10 @@
     "type": "success",
     "category": "system",
     "created_at": "2026-10-22T08:16:17.141Z",
-    "read": false,
+    "read": true,
     "sender": "Support Team",
-    "expires_at": null
+    "expires_at": null,
+    "read_at": "2026-10-22T09:12:41.616Z"
   },
   {
     "id": "notif-1792656973978-ataz",
@@ -19,9 +20,10 @@
     "type": "info",
     "category": "system",
     "created_at": "2026-10-22T08:16:13.978Z",
-    "read": false,
+    "read": true,
     "sender": "Support Team",
-    "expires_at": null
+    "expires_at": null,
+    "read_at": "2026-10-22T09:12:41.616Z"
   },
   {
     "id": "notif-1792617385323-hxvq",
@@ -34,7 +36,7 @@
     "read": true,
     "sender": "Support Team",
     "expires_at": null,
-    "read_at": "2026-10-21T21:17:15.231Z"
+    "read_at": "2026-10-22T09:12:41.616Z"
   },
   {
     "id": "notif-1792614338670-fldm",
@@ -47,7 +49,7 @@
     "read": true,
     "sender": "Platform Broadcast",
     "expires_at": null,
-    "read_at": "2026-10-21T21:17:15.231Z"
+    "read_at": "2026-10-22T09:12:41.616Z"
   },
   {
     "id": "notif-welcome-1792612962346",
@@ -59,6 +61,6 @@
     "created_at": "2026-10-21T19:13:43.421Z",
     "read": true,
     "sender": "Platform Team",
-    "read_at": "2026-10-21T21:17:15.231Z"
+    "read_at": "2026-10-22T09:12:41.616Z"
   }
 ]

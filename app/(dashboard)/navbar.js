@@ -24,7 +24,7 @@ const NAV_GROUPS = [
       },
       {
         href: "/dashboard/piku",
-        label: "Piku AI Assistant",
+        label: "Tuku AI Assistant",
         badge: "AI ✨",
         icon: (
           <svg className="w-4 h-4 shrink-0 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,6 +178,22 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
+  const [aiName, setAiName] = useState("Tuku");
+
+  useEffect(() => {
+    async function fetchAiSettings() {
+      try {
+        const res = await fetch("/api/admin/settings?public=true");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.settings?.ai_name) {
+            setAiName(json.settings.ai_name);
+          }
+        }
+      } catch {}
+    }
+    fetchAiSettings();
+  }, []);
 
   useEffect(() => {
     async function fetchNotifs() {
@@ -289,7 +305,15 @@ export default function Navbar() {
 
     return {
       ...grp,
-      items: allowedItems,
+      items: allowedItems.map((item) => {
+        if (item.href === "/dashboard/piku") {
+          return {
+            ...item,
+            label: `${aiName} AI Assistant`,
+          };
+        }
+        return item;
+      }),
     };
   }).filter((grp) => grp.items.length > 0);
 
@@ -302,70 +326,108 @@ export default function Navbar() {
         }`}
       >
         {/* Top Brand Header */}
-        <div className="h-16 border-b border-slate-200/80 px-4 flex items-center justify-between gap-2 shrink-0">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2.5 min-w-0 group focus:outline-none"
-            title={`${workspaceDisplayName} · ${appBrandName}`}
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EA580C] text-white shadow-xs group-hover:bg-[#D94E07] transition-all shrink-0">
+        <div
+          className={`h-16 border-b border-slate-200/80 flex items-center shrink-0 transition-all ${
+            collapsed ? "justify-center px-2" : "justify-between px-4 gap-2"
+          }`}
+        >
+          {collapsed ? (
+            <button
+              type="button"
+              onClick={() => setCollapsed(false)}
+              className="group relative flex h-9 w-9 items-center justify-center rounded-xl bg-[#EA580C] text-white shadow-xs hover:bg-[#D94E07] transition cursor-pointer"
+              title="Expand sidebar (Click to open full menu)"
+            >
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
-            </div>
-            {!collapsed && (
-              <div className="flex flex-col leading-tight min-w-0">
-                <span className="font-semibold text-sm tracking-tight text-slate-900 group-hover:text-[#EA580C] transition-colors truncate">
-                  {workspaceDisplayName}
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {appBrandName}
-                </span>
-              </div>
-            )}
-          </Link>
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            {/* Notification Bell Button */}
-            <button
-              type="button"
-              onClick={() => setShowNotifDrawer(true)}
-              className="relative w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shrink-0 cursor-pointer"
-              title="Store Notifications & Announcements"
-              aria-label="Open notifications"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-3.5 min-w-3.5 px-0.5 rounded-full bg-rose-500 text-white text-[9px] font-mono font-bold flex items-center justify-center animate-pulse">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
+              <span className="sr-only">Expand sidebar</span>
             </button>
-
-            {/* Sidebar Collapse Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setCollapsed(!collapsed)}
-              className="w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shrink-0 cursor-pointer"
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              aria-label="Toggle sidebar collapse"
-            >
-              <svg
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          ) : (
+            <>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2.5 min-w-0 group focus:outline-none"
+                title={`${workspaceDisplayName} · ${appBrandName}`}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          </div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EA580C] text-white shadow-xs group-hover:bg-[#D94E07] transition-all shrink-0">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <div className="flex flex-col leading-tight min-w-0">
+                  <span className="font-semibold text-sm tracking-tight text-slate-900 group-hover:text-[#EA580C] transition-colors truncate">
+                    {workspaceDisplayName}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {appBrandName}
+                  </span>
+                </div>
+              </Link>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {/* Notification Bell Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowNotifDrawer(true)}
+                  className="relative w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition shrink-0 cursor-pointer"
+                  title="Store Notifications & Announcements"
+                  aria-label="Open notifications"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-3.5 min-w-3.5 px-0.5 rounded-full bg-rose-500 text-white text-[9px] font-mono font-bold flex items-center justify-center animate-pulse">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Sidebar Collapse Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setCollapsed(true)}
+                  className="w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shrink-0 cursor-pointer"
+                  title="Collapse sidebar"
+                  aria-label="Collapse sidebar"
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Scrollable Navigation Groups */}
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 no-scrollbar">
+          {/* Collapsed Mode: Dedicated Notification Bell Button */}
+          {collapsed && (
+            <div className="flex justify-center pb-1">
+              <button
+                type="button"
+                onClick={() => setShowNotifDrawer(true)}
+                className="relative flex items-center justify-center w-10 h-10 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition cursor-pointer"
+                title={unreadCount > 0 ? `Store Notifications (${unreadCount} unread)` : "Store Notifications"}
+              >
+                <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 h-4 min-w-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-mono font-bold flex items-center justify-center shadow-xs animate-pulse">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
           {visibleNavGroups.map((grp) => (
             <div key={grp.group} className="space-y-1">
               {!collapsed ? (
@@ -445,8 +507,11 @@ export default function Navbar() {
           )}
 
           {/* User Profile Row */}
-          <div className="flex items-center gap-2.5 px-1 py-1 min-w-0">
-            <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xs shrink-0 shadow-xs">
+          <div className={`flex items-center gap-2.5 min-w-0 ${collapsed ? "justify-center" : "px-1 py-1"}`}>
+            <div
+              className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xs shrink-0 shadow-xs"
+              title={`${userName} (${roleDisplayLabel})`}
+            >
               {userInitial}
             </div>
             {!collapsed && (
@@ -460,6 +525,26 @@ export default function Navbar() {
               </div>
             )}
           </div>
+
+          {/* Sidebar Expand / Collapse Toggle Button at Footer */}
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-medium transition cursor-pointer ${
+              collapsed ? "justify-center" : ""
+            }`}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <svg
+              className={`w-3.5 h-3.5 shrink-0 transition-transform ${collapsed ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+            {!collapsed && <span>Collapse Sidebar</span>}
+          </button>
 
           {/* Full-width Outlined Rose Sign Out Button */}
           <button
@@ -810,7 +895,7 @@ export default function Navbar() {
           <svg className="w-5 h-5 shrink-0 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          <span className="truncate">Piku AI</span>
+          <span className="truncate">{aiName} AI</span>
         </Link>
 
         <button
