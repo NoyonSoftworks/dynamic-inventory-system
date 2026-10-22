@@ -275,6 +275,13 @@ export default function SuperAdminDashboard() {
     enterprise_plan_price_bdt: 4990,
     enterprise_plan_price_usd: 99,
     enterprise_order_limit: 5000,
+    ai_name: "Tuku",
+    ai_name_bn: "টুকু",
+    ai_tagline: "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট",
+    ai_is_active: true,
+    ai_model_mode: "balanced",
+    ai_welcome_message: "হ্যালো! আমি টুকু (Tuku) — আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট। আমি ইনভেন্টরি, ডেলিভারি ট্র্যাকিং ও সাপোর্ট টিকিট ইস্যু করতে প্রস্তুত।",
+    ai_custom_instructions: "",
   });
 
   // Password visibility toggles
@@ -1502,6 +1509,18 @@ export default function SuperAdminDashboard() {
           icon: (
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+          ),
+        },
+        {
+          id: "ai-copilot",
+          label: "AI Copilot & Assistant",
+          tab: "security",
+          scrollTo: "ai-assistant-control-center",
+          badge: saasSettings.ai_name || "Tuku",
+          icon: (
+            <svg className="w-4 h-4 shrink-0 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           ),
         },
@@ -4501,6 +4520,251 @@ export default function SuperAdminDashboard() {
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50 cursor-pointer shrink-0"
                   >
                     <span>{savingSettings ? "Saving Settings…" : "Save Global Contact Settings"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* ── AI COPILOT & MERCHANT ASSISTANT CONTROL CENTER ── */}
+            <div id="ai-assistant-control-center" className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full">
+                      AI Agent Copilot
+                    </span>
+                    {saasSettings.ai_is_active !== false ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Live &amp; Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        Maintenance Mode
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="mt-2 text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                    <span className="text-2xl select-none">🤖</span>
+                    <span>Merchant AI Copilot Control Center ({saasSettings.ai_name || "Tuku"} / {saasSettings.ai_name_bn || "টুকু"})</span>
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500 max-w-3xl">
+                    Super Admin master control for the merchant AI assistant. Customize the assistant&apos;s cute name, Bengali identity, model reasoning mode, welcome message, or inject custom store rules directly into the AI system prompt.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link
+                    href="/dashboard/piku"
+                    target="_blank"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition cursor-pointer"
+                    title="Open Merchant AI workspace in new tab"
+                  >
+                    <span>Test AI Chat</span>
+                    <span>↗</span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Master AI Kill-Switch / Status Card */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-orange-500 via-amber-500 to-yellow-400 text-white shadow-md text-2xl select-none">
+                    🤖
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-slate-900">
+                        {saasSettings.ai_name || "Tuku"} ({saasSettings.ai_name_bn || "টুকু"}) AI Assistant
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-orange-100 text-orange-800 border border-orange-200">
+                        {saasSettings.ai_model_mode === "pro" ? "DEEP PRO" : saasSettings.ai_model_mode === "fast" ? "FAST" : "BALANCED"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {saasSettings.ai_tagline || "আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট"} • 24/7 Multi-Language Copilot
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saasSettings.ai_is_active !== false}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          ai_is_active: e.target.checked,
+                        }))
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                  <span className="text-xs font-semibold text-slate-700">
+                    {saasSettings.ai_is_active !== false ? "AI Active for Merchants" : "Maintenance Mode (Off)"}
+                  </span>
+                </div>
+              </div>
+
+              {/* AI Configuration Form */}
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* AI English Name */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      AI Brand Name (English)
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.ai_name || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          ai_name: e.target.value,
+                        }))
+                      }
+                      placeholder="Tuku"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-semibold focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Primary brand name (e.g. Tuku, Niko, Lumi).
+                    </p>
+                  </div>
+
+                  {/* AI Bengali Name */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      AI Brand Name (বাংলা)
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.ai_name_bn || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          ai_name_bn: e.target.value,
+                        }))
+                      }
+                      placeholder="টুকু"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-semibold focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Bengali name shown in Bengali chat responses.
+                    </p>
+                  </div>
+
+                  {/* AI Tagline */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      AI Subtitle / Tagline
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.ai_tagline || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          ai_tagline: e.target.value,
+                        }))
+                      }
+                      placeholder="আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Role description shown under the AI header.
+                    </p>
+                  </div>
+
+                  {/* Model Mode */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Reasoning Intelligence Mode
+                    </label>
+                    <select
+                      value={saasSettings.ai_model_mode || "balanced"}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          ai_model_mode: e.target.value,
+                        }))
+                      }
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-medium focus:bg-white focus:border-orange-500 focus:outline-none transition cursor-pointer"
+                    >
+                      <option value="fast">⚡ Fast (Lowest latency, quick answers)</option>
+                      <option value="balanced">⚖️ Balanced (Recommended — Smart &amp; fast)</option>
+                      <option value="pro">🧠 Deep Pro (Maximum analytical depth)</option>
+                    </select>
+                    <p className="text-[11px] text-slate-500">
+                      Controls reasoning depth and response speed.
+                    </p>
+                  </div>
+                </div>
+
+                {/* AI Welcome Message */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center justify-between">
+                    <span>Default Welcome Greeting Message</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Shown when merchants open the chat</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={saasSettings.ai_welcome_message || ""}
+                    onChange={(e) =>
+                      setSaasSettings((prev) => ({
+                        ...prev,
+                        ai_welcome_message: e.target.value,
+                      }))
+                    }
+                    placeholder="হ্যালো! আমি টুকু (Tuku) — আপনার স্মার্ট মার্চেন্ট অ্যাসিস্ট্যান্ট..."
+                    className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition leading-relaxed resize-y"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    Supports Markdown formatting (**bold**, bullet points, links).
+                  </p>
+                </div>
+
+                {/* Custom Super Admin Guidance / Operational Store Rules */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center justify-between">
+                    <span>Super Admin Operational Guidance &amp; Store Rules (Prompt Injection)</span>
+                    <span className="text-[10px] text-orange-600 font-semibold">✨ Injected into System Prompt</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={saasSettings.ai_custom_instructions || ""}
+                    onChange={(e) =>
+                      setSaasSettings((prev) => ({
+                        ...prev,
+                        ai_custom_instructions: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g. Always remind merchants to take ৳150 advance bKash for outside Dhaka orders. If a merchant mentions Steadfast, advise them to upload CSV weekly. For Eid holidays, tell merchants about courier booking cutoff on 5th April."
+                    className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition leading-relaxed resize-y font-mono text-[11px]"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    Any rules typed here will directly guide the AI&apos;s recommendations across all merchant conversations.
+                  </p>
+                </div>
+
+                {/* Save Footer Bar */}
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-100">
+                  <div className="flex items-center gap-2 text-slate-500 text-[11px]">
+                    <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Instant propagation: AI name and guidelines reflect live across all merchant workspaces immediately.</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSettings("AI Copilot & Assistant Settings")}
+                    disabled={savingSettings}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50 cursor-pointer shrink-0"
+                  >
+                    <span>{savingSettings ? "Saving Settings…" : "Save AI Copilot Settings"}</span>
                   </button>
                 </div>
               </div>
