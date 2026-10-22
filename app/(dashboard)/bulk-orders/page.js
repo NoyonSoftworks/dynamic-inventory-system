@@ -182,13 +182,19 @@ function computeOrderRisk(order, allOrders = []) {
 export default function BulkOrdersPage() {
   const { businessId, businessName, loading: ctxLoading } = useBusinessContext();
 
-  // ── Tab Navigation: 'orders_queue' | 'manual_bulk' ─────────
+  // ── Tab Navigation: 'orders_queue' | 'dispatched_hub' | 'returns_exchanges' | 'manual_bulk' ─────────
   const [activeTab, setActiveTab] = useState("orders_queue");
 
   // ── Orders & COD Verification State ────────────────────────
   const [orders, setOrders] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("ALL"); // 'ALL' | 'PENDING' | 'DISPATCHED' | 'HIGH_RISK'
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // ── Date Range & Courier Filtering State ───────────────────
+  const [datePreset, setDatePreset] = useState("all"); // 'all' | 'today' | 'yesterday' | 'last_7_days' | 'this_month' | 'custom'
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const [courierFilter, setCourierFilter] = useState("ALL"); // 'ALL' | 'Steadfast' | 'Pathao' | 'RedX' | 'Paperfly'
 
   // ── Modals State ───────────────────────────────────────────
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
@@ -198,6 +204,11 @@ export default function BulkOrdersPage() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [syncWebsiteModalOpen, setSyncWebsiteModalOpen] = useState(false);
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
+
+  // Inbound Return & Exchange Scanner Modal State
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [orderForReturn, setOrderForReturn] = useState(null);
+  const [isSyncingCouriers, setIsSyncingCouriers] = useState(false);
 
   // ── Manual Bulk Row State ──────────────────────────────────
   const [products, setProducts] = useState([]);
@@ -230,7 +241,7 @@ export default function BulkOrdersPage() {
       if (ords && ords.length > 0) {
         setOrders(ords);
       } else {
-        // Demonstration orders for empty stores
+        // Demonstration orders for empty stores with comprehensive status lifecycles
         const sampleOrders = [
           {
             id: "ord-8841",
@@ -267,12 +278,44 @@ export default function BulkOrdersPage() {
             customer_address: "Flat 4B, Green View Tower, Mirpur DOHS, Dhaka",
             courier_name: "Pathao Express",
             consignment_id: "PT-9482103",
-            status: "DISPATCHED",
+            status: "IN_TRANSIT",
             total_amount: 3200,
             product_name: "Ceramic Pour-Over Coffee Dripper",
             product_sku: "HOME-DRIP-01",
             quantity: 2,
             created_at: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
+          },
+          {
+            id: "ord-8844",
+            customer_name: "Mustafizur Rahman",
+            customer_phone: "01912987654",
+            customer_address: "Holding 15, CDA Avenue, GEC Circle, Chattogram",
+            courier_name: "Steadfast Courier",
+            consignment_id: "SF-8844510",
+            status: "DELIVERED",
+            total_amount: 2400,
+            product_name: "Minimalist Linen Long Sleeve Shirt",
+            product_sku: "SHIRT-LIN-NVY",
+            quantity: 1,
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
+          },
+          {
+            id: "ord-8845",
+            customer_name: "Nusrat Jahan",
+            customer_phone: "01611223344",
+            customer_address: "House 3, Road 18, Block D, Banani, Dhaka",
+            courier_name: "Pathao Express",
+            consignment_id: "PT-8845921",
+            status: "RETURNED",
+            total_amount: 0,
+            courier_fee: 60,
+            return_reason: "Customer Refused COD (Size Too Small)",
+            return_note: "[RETURN: INTACT] Order #PT-8845921 returned via Pathao. Reason: Size did not fit customer. Inspected parcel: intact with tags and verified into Warehouse Shelf A2.",
+            returned_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+            product_name: "Slim Fit Chino Pants",
+            product_sku: "PANTS-CHN-KHK",
+            quantity: 1,
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
           },
         ];
         setOrders(sampleOrders);
@@ -420,14 +463,145 @@ export default function BulkOrdersPage() {
     });
   }, [orders]);
 
-  // Filtered Orders
+  // ── Sync Courier Consignments with Live API ─────────────────
+  async function handleSyncCourierStatus(targetOrderIds = null) {
+    try {
+      setIsSyncingCouriers(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/orders/courier-sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+        body: JSON.stringify({
+          orderIds: targetOrderIds || [],
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to sync courier statuses.");
+      }
+
+      if (json.orders && json.orders.length > 0) {
+        setOrders((prev) =>
+          prev.map((o) => {
+            const matched = json.orders.find((u) => u.id === o.id);
+            return matched ? { ...o, ...matched } : o;
+          })
+        );
+        showToast("success", `✓ Synchronized ${json.orders.length} consignments with live courier API!`);
+      } else {
+        showToast("success", "Courier status check completed. All consignments are up to date.");
+      }
+    } catch (err) {
+      showToast("error", err.message || "Courier sync failed.");
+    } finally {
+      setIsSyncingCouriers(false);
+    }
+  }
+
+  // ── Manual Courier Status Quick Update ──────────────────────
+  async function handleQuickStatusUpdate(orderId, newStatus) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/orders/courier-sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+        body: JSON.stringify({
+          orderIds: [orderId],
+          specificStatus: newStatus,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to update order status.");
+      }
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+      );
+      showToast("success", `Order consignment status updated to ${newStatus}.`);
+    } catch (err) {
+      showToast("error", err.message || "Failed to update status.");
+    }
+  }
+
+  // ── Multi-Factor Filtered Orders (Date, Courier, Status, Tab & Search) ──
   const filteredOrders = useMemo(() => {
     return scoredOrders.filter((o) => {
-      const st = (o.status || "").toUpperCase();
-      if (statusFilter === "PENDING" && st === "DISPATCHED") return false;
-      if (statusFilter === "DISPATCHED" && st !== "DISPATCHED") return false;
-      if (statusFilter === "HIGH_RISK" && o.risk.riskBadge !== "HIGH_RISK") return false;
+      // 1. Date Range Filter
+      if (datePreset !== "all") {
+        const orderDate = new Date(o.created_at || Date.now());
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+        if (datePreset === "today") {
+          if (orderDate < todayStart) return false;
+        } else if (datePreset === "yesterday") {
+          const yesterdayStart = new Date(todayStart);
+          yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+          if (orderDate < yesterdayStart || orderDate >= todayStart) return false;
+        } else if (datePreset === "last_7_days") {
+          const sevenDaysAgo = new Date(todayStart);
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+          if (orderDate < sevenDaysAgo) return false;
+        } else if (datePreset === "this_month") {
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          if (orderDate < monthStart) return false;
+        } else if (datePreset === "custom") {
+          if (customStartDate && new Date(customStartDate) > orderDate) return false;
+          if (customEndDate) {
+            const endOfCustomDay = new Date(customEndDate);
+            endOfCustomDay.setHours(23, 59, 59, 999);
+            if (orderDate > endOfCustomDay) return false;
+          }
+        }
+      }
+
+      // 2. Courier Filter
+      if (courierFilter !== "ALL") {
+        const courierLower = (o.courier_name || "").toLowerCase();
+        if (!courierLower.includes(courierFilter.toLowerCase())) return false;
+      }
+
+      // 3. Tab Scoping
+      const statusUpper = (o.status || "").toUpperCase();
+      if (activeTab === "orders_queue") {
+        // Pending queue excludes orders already out of warehouse
+        if (["DISPATCHED", "IN_TRANSIT", "DELIVERED", "RETURNED", "EXCHANGED"].includes(statusUpper)) {
+          return false;
+        }
+      } else if (activeTab === "dispatched_hub") {
+        // Dispatched hub displays orders that have been consigned / left warehouse
+        if (["PENDING", "PENDING_DISPATCH", "PACKED"].includes(statusUpper)) {
+          return false;
+        }
+      } else if (activeTab === "returns_exchanges") {
+        // Reverse logistics hub displays returns, partial deliveries, and exchanges
+        if (!["RETURNED", "PARTIAL_DELIVERED", "EXCHANGED", "RETURN_IN_TRANSIT"].includes(statusUpper)) {
+          return false;
+        }
+      }
+
+      // 4. Status Filter
+      if (statusFilter !== "ALL") {
+        if (statusFilter === "PENDING" && statusUpper !== "PENDING" && statusUpper !== "PENDING_DISPATCH") return false;
+        if (statusFilter === "IN_TRANSIT" && statusUpper !== "IN_TRANSIT" && statusUpper !== "DISPATCHED") return false;
+        if (statusFilter === "DELIVERED" && statusUpper !== "DELIVERED") return false;
+        if (statusFilter === "RETURN_IN_TRANSIT" && statusUpper !== "RETURN_IN_TRANSIT") return false;
+        if (statusFilter === "RETURNED" && statusUpper !== "RETURNED") return false;
+        if (statusFilter === "PARTIAL_DELIVERED" && statusUpper !== "PARTIAL_DELIVERED") return false;
+        if (statusFilter === "EXCHANGED" && statusUpper !== "EXCHANGED") return false;
+        if (statusFilter === "HIGH_RISK" && o.risk.riskBadge !== "HIGH_RISK") return false;
+      }
+
+      // 5. Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchName = (o.customer_name || "").toLowerCase().includes(q);
@@ -437,32 +611,97 @@ export default function BulkOrdersPage() {
           (o.product_name || o.products?.name || "").toLowerCase().includes(q) ||
           (o.product_sku || o.products?.base_sku || "").toLowerCase().includes(q)
         );
-        if (!matchName && !matchPhone && !matchConsignment && !matchProduct) return false;
+        const matchAddress = (o.customer_address || "").toLowerCase().includes(q);
+        const matchNote = (o.return_note || o.return_reason || "").toLowerCase().includes(q);
+        if (!matchName && !matchPhone && !matchConsignment && !matchProduct && !matchAddress && !matchNote) return false;
       }
 
       return true;
     });
-  }, [scoredOrders, statusFilter, searchQuery]);
+  }, [scoredOrders, datePreset, customStartDate, customEndDate, courierFilter, statusFilter, activeTab, searchQuery]);
 
-  // Order Metrics
+  // ── Metric Strips for All Tabs ──────────────────────────────
   const orderMetrics = useMemo(() => {
-    const pendingOrders = scoredOrders.filter((o) => (o.status || "").toUpperCase() !== "DISPATCHED");
-    const dispatchedOrders = scoredOrders.filter((o) => (o.status || "").toUpperCase() === "DISPATCHED");
-    const highRiskOrders = scoredOrders.filter((o) => o.risk.riskBadge === "HIGH_RISK");
+    const pendingOrders = scoredOrders.filter((o) => {
+      const s = (o.status || "").toUpperCase();
+      return !["DISPATCHED", "IN_TRANSIT", "DELIVERED", "RETURNED", "EXCHANGED"].includes(s);
+    });
+    const dispatchedToday = scoredOrders.filter((o) => {
+      const s = (o.status || "").toUpperCase();
+      return ["DISPATCHED", "IN_TRANSIT"].includes(s);
+    });
+    const highRiskOrders = pendingOrders.filter((o) => o.risk.riskBadge === "HIGH_RISK");
     const totalCodValue = pendingOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
 
     return {
       totalCount: scoredOrders.length,
       pendingCount: pendingOrders.length,
-      dispatchedCount: dispatchedOrders.length,
+      dispatchedCount: dispatchedToday.length,
       highRiskCount: highRiskOrders.length,
       totalCodValue,
     };
   }, [scoredOrders]);
 
+  // Dispatched & Courier Hub Financial Metrics
+  const dispatchedMetrics = useMemo(() => {
+    const allDispatched = scoredOrders.filter((o) => {
+      const s = (o.status || "").toUpperCase();
+      return ["DISPATCHED", "IN_TRANSIT", "DELIVERED", "RETURN_IN_TRANSIT", "RETURNED", "PARTIAL_DELIVERED", "EXCHANGED"].includes(s);
+    });
+
+    const deliveredOrders = allDispatched.filter((o) => (o.status || "").toUpperCase() === "DELIVERED");
+    const inTransitOrders = allDispatched.filter((o) => ["DISPATCHED", "IN_TRANSIT"].includes((o.status || "").toUpperCase()));
+    const returnOrders = allDispatched.filter((o) => ["RETURNED", "RETURN_IN_TRANSIT", "PARTIAL_DELIVERED"].includes((o.status || "").toUpperCase()));
+
+    const totalConsignedCod = allDispatched.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+    const deliveredCod = deliveredOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+    const inTransitCod = inTransitOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+    const returnShippingLoss = returnOrders.reduce((sum, o) => sum + (Number(o.courier_fee) || 60), 0);
+    const netRemittance = deliveredCod - returnShippingLoss;
+
+    return {
+      totalDispatchedCount: allDispatched.length,
+      deliveredCount: deliveredOrders.length,
+      inTransitCount: inTransitOrders.length,
+      returnCount: returnOrders.length,
+      totalConsignedCod,
+      deliveredCod,
+      inTransitCod,
+      returnShippingLoss,
+      netRemittance,
+    };
+  }, [scoredOrders]);
+
+  // Returns & Exchanges Hub Metrics
+  const returnsMetrics = useMemo(() => {
+    const returnsList = scoredOrders.filter((o) => {
+      const s = (o.status || "").toUpperCase();
+      return ["RETURNED", "PARTIAL_DELIVERED", "EXCHANGED", "RETURN_IN_TRANSIT"].includes(s);
+    });
+
+    const fullReturns = returnsList.filter((o) => (o.status || "").toUpperCase() === "RETURNED");
+    const partialReturns = returnsList.filter((o) => (o.status || "").toUpperCase() === "PARTIAL_DELIVERED");
+    const exchanges = returnsList.filter((o) => (o.status || "").toUpperCase() === "EXCHANGED");
+    const returnInTransit = returnsList.filter((o) => (o.status || "").toUpperCase() === "RETURN_IN_TRANSIT");
+
+    const restockedValue = fullReturns.reduce((sum, o) => sum + (Number(o.products?.price) || Number(o.total_amount) || 0), 0);
+
+    return {
+      totalReturnsCount: returnsList.length,
+      fullReturnCount: fullReturns.length,
+      partialReturnCount: partialReturns.length,
+      exchangeCount: exchanges.length,
+      returnInTransitCount: returnInTransit.length,
+      restockedValue,
+    };
+  }, [scoredOrders]);
+
   // Pending orders list for auto-advance in scan modal
   const remainingPendingOrders = useMemo(() => {
-    return scoredOrders.filter((o) => (o.status || "").toUpperCase() !== "DISPATCHED");
+    return scoredOrders.filter((o) => {
+      const s = (o.status || "").toUpperCase();
+      return !["DISPATCHED", "IN_TRANSIT", "DELIVERED", "RETURNED", "EXCHANGED"].includes(s);
+    });
   }, [scoredOrders]);
 
   if (pageLoading || ctxLoading) {
@@ -564,20 +803,42 @@ export default function BulkOrdersPage() {
         />
       )}
 
+      {/* ── 6. Inbound Return, Exchange & Restock Scanner Modal ── */}
+      {returnModalOpen && (
+        <InboundReturnModal
+          isOpen={returnModalOpen}
+          initialOrder={orderForReturn}
+          allOrders={orders}
+          products={products}
+          onClose={() => {
+            setReturnModalOpen(false);
+            setOrderForReturn(null);
+          }}
+          onProcessed={(updatedOrder, lifecycleNote) => {
+            setOrders((prev) =>
+              prev.map((o) => (o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o))
+            );
+            showToast("success", `✓ Reverse logistics recorded! Stock updated and cycle note saved.`);
+            setReturnModalOpen(false);
+            setOrderForReturn(null);
+          }}
+        />
+      )}
+
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ── Top Header Section ───────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-                Daily Orders &amp; Dispatch Hub
+                Daily Orders, Dispatch &amp; Reverse Logistics Hub
               </h1>
               <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[11px] font-bold">
-                Batch Scanning &amp; Fulfillment
+                Fulfillment &amp; Courier Sync
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Sync orders from your website or upload daily spreadsheets, then scan item barcodes to pick &amp; pack in seconds.
+              Sync orders from your website or spreadsheets, scan item barcodes to dispatch, and track courier returns, partials &amp; stock restocks.
             </p>
           </div>
 
@@ -590,20 +851,34 @@ export default function BulkOrdersPage() {
               title="Sync unfulfilled orders from your live store website"
             >
               <span className="text-sm">🌐</span>
-              <span>Sync Website Orders</span>
+              <span>Sync Website</span>
             </button>
 
             {/* Upload Daily Orders Button */}
             <button
               type="button"
               onClick={() => setUploadModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-600/20 transition"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-600/20 transition"
               title="Upload CSV / Excel spreadsheet of today's customer orders"
             >
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              <span>+ Upload Today&apos;s Orders (CSV)</span>
+              <span>+ Upload CSV</span>
+            </button>
+
+            {/* Inbound Return / Exchange Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setOrderForReturn(null);
+                setReturnModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-800 font-bold text-xs shadow-xs transition"
+              title="Scan or enter returned parcel to restock into warehouse inventory"
+            >
+              <span>🔄</span>
+              <span>Inbound Return</span>
             </button>
 
             {/* Quick Single Order */}
@@ -613,35 +888,78 @@ export default function BulkOrdersPage() {
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-xs transition"
               title="Add a single phone / WhatsApp customer order"
             >
-              <span>+ Quick Order</span>
+              <span>+ Order</span>
             </button>
-
-            {/* View Mode Switcher */}
-            <div className="p-0.5 rounded-xl bg-slate-100 border border-slate-200 flex">
-              <button
-                type="button"
-                onClick={() => setActiveTab("orders_queue")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  activeTab === "orders_queue"
-                    ? "bg-white text-slate-900 shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Orders Queue
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("manual_bulk")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  activeTab === "manual_bulk"
-                    ? "bg-white text-slate-900 shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Manual Multi-SKU
-              </button>
-            </div>
           </div>
+        </div>
+
+        {/* ── 4 Primary Tabs Switcher ─────────────────────────── */}
+        <div className="p-1 rounded-2xl bg-slate-100 border border-slate-200 flex items-center gap-1.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("orders_queue");
+              setStatusFilter("ALL");
+            }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              activeTab === "orders_queue"
+                ? "bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>📦 Daily Packing Queue</span>
+            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-mono font-bold">
+              {orderMetrics.pendingCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("dispatched_hub");
+              setStatusFilter("ALL");
+            }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              activeTab === "dispatched_hub"
+                ? "bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>🚚 Dispatched &amp; Courier Hub</span>
+            <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-mono font-bold">
+              {dispatchedMetrics.totalDispatchedCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("returns_exchanges");
+              setStatusFilter("ALL");
+            }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              activeTab === "returns_exchanges"
+                ? "bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>🔄 Inbound Returns &amp; Restock</span>
+            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-mono font-bold">
+              {returnsMetrics.totalReturnsCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("manual_bulk")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              activeTab === "manual_bulk"
+                ? "bg-white text-slate-900 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>📝 Manual Multi-SKU</span>
+          </button>
         </div>
 
         {/* ── Toast Notification Banner ────────────────────────── */}
@@ -743,20 +1061,110 @@ export default function BulkOrdersPage() {
               </div>
             </div>
 
-            {/* Filter Pills, Search Bar & Quick Sample CSV Button */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200 bg-white shadow-xs">
-              <div className="flex flex-wrap items-center gap-1.5">
+            {/* Comprehensive Date Range, Courier & Search Filter Bar */}
+            <div className="p-3.5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-3">
+              {/* Row 1: Date Range Presets, Courier Select, Search & Export */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Date Range Selector */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      📅 Date:
+                    </span>
+                    <select
+                      value={datePreset}
+                      onChange={(e) => setDatePreset(e.target.value)}
+                      className="h-8 px-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:border-orange-600 focus:outline-none"
+                    >
+                      <option value="all">All Time</option>
+                      <option value="today">Today</option>
+                      <option value="yesterday">Yesterday</option>
+                      <option value="last_7_days">Last 7 Days</option>
+                      <option value="this_month">This Month (30 Days)</option>
+                      <option value="custom">Custom Date Range…</option>
+                    </select>
+                  </div>
+
+                  {/* Custom Date Pickers */}
+                  {datePreset === "custom" && (
+                    <div className="flex items-center gap-1.5 animate-in fade-in duration-150">
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="h-8 px-2 text-xs font-mono rounded-xl border border-slate-200 bg-white text-slate-800 focus:border-orange-600 focus:outline-none"
+                        title="Start Date"
+                      />
+                      <span className="text-slate-400 text-xs">to</span>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="h-8 px-2 text-xs font-mono rounded-xl border border-slate-200 bg-white text-slate-800 focus:border-orange-600 focus:outline-none"
+                        title="End Date"
+                      />
+                    </div>
+                  )}
+
+                  {/* Courier Partner Filter */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      🚚 Courier:
+                    </span>
+                    <select
+                      value={courierFilter}
+                      onChange={(e) => setCourierFilter(e.target.value)}
+                      className="h-8 px-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:border-orange-600 focus:outline-none"
+                    >
+                      <option value="ALL">All Logistics Partners</option>
+                      <option value="Steadfast">Steadfast Courier</option>
+                      <option value="Pathao">Pathao Express</option>
+                      <option value="RedX">RedX Delivery</option>
+                      <option value="Paperfly">Paperfly</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Search Query Input */}
+                  <div className="relative flex-1 sm:w-72">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search buyer, phone, SKU, order ID…"
+                      className="w-full h-8 rounded-xl border border-slate-200 bg-white pl-8 pr-3 text-xs text-slate-900 placeholder-slate-400 font-mono focus:border-orange-600 focus:outline-none transition"
+                    />
+                    <span className="absolute left-2.5 top-2 text-slate-400 text-xs">
+                      🔍
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={downloadDailyOrdersTemplate}
+                    className="h-8 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold transition shrink-0 inline-flex items-center gap-1.5"
+                    title="Download sample spreadsheet template"
+                  >
+                    <svg className="w-3.5 h-3.5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Sample CSV</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Row 2: Status Filter Pills */}
+              <div className="flex items-center gap-1.5 border-t border-slate-100 pt-2.5 flex-wrap">
                 {[
-                  { id: "ALL", label: `All Orders (${scoredOrders.length})` },
-                  { id: "PENDING", label: `Awaiting Scan (${orderMetrics.pendingCount})` },
-                  { id: "DISPATCHED", label: `Dispatched (${orderMetrics.dispatchedCount})` },
+                  { id: "ALL", label: `All In Queue (${orderMetrics.pendingCount})` },
                   { id: "HIGH_RISK", label: `High RTO Risk (${orderMetrics.highRiskCount})` },
                 ].map(({ id, label }) => (
                   <button
                     key={id}
                     type="button"
                     onClick={() => setStatusFilter(id)}
-                    className={`h-8 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                    className={`h-7 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
                       statusFilter === id
                         ? "bg-slate-900 text-white shadow-xs"
                         : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -765,33 +1173,6 @@ export default function BulkOrdersPage() {
                     {label}
                   </button>
                 ))}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1 sm:w-72">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search buyer, phone, SKU, order ID…"
-                    className="w-full h-8 rounded-xl border border-slate-200 bg-white pl-8 pr-3 text-xs text-slate-900 placeholder-slate-400 font-mono focus:border-orange-600 focus:outline-none transition"
-                  />
-                  <span className="absolute left-2.5 top-2 text-slate-400 text-xs">
-                    🔍
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={downloadDailyOrdersTemplate}
-                  className="h-8 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold transition shrink-0 inline-flex items-center gap-1.5"
-                  title="Download sample spreadsheet template"
-                >
-                  <svg className="w-3.5 h-3.5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  <span>Sample CSV</span>
-                </button>
               </div>
             </div>
 
@@ -975,8 +1356,789 @@ export default function BulkOrdersPage() {
         )}
 
         {/* ======================================================= */}
-        {/* VIEW 2: MANUAL MULTI-SKU DEDUCTION                      */}
+        {/* VIEW 2: DISPATCHED & COURIER LOGISTICS HUB             */}
         {/* ======================================================= */}
+        {activeTab === "dispatched_hub" && (
+          <div className="space-y-6">
+            {/* Courier Financial Settlement & Delivery Performance Strip */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-5">
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Total Dispatched
+                  </span>
+                  <span className="p-1 rounded-md bg-blue-50 border border-blue-200 text-blue-600">
+                    🚚
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-slate-900 tracking-tight font-mono mt-1">
+                  {dispatchedMetrics.totalDispatchedCount} parcels
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">
+                  Consigned to courier partners
+                </div>
+              </div>
+
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Delivered &amp; Paid
+                  </span>
+                  <span className="p-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-600">
+                    ✓
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-emerald-600 tracking-tight font-mono mt-1">
+                  ৳{dispatchedMetrics.deliveredCod.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">
+                  {dispatchedMetrics.deliveredCount} orders cash collected
+                </div>
+              </div>
+
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">
+                    In-Transit COD
+                  </span>
+                  <span className="p-1 rounded-md bg-blue-50 border border-blue-200 text-blue-600">
+                    ৳
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-blue-600 tracking-tight font-mono mt-1">
+                  ৳{dispatchedMetrics.inTransitCod.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">
+                  {dispatchedMetrics.inTransitCount} parcels on the road
+                </div>
+              </div>
+
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Return Shipping Loss
+                  </span>
+                  <span className="p-1 rounded-md bg-rose-50 border border-rose-200 text-rose-600">
+                    ⚠️
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-rose-600 tracking-tight font-mono mt-1">
+                  ৳{dispatchedMetrics.returnShippingLoss.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">
+                  Courier fees on {dispatchedMetrics.returnCount} returns
+                </div>
+              </div>
+
+              <div className="p-4 space-y-1 col-span-2 lg:col-span-1 bg-emerald-50/40">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-800">
+                    Net Remittance
+                  </span>
+                  <span className="p-1 rounded-md bg-emerald-100 text-emerald-800 font-bold">
+                    ৳
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-emerald-700 tracking-tight font-mono mt-1">
+                  ৳{dispatchedMetrics.netRemittance.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-emerald-600 font-semibold font-mono">
+                  Collected COD minus courier charges
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Toolbar & Live Courier Sync Action */}
+            <div className="p-3.5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-3">
+              {/* Row 1: Date Range, Courier Select, Search & Actions */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Date Range Selector */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      📅 Date:
+                    </span>
+                    <select
+                      value={datePreset}
+                      onChange={(e) => setDatePreset(e.target.value)}
+                      className="h-8 px-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:border-orange-600 focus:outline-none"
+                    >
+                      <option value="all">All Dates</option>
+                      <option value="today">Today</option>
+                      <option value="yesterday">Yesterday</option>
+                      <option value="last_7_days">Last 7 Days</option>
+                      <option value="this_month">This Month (30 Days)</option>
+                      <option value="custom">Custom Date Range…</option>
+                    </select>
+                  </div>
+
+                  {datePreset === "custom" && (
+                    <div className="flex items-center gap-1.5 animate-in fade-in duration-150">
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="h-8 px-2 text-xs font-mono rounded-xl border border-slate-200 bg-white text-slate-800 focus:border-orange-600 focus:outline-none"
+                      />
+                      <span className="text-slate-400 text-xs">to</span>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="h-8 px-2 text-xs font-mono rounded-xl border border-slate-200 bg-white text-slate-800 focus:border-orange-600 focus:outline-none"
+                      />
+                    </div>
+                  )}
+
+                  {/* Courier Partner Filter */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      🚚 Courier:
+                    </span>
+                    <select
+                      value={courierFilter}
+                      onChange={(e) => setCourierFilter(e.target.value)}
+                      className="h-8 px-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:border-orange-600 focus:outline-none"
+                    >
+                      <option value="ALL">All Logistics Partners</option>
+                      <option value="Steadfast">Steadfast Courier</option>
+                      <option value="Pathao">Pathao Express</option>
+                      <option value="RedX">RedX Delivery</option>
+                      <option value="Paperfly">Paperfly</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Search Query Input */}
+                  <div className="relative flex-1 sm:w-64">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search consignment #, buyer, phone…"
+                      className="w-full h-8 rounded-xl border border-slate-200 bg-white pl-8 pr-3 text-xs text-slate-900 placeholder-slate-400 font-mono focus:border-orange-600 focus:outline-none transition"
+                    />
+                    <span className="absolute left-2.5 top-2 text-slate-400 text-xs">
+                      🔍
+                    </span>
+                  </div>
+
+                  {/* Sync Courier Status Button */}
+                  <button
+                    type="button"
+                    disabled={isSyncingCouriers}
+                    onClick={() => handleSyncCourierStatus()}
+                    className="h-8 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition inline-flex items-center gap-1.5 disabled:opacity-50 shrink-0"
+                    title="Poll Steadfast / Pathao courier API for live delivery status"
+                  >
+                    {isSyncingCouriers ? (
+                      <>
+                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <span>Syncing…</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>⚡</span>
+                        <span>Sync Courier Status</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Inbound Return Quick Action */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderForReturn(null);
+                      setReturnModalOpen(true);
+                    }}
+                    className="h-8 px-3 rounded-xl bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-800 text-xs font-bold transition shrink-0 inline-flex items-center gap-1"
+                  >
+                    <span>🔄</span>
+                    <span>Receive Return</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Row 2: Status Filter Pills */}
+              <div className="flex items-center gap-1.5 border-t border-slate-100 pt-2.5 flex-wrap">
+                {[
+                  { id: "ALL", label: `All Consignments (${dispatchedMetrics.totalDispatchedCount})` },
+                  { id: "IN_TRANSIT", label: `In Transit (${dispatchedMetrics.inTransitCount})` },
+                  { id: "DELIVERED", label: `Delivered & Paid (${dispatchedMetrics.deliveredCount})` },
+                  { id: "RETURN_IN_TRANSIT", label: `Return In Transit (${returnsMetrics.returnInTransitCount})` },
+                  { id: "PARTIAL_DELIVERED", label: `Partial Delivered (${returnsMetrics.partialReturnCount})` },
+                  { id: "EXCHANGED", label: `Exchanged (${returnsMetrics.exchangeCount})` },
+                ].map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setStatusFilter(id)}
+                    className={`h-7 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                      statusFilter === id
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dispatched Consignments Table */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+              <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+                <span className="font-bold text-slate-900">
+                  Dispatched Consignments ({filteredOrders.length})
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Courier tracking synced with Steadfast, Pathao &amp; RedX reverse logistics
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full divide-y divide-slate-100 text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-mono tracking-wider font-bold">
+                    <tr>
+                      <th className="px-5 py-3">Consignment # / Courier</th>
+                      <th className="px-5 py-3">Customer &amp; Address</th>
+                      <th className="px-5 py-3">Item &amp; SKU</th>
+                      <th className="px-5 py-3 font-mono">COD Value (৳)</th>
+                      <th className="px-5 py-3">Delivery Status</th>
+                      <th className="px-5 py-3 text-right">Reverse Logistics &amp; Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {filteredOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-5 py-12 text-center text-slate-400 font-mono">
+                          No dispatched orders found for this date or courier filter.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredOrders.map((o) => {
+                        const statusUpper = (o.status || "").toUpperCase();
+                        const isDelivered = statusUpper === "DELIVERED";
+                        const isReturnInTransit = statusUpper === "RETURN_IN_TRANSIT";
+                        const isReturned = statusUpper === "RETURNED";
+                        const isPartial = statusUpper === "PARTIAL_DELIVERED";
+                        const isExchanged = statusUpper === "EXCHANGED";
+                        const trackingUrl =
+                          o.tracking_url ||
+                          (o.consignment_id?.startsWith("PT")
+                            ? `https://pathao.com/courier/`
+                            : `https://steadfast.com.bd/t/${o.consignment_id}`);
+
+                        return (
+                          <tr key={o.id} className="hover:bg-slate-50/70 transition-colors">
+                            {/* Consignment # & Tracking */}
+                            <td className="px-5 py-3.5">
+                              <a
+                                href={trackingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-mono font-bold text-blue-600 hover:text-blue-800 hover:underline block text-xs"
+                                title="Click to view live courier tracking page"
+                              >
+                                {o.consignment_id || `ORD-${String(o.id).slice(0, 8)}`} ↗
+                              </a>
+                              <span className="text-[11px] text-slate-600 font-semibold block">
+                                {o.courier_name || "Steadfast Courier"}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                Dispatched: {new Date(o.created_at).toLocaleDateString("en-GB")}
+                              </span>
+                            </td>
+
+                            {/* Recipient */}
+                            <td className="px-5 py-3.5 max-w-xs">
+                              <div className="font-bold text-slate-900 text-xs">
+                                {o.customer_name}
+                              </div>
+                              <div className="text-slate-600 font-mono text-[11px]">
+                                {o.customer_phone}
+                              </div>
+                              <p className="text-slate-500 text-[11px] truncate max-w-xs" title={o.customer_address}>
+                                {o.customer_address}
+                              </p>
+                            </td>
+
+                            {/* Item & SKU */}
+                            <td className="px-5 py-3.5">
+                              <div className="font-bold text-slate-800 text-xs">
+                                {o.product_name || o.products?.name || "Catalog Product"}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="font-mono text-[11px] text-orange-600 font-semibold">
+                                  SKU: {o.product_sku || o.products?.base_sku || "GENERAL"}
+                                </span>
+                                <span className="text-slate-400 text-[11px]">
+                                  Qty: {o.quantity || 1}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* COD Amount */}
+                            <td className="px-5 py-3.5">
+                              <span className="font-mono font-bold text-emerald-700 text-sm block">
+                                ৳{(Number(o.total_amount) || 0).toLocaleString()}
+                              </span>
+                              {isReturned && (
+                                <span className="text-[10px] text-rose-600 font-bold block">
+                                  COD Cancelled (Return)
+                                </span>
+                              )}
+                              {isDelivered && (
+                                <span className="text-[10px] text-emerald-600 font-bold block">
+                                  ✓ Cash Collected
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Status Badge */}
+                            <td className="px-5 py-3.5 whitespace-nowrap">
+                              {isDelivered && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                  <span>✓</span>
+                                  <span>Delivered &amp; Paid</span>
+                                </span>
+                              )}
+                              {isReturnInTransit && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                  <span>⚠️</span>
+                                  <span>Return in Transit</span>
+                                </span>
+                              )}
+                              {isReturned && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                                  <span>🔄</span>
+                                  <span>Returned &amp; Restocked</span>
+                                </span>
+                              )}
+                              {isPartial && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-300">
+                                  <span>🟣</span>
+                                  <span>Partial Delivery</span>
+                                </span>
+                              )}
+                              {isExchanged && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                                  <span>🔵</span>
+                                  <span>Exchanged</span>
+                                </span>
+                              )}
+                              {!isDelivered && !isReturnInTransit && !isReturned && !isPartial && !isExchanged && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                                  <span>🚚</span>
+                                  <span>In Transit</span>
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Actions: Process Return / Exchange, Track, Print */}
+                            <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5">
+                              {/* Receive Return or Exchange Button */}
+                              {!isReturned && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOrderForReturn(o);
+                                    setReturnModalOpen(true);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs transition"
+                                  title="Receive returned parcel or process size/product exchange"
+                                >
+                                  <span>🔄 Return / Exchange</span>
+                                </button>
+                              )}
+
+                              {/* Live Track Button */}
+                              <a
+                                href={trackingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition"
+                                title="Open carrier tracking website"
+                              >
+                                <span>🚚 Track</span>
+                              </a>
+
+                              {/* Thermal Label / Invoice */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedOrderForPrint(o);
+                                  setPrintModalOpen(true);
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition"
+                                title="Print thermal shipping label or invoice"
+                              >
+                                <span>🏷️ Label</span>
+                              </button>
+
+                              {/* Quick Status Override Dropdown */}
+                              <select
+                                value={statusUpper}
+                                onChange={(e) => handleQuickStatusUpdate(o.id, e.target.value)}
+                                className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:border-slate-300 focus:outline-none"
+                                title="Override courier delivery status manually"
+                              >
+                                <option value="IN_TRANSIT">In Transit</option>
+                                <option value="DELIVERED">Delivered &amp; Paid</option>
+                                <option value="RETURN_IN_TRANSIT">Return In Transit</option>
+                                <option value="RETURNED">Mark Returned</option>
+                              </select>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================= */}
+        {/* VIEW 3: INBOUND RETURNS, EXCHANGES & RESTOCK CENTER     */}
+        {/* ======================================================= */}
+        {activeTab === "returns_exchanges" && (
+          <div className="space-y-6">
+            {/* Reverse Logistics & Stock Recovery KPI Strip */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-xs divide-y sm:divide-y-0 sm:divide-x divide-slate-200 grid grid-cols-2 lg:grid-cols-4">
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Total Returns &amp; Parallels
+                  </span>
+                  <span className="p-1 rounded-md bg-rose-50 border border-rose-200 text-rose-600">
+                    🔄
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-rose-600 tracking-tight font-mono mt-1">
+                  {returnsMetrics.totalReturnsCount} parcels
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">
+                  {returnsMetrics.fullReturnCount} full returns, {returnsMetrics.partialReturnCount} partials
+                </div>
+              </div>
+
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Stock Value Restocked
+                  </span>
+                  <span className="p-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-600">
+                    ✓
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-emerald-600 tracking-tight font-mono mt-1">
+                  ৳{returnsMetrics.restockedValue.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">
+                  Recovered back into warehouse shelf
+                </div>
+              </div>
+
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Exchanges Processed
+                  </span>
+                  <span className="p-1 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-600">
+                    🔵
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-indigo-600 tracking-tight font-mono mt-1">
+                  {returnsMetrics.exchangeCount} units
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">
+                  Replacement SKU swaps completed
+                </div>
+              </div>
+
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500">
+                    Return in Transit
+                  </span>
+                  <span className="p-1 rounded-md bg-amber-50 border border-amber-200 text-amber-600">
+                    ⚠️
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-amber-600 tracking-tight font-mono mt-1">
+                  {returnsMetrics.returnInTransitCount} returning
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">
+                  Parcels coming back via courier
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Inbound Barcode Receiving Banner */}
+            <div className="rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/50 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📷</span>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Inbound Returned Parcel Barcode Scanner
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-600">
+                  Aim your barcode scanner gun at the returned courier label or consignment # to instantly inspect, verify condition, and restock to inventory.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setOrderForReturn(null);
+                  setReturnModalOpen(true);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition shrink-0 inline-flex items-center gap-2 cursor-pointer"
+              >
+                <span>📦 Open Return Scanner Gun</span>
+                <span>→</span>
+              </button>
+            </div>
+
+            {/* Filter Toolbar for Returns */}
+            <div className="p-3.5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-3">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      📅 Date:
+                    </span>
+                    <select
+                      value={datePreset}
+                      onChange={(e) => setDatePreset(e.target.value)}
+                      className="h-8 px-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:border-orange-600 focus:outline-none"
+                    >
+                      <option value="all">All Dates</option>
+                      <option value="today">Today</option>
+                      <option value="yesterday">Yesterday</option>
+                      <option value="last_7_days">Last 7 Days</option>
+                      <option value="this_month">This Month (30 Days)</option>
+                      <option value="custom">Custom Date Range…</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      🚚 Courier:
+                    </span>
+                    <select
+                      value={courierFilter}
+                      onChange={(e) => setCourierFilter(e.target.value)}
+                      className="h-8 px-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:border-orange-600 focus:outline-none"
+                    >
+                      <option value="ALL">All Couriers</option>
+                      <option value="Steadfast">Steadfast Courier</option>
+                      <option value="Pathao">Pathao Express</option>
+                      <option value="RedX">RedX Delivery</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="relative flex-1 sm:w-72">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search return note, customer, consignment #…"
+                    className="w-full h-8 rounded-xl border border-slate-200 bg-white pl-8 pr-3 text-xs text-slate-900 placeholder-slate-400 font-mono focus:border-orange-600 focus:outline-none transition"
+                  />
+                  <span className="absolute left-2.5 top-2 text-slate-400 text-xs">
+                    🔍
+                  </span>
+                </div>
+              </div>
+
+              {/* Status Pills for Returns */}
+              <div className="flex items-center gap-1.5 border-t border-slate-100 pt-2.5 flex-wrap">
+                {[
+                  { id: "ALL", label: `All Returns (${returnsMetrics.totalReturnsCount})` },
+                  { id: "RETURNED", label: `Full Returns (${returnsMetrics.fullReturnCount})` },
+                  { id: "PARTIAL_DELIVERED", label: `Partials (${returnsMetrics.partialReturnCount})` },
+                  { id: "EXCHANGED", label: `Exchanges (${returnsMetrics.exchangeCount})` },
+                  { id: "RETURN_IN_TRANSIT", label: `In Transit (${returnsMetrics.returnInTransitCount})` },
+                ].map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setStatusFilter(id)}
+                    className={`h-7 px-3 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                      statusFilter === id
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Returns & Stock Restock Audit Trail Table */}
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+              <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+                <span className="font-bold text-slate-900">
+                  Reverse Logistics &amp; Restock Ledger ({filteredOrders.length})
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Every return is immutably logged in stock_transactions with full cycle audit notes
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full divide-y divide-slate-100 text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-mono tracking-wider font-bold">
+                    <tr>
+                      <th className="px-5 py-3">Consignment # / Courier</th>
+                      <th className="px-5 py-3">Customer Recipient</th>
+                      <th className="px-5 py-3">Return Action</th>
+                      <th className="px-5 py-3">Product Lifecycle Cycle Note</th>
+                      <th className="px-5 py-3">Stock Condition</th>
+                      <th className="px-5 py-3 font-mono">Financial Settlement</th>
+                      <th className="px-5 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {filteredOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="px-5 py-12 text-center text-slate-400 font-mono">
+                          No returns or reverse shipments recorded for this filter.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredOrders.map((o) => {
+                        const statusUpper = (o.status || "").toUpperCase();
+                        const isPartial = statusUpper === "PARTIAL_DELIVERED";
+                        const isExchanged = statusUpper === "EXCHANGED";
+                        const isReturnInTransit = statusUpper === "RETURN_IN_TRANSIT";
+
+                        return (
+                          <tr key={o.id} className="hover:bg-slate-50/70 transition-colors">
+                            {/* Consignment & Courier */}
+                            <td className="px-5 py-3.5">
+                              <span className="font-mono font-bold text-slate-900 block text-xs">
+                                {o.consignment_id || `ORD-${String(o.id).slice(0, 8)}`}
+                              </span>
+                              <span className="text-[11px] text-orange-600 font-semibold block">
+                                {o.courier_name || "Steadfast Courier"}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {o.returned_at
+                                  ? `Returned: ${new Date(o.returned_at).toLocaleDateString("en-GB")}`
+                                  : `Dispatched: ${new Date(o.created_at).toLocaleDateString("en-GB")}`}
+                              </span>
+                            </td>
+
+                            {/* Customer */}
+                            <td className="px-5 py-3.5 max-w-xs">
+                              <div className="font-bold text-slate-900 text-xs">
+                                {o.customer_name}
+                              </div>
+                              <div className="text-slate-600 font-mono text-[11px]">
+                                {o.customer_phone}
+                              </div>
+                            </td>
+
+                            {/* Return Type */}
+                            <td className="px-5 py-3.5 whitespace-nowrap">
+                              {isPartial ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                                  <span>🟣 Partial Return</span>
+                                </span>
+                              ) : isExchanged ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                  <span>🔵 Exchange Swap</span>
+                                </span>
+                              ) : isReturnInTransit ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                  <span>⚠️ Return In Transit</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                                  <span>🔴 Full Return</span>
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Lifecycle History Note */}
+                            <td className="px-5 py-3.5 max-w-md">
+                              <p className="text-xs text-slate-800 font-medium line-clamp-2">
+                                {o.return_note || o.return_reason || `Returned order #${o.consignment_id || o.id}. Product inspected and accounted for.`}
+                              </p>
+                              {o.return_reason && (
+                                <span className="inline-block mt-1 font-mono text-[10px] text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">
+                                  Reason: {o.return_reason}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Condition */}
+                            <td className="px-5 py-3.5 whitespace-nowrap">
+                              {o.return_note?.includes("DAMAGED") ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-800">
+                                  <span>⚠️ Defective (Write-off)</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                  <span>✓ Restocked to Shelf</span>
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Financial COD Settlement */}
+                            <td className="px-5 py-3.5">
+                              <span className="font-mono font-bold text-slate-900 block text-xs">
+                                COD: ৳{(Number(o.total_amount) || 0).toLocaleString()}
+                              </span>
+                              <span className="text-[10px] text-rose-600 font-semibold font-mono block">
+                                Courier Fee: -৳{o.courier_fee || 60}
+                              </span>
+                            </td>
+
+                            {/* Actions */}
+                            <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOrderForReturn(o);
+                                  setReturnModalOpen(true);
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition"
+                                title="Inspect or update return/exchange"
+                              >
+                                <span>✏️ Edit</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedOrderForPrint(o);
+                                  setPrintModalOpen(true);
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition"
+                                title="Print thermal label or invoice"
+                              >
+                                <span>🏷️ Invoice</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
         {activeTab === "manual_bulk" && (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -2086,3 +3248,561 @@ function QuickAddOrderModal({ isOpen, products = [], onClose, onAdded }) {
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────────
+// COMPONENT 6: INBOUND RETURN, EXCHANGE & RESTOCK SCANNER MODAL
+// ─────────────────────────────────────────────────────────────
+function InboundReturnModal({
+  isOpen,
+  initialOrder = null,
+  allOrders = [],
+  products = [],
+  onClose,
+  onProcessed,
+}) {
+  const [selectedOrder, setSelectedOrder] = useState(initialOrder);
+  const [barcodeOrCode, setBarcodeOrCode] = useState("");
+  const [lookupNotice, setLookupNotice] = useState(null);
+
+  // Return Action: 'full_return' | 'partial_return' | 'exchange'
+  const [action, setAction] = useState("full_return");
+  const [condition, setCondition] = useState("INTACT"); // 'INTACT' | 'DAMAGED'
+  const [returnReason, setReturnReason] = useState("Customer Refused COD at Doorstep");
+  const [returnNote, setReturnNote] = useState("");
+  const [courierFee, setCourierFee] = useState(60);
+
+  // Partial Return fields
+  const [partialDeliveredQty, setPartialDeliveredQty] = useState(1);
+  const [partialReturnedQty, setPartialReturnedQty] = useState(1);
+  const [adjustedCodAmount, setAdjustedCodAmount] = useState(0);
+
+  // Exchange fields
+  const [replacementProductId, setReplacementProductId] = useState(products[0]?.id || "");
+  const [replacementSku, setReplacementSku] = useState(products[0]?.base_sku || "");
+  const [replacementQuantity, setReplacementQuantity] = useState(1);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const searchInputRef = useRef(null);
+
+  useEffect(() => {
+    setSelectedOrder(initialOrder);
+    if (initialOrder) {
+      setAdjustedCodAmount(Math.round((Number(initialOrder.total_amount) || 0) / 2));
+      setReturnNote(
+        `Customer returned order #${initialOrder.consignment_id || initialOrder.id}. Inspected parcel: intact and verified with tags.`
+      );
+    }
+  }, [initialOrder]);
+
+  useEffect(() => {
+    if (isOpen && !selectedOrder) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen, selectedOrder]);
+
+  if (!isOpen) return null;
+
+  function handleLookupOrder(code) {
+    const raw = String(code || "").trim().toUpperCase();
+    if (!raw) return;
+
+    setLookupNotice(null);
+    const matched = allOrders.find((o) => {
+      const matchConsignment = String(o.consignment_id || "").toUpperCase() === raw;
+      const matchId =
+        String(o.id || "").toUpperCase() === raw ||
+        String(o.id || "").toUpperCase().includes(raw);
+      const matchPhone = String(o.customer_phone || "")
+        .replace(/[^0-9]/g, "")
+        .includes(raw.replace(/[^0-9]/g, ""));
+      return matchConsignment || matchId || (raw.length >= 8 && matchPhone);
+    });
+
+    if (matched) {
+      playSuccessBeep();
+      setSelectedOrder(matched);
+      setBarcodeOrCode("");
+      setAdjustedCodAmount(Math.round((Number(matched.total_amount) || 0) / 2));
+      setReturnNote(
+        `Customer returned order #${matched.consignment_id || matched.id}. Parcel inspected: intact with tags.`
+      );
+      setLookupNotice({
+        type: "success",
+        text: `✓ Found consignment #${matched.consignment_id || matched.id} (${matched.customer_name})`,
+      });
+    } else {
+      setLookupNotice({
+        type: "error",
+        text: `No order found matching "${raw}". Please verify the consignment label or phone number.`,
+      });
+    }
+  }
+
+  async function handleSubmitReturn(e) {
+    e.preventDefault();
+    if (!selectedOrder) return;
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const res = await fetch("/api/orders/return-exchange", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+        body: JSON.stringify({
+          orderId: selectedOrder.id,
+          action,
+          condition,
+          returnReason,
+          returnNote,
+          courierFee: Number(courierFee) || 0,
+          partialDeliveredQty: Number(partialDeliveredQty) || 1,
+          partialReturnedQty: Number(partialReturnedQty) || 1,
+          adjustedCodAmount: Number(adjustedCodAmount) || 0,
+          replacementProductId,
+          replacementSku,
+          replacementQuantity: Number(replacementQuantity) || 1,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to process reverse logistics return.");
+      }
+
+      playSuccessBeep();
+      onProcessed(
+        json.order || {
+          ...selectedOrder,
+          status:
+            action === "exchange"
+              ? "EXCHANGED"
+              : action === "partial_return"
+              ? "PARTIAL_DELIVERED"
+              : "RETURNED",
+        },
+        json.lifecycleNote
+      );
+    } catch (err) {
+      setSubmitError(err.message || "Return processing failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden space-y-0">
+        {/* Modal Header */}
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🔄</span>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">
+                Inbound Return &amp; Exchange Receiving
+              </h3>
+              <p className="text-xs text-slate-500">
+                Scan returned parcel from courier, verify physical condition &amp; restock inventory
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-6 space-y-5">
+          {/* Scanner Gun / Consignment Lookup Input */}
+          {!initialOrder && (
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                Aim Barcode Gun at Returned Parcel Label or Search
+              </label>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleLookupOrder(barcodeOrCode);
+                }}
+                className="flex items-center gap-2"
+              >
+                <div className="relative flex-1">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={barcodeOrCode}
+                    onChange={(e) => setBarcodeOrCode(e.target.value)}
+                    placeholder="Aim scanner gun or enter consignment # (e.g. SF-8841029), phone, or order ID…"
+                    className="w-full rounded-xl border-2 border-rose-300 bg-white pl-10 pr-4 py-2 text-xs font-mono font-bold text-slate-900 focus:border-rose-600 focus:outline-none shadow-xs"
+                  />
+                  <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm">
+                    📷
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!barcodeOrCode.trim()}
+                  className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-rose-500 disabled:opacity-40 transition shrink-0"
+                >
+                  Lookup Parcel
+                </button>
+              </form>
+
+              {lookupNotice && (
+                <div
+                  className={`text-xs p-2.5 rounded-xl border flex items-center justify-between ${
+                    lookupNotice.type === "success"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "border-rose-200 bg-rose-50 text-rose-800"
+                  }`}
+                >
+                  <span>{lookupNotice.text}</span>
+                  <button onClick={() => setLookupNotice(null)} className="text-slate-400 hover:text-slate-600">
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Selected Order Summary Card */}
+          {selectedOrder ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 pb-2">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Dispatched Consignment
+                  </span>
+                  <span className="font-mono text-xs font-bold text-slate-900 block">
+                    {selectedOrder.consignment_id || `ORD-${String(selectedOrder.id).slice(0, 8)}`}
+                  </span>
+                  <span className="text-xs text-orange-600 font-semibold">
+                    via {selectedOrder.courier_name || "Steadfast Courier"}
+                  </span>
+                </div>
+
+                <div className="sm:text-right">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    COD Value
+                  </span>
+                  <span className="font-mono text-base font-bold text-emerald-700">
+                    ৳{(Number(selectedOrder.total_amount) || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-slate-500 block">Recipient:</span>
+                  <span className="font-bold text-slate-800 block">
+                    {selectedOrder.customer_name} ({selectedOrder.customer_phone})
+                  </span>
+                  <span className="text-slate-500 text-[11px] block mt-0.5">
+                    {selectedOrder.customer_address}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-slate-500 block">Target Item:</span>
+                  <span className="font-bold text-slate-800 block">
+                    {selectedOrder.product_name || selectedOrder.products?.name || "Catalog Consignment Item"}
+                  </span>
+                  <span className="font-mono text-orange-600 font-semibold text-[11px] block">
+                    SKU: {selectedOrder.product_sku || selectedOrder.products?.base_sku || "GENERAL"} (Qty: {selectedOrder.quantity || 1})
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-8 text-center border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs">
+              Aim your barcode gun at the parcel label or type consignment ID above to proceed.
+            </div>
+          )}
+
+          {/* Return Form Controls */}
+          {selectedOrder && (
+            <form onSubmit={handleSubmitReturn} className="space-y-4">
+              {/* Action Selection Tabs */}
+              <div>
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
+                  Reverse Logistics Type
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAction("full_return")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                      action === "full_return"
+                        ? "border-rose-600 bg-rose-50 text-rose-800 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>🔴 Full Return</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAction("partial_return")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                      action === "partial_return"
+                        ? "border-purple-600 bg-purple-50 text-purple-800 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>🟣 Partial Return</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAction("exchange")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                      action === "exchange"
+                        ? "border-indigo-600 bg-indigo-50 text-indigo-800 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>🔵 Exchange</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Physical Condition Inspection Check */}
+              <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Warehouse Physical Condition Check *
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCondition("INTACT")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 ${
+                      condition === "INTACT"
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-800 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>✓ Intact &amp; Resellable</span>
+                    <span className="text-[10px] text-emerald-600 font-normal">(Restock to Shelf)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCondition("DAMAGED")}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 ${
+                      condition === "DAMAGED"
+                        ? "border-rose-600 bg-rose-50 text-rose-800 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>⚠️ Damaged / Defective</span>
+                    <span className="text-[10px] text-rose-600 font-normal">(Write-off)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Reason & Courier Charge */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                    Return / Exchange Reason *
+                  </label>
+                  <select
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:border-rose-600 focus:outline-none"
+                  >
+                    <option value="Customer Refused COD at Doorstep">Customer Refused COD at Doorstep</option>
+                    <option value="Wrong Size / Fit Issue">Wrong Size / Fit Issue</option>
+                    <option value="Customer Unreachable / Phone Switched Off">Customer Unreachable / Phone Switched Off</option>
+                    <option value="Defect / Damaged in Courier Transit">Defect / Damaged in Courier Transit</option>
+                    <option value="Customer Cancelled / Ordered Elsewhere">Customer Cancelled / Ordered Elsewhere</option>
+                    <option value="Color or Specification Mismatch">Color or Specification Mismatch</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                    Courier Return Delivery Fee (৳)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={courierFee}
+                    onChange={(e) => setCourierFee(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:border-rose-600 focus:outline-none"
+                    placeholder="60"
+                  />
+                </div>
+              </div>
+
+              {/* Partial Delivery Return Specific Inputs */}
+              {action === "partial_return" && (
+                <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/40 space-y-3">
+                  <h4 className="text-xs font-bold text-purple-900">
+                    Partial Delivery Settlement Configuration
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Delivered (Kept)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={partialDeliveredQty}
+                        onChange={(e) => setPartialDeliveredQty(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Returned Units
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={partialReturnedQty}
+                        onChange={(e) => setPartialReturnedQty(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Adjusted COD (৳)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={adjustedCodAmount}
+                        onChange={(e) => setAdjustedCodAmount(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono font-bold text-emerald-700 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Exchange Specific Inputs */}
+              {action === "exchange" && (
+                <div className="p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-3">
+                  <h4 className="text-xs font-bold text-indigo-900">
+                    Replacement Product Dispatch Specification
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Replacement Product
+                      </label>
+                      <select
+                        value={replacementProductId}
+                        onChange={(e) => {
+                          setReplacementProductId(e.target.value);
+                          const p = products.find((x) => x.id === e.target.value);
+                          if (p) setReplacementSku(p.base_sku);
+                        }}
+                        className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none"
+                      >
+                        {products.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({p.base_sku})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 uppercase block mb-1">
+                        Replacement SKU / Size Code
+                      </label>
+                      <input
+                        type="text"
+                        value={replacementSku}
+                        onChange={(e) => setReplacementSku(e.target.value)}
+                        placeholder="TSHIRT-BLK-L"
+                        className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Lifecycle Audit Note */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                    Product Lifecycle History Note *
+                  </label>
+                  <span className="text-[10px] text-slate-400">
+                    Will be permanently logged in stock audit trail
+                  </span>
+                </div>
+                <textarea
+                  rows={2}
+                  required
+                  value={returnNote}
+                  onChange={(e) => setReturnNote(e.target.value)}
+                  placeholder="Describe why and how item came back, inspection result, and where it was restocked…"
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-rose-600 focus:outline-none"
+                />
+              </div>
+
+              {submitError && (
+                <div className="p-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs">
+                  {submitError}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`px-6 py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition disabled:opacity-40 ${
+                    action === "exchange"
+                      ? "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30"
+                      : action === "partial_return"
+                      ? "bg-purple-600 hover:bg-purple-500 shadow-purple-600/30"
+                      : "bg-rose-600 hover:bg-rose-500 shadow-rose-600/30"
+                  }`}
+                >
+                  {isSubmitting
+                    ? "Updating Stock & Ledger…"
+                    : action === "exchange"
+                    ? "Confirm Exchange & Restock"
+                    : action === "partial_return"
+                    ? "Confirm Partial Return"
+                    : "Confirm Return & Restock Inventory"}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
