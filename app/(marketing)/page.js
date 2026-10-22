@@ -309,25 +309,18 @@ export default function MarketingLandingPage() {
             <a href="#pricing" className="hover:text-slate-900 transition">Pricing</a>
             <Link href="/blog" className="hover:text-slate-900 transition">Blog</Link>
             <a href="#contact" className="hover:text-slate-900 transition">Contact</a>
-            <Link
-              href="/demo"
-              className="text-orange-700 hover:text-orange-800 font-medium transition flex items-center gap-1.5 bg-orange-50/80 px-2.5 py-1 rounded-md border border-orange-200/70"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span>Live sandbox</span>
-            </Link>
           </nav>
 
           {/* Right Action & Currency Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Currency Pill Toggle */}
-            <div className="hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-slate-100 p-0.5 text-xs font-medium">
+            <div className="hidden sm:inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setCurrency("BDT")}
-                className={`px-2 py-0.5 rounded-sm transition ${
+                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
                   currency === "BDT"
-                    ? "bg-white text-orange-600 shadow-2xs font-medium"
+                    ? "bg-white text-orange-600 shadow-2xs"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -336,15 +329,17 @@ export default function MarketingLandingPage() {
               <button
                 type="button"
                 onClick={() => setCurrency("USD")}
-                className={`px-2 py-0.5 rounded-sm transition ${
+                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
                   currency === "USD"
-                    ? "bg-white text-orange-600 shadow-2xs font-medium"
+                    ? "bg-white text-orange-600 shadow-2xs"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 $ USD
               </button>
             </div>
+
+            <div className="h-4 w-[1px] bg-slate-200 hidden sm:block" />
 
             {!sessionLoading && user ? (
               <div className="flex items-center gap-2">
@@ -533,7 +528,7 @@ export default function MarketingLandingPage() {
                   </div>
                   <div className="flex items-center gap-2 font-mono text-[11px]">
                     <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      Prevented Return Loss: ৳14,400+
+                      Prevented Return Loss: {currency === "BDT" ? "৳14,400+" : "$120+"}
                     </span>
                   </div>
                 </div>
@@ -556,7 +551,7 @@ export default function MarketingLandingPage() {
                         <span className="text-slate-300">•</span>
                         <span className="font-semibold text-slate-700">Vintage Heavyweight Tee (XL) × 2</span>
                         <span className="text-slate-300">•</span>
-                        <span className="font-mono font-bold text-slate-900">COD: ৳2,500</span>
+                        <span className="font-mono font-bold text-slate-900">COD: {currency === "BDT" ? "৳2,500" : "$21"}</span>
                       </div>
                     </div>
 
@@ -616,7 +611,7 @@ export default function MarketingLandingPage() {
                         <span className="text-slate-300">•</span>
                         <span className="font-semibold text-slate-700">Oxford Formal Shirt (L) × 1</span>
                         <span className="text-slate-300">•</span>
-                        <span className="font-mono font-bold text-slate-900">COD: ৳1,850</span>
+                        <span className="font-mono font-bold text-slate-900">COD: {currency === "BDT" ? "৳1,850" : "$15.50"}</span>
                       </div>
                     </div>
 
@@ -628,7 +623,7 @@ export default function MarketingLandingPage() {
                             customer: "Tamim Ahmed",
                             phone: "01819-876543",
                             address: "GEC Circle, Nasirabad, Chattogram",
-                            cod: 1850,
+                            cod: currency === "BDT" ? 1850 : 15.50,
                             consignment: "PT-88419-CTG",
                             courier: "Pathao Express",
                             sku: "SKU-OXF-WHT-L",
@@ -675,7 +670,7 @@ export default function MarketingLandingPage() {
                       <div className="text-xs text-rose-800 flex flex-wrap items-center gap-3">
                         <span>Vague Bazar Mor, Kurigram Sadar</span>
                         <span className="text-rose-300">•</span>
-                        <span>High consignment COD: ৳6,200</span>
+                        <span>High consignment COD: {currency === "BDT" ? "৳6,200" : "$52"}</span>
                         <span className="text-rose-300">•</span>
                         <span className="font-mono font-semibold">Dummy repeating digits detected</span>
                       </div>
@@ -683,7 +678,7 @@ export default function MarketingLandingPage() {
 
                     <div className="shrink-0 flex items-center gap-2">
                       <span className="text-xs font-mono font-bold text-rose-700 bg-white px-3 py-1.5 rounded-lg border border-rose-200">
-                        Recommendation: Collect ৳150 delivery fee in advance
+                        Recommendation: Collect {currency === "BDT" ? "৳150" : "$1.50"} delivery fee in advance
                       </span>
                     </div>
                   </div>
@@ -721,7 +716,9 @@ export default function MarketingLandingPage() {
                       </div>
                       <div className="p-2 bg-slate-100 rounded flex justify-between items-center">
                         <span className="font-medium">CASH ON DELIVERY (COD):</span>
-                        <span className="font-semibold font-mono text-base text-slate-900">৳{heroLabelModalOrder.cod.toLocaleString()}</span>
+                        <span className="font-semibold font-mono text-base text-slate-900">
+                          {currency === "BDT" ? `৳${heroLabelModalOrder.cod.toLocaleString()}` : `$${heroLabelModalOrder.cod}`}
+                        </span>
                       </div>
                       <div className="text-center pt-1 border-t">
                         <div className="flex items-center justify-center gap-[2px] h-9">
@@ -755,7 +752,7 @@ export default function MarketingLandingPage() {
                     className="btn-tactile px-3 py-1.5 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-800 text-xs font-mono font-bold transition cursor-pointer"
                   >
                     {heroSimulatedRtoSavings
-                      ? "Return Protection Active (+৳31,200 Saved)"
+                      ? (currency === "BDT" ? "Return Protection Active (+৳31,200 Saved)" : "Return Protection Active (+$260 Saved)")
                       : "+ Simulate 15% Return Reduction"}
                   </button>
                 </div>
@@ -764,26 +761,34 @@ export default function MarketingLandingPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 font-mono">
                     <span className="text-[10px] uppercase font-medium text-slate-500">Gross Sales (GMV)</span>
-                    <div className="text-lg font-semibold font-mono text-slate-900 mt-1">৳1,485,200</div>
+                    <div className="text-lg font-semibold font-mono text-slate-900 mt-1">
+                      {currency === "BDT" ? "৳1,485,200" : "$12,380"}
+                    </div>
                     <span className="text-[10px] text-slate-400">1,240 dispatches</span>
                   </div>
 
                   <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 font-mono">
                     <span className="text-[10px] uppercase font-medium text-slate-500">Wholesale COGS (60%)</span>
-                    <div className="text-lg font-semibold font-mono text-slate-700 mt-1">-৳891,120</div>
+                    <div className="text-lg font-semibold font-mono text-slate-700 mt-1">
+                      {currency === "BDT" ? "-৳891,120" : "-$7,428"}
+                    </div>
                     <span className="text-[10px] text-slate-400">Direct inventory cost</span>
                   </div>
 
                   <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 font-mono">
                     <span className="text-[10px] uppercase font-medium text-slate-500">Courier &amp; COD Fee</span>
-                    <div className="text-lg font-semibold font-mono text-amber-700 mt-1">-৳44,550</div>
+                    <div className="text-lg font-semibold font-mono text-amber-700 mt-1">
+                      {currency === "BDT" ? "-৳44,550" : "-$371"}
+                    </div>
                     <span className="text-[10px] text-slate-400">1% carrier commission</span>
                   </div>
 
                   <div className="p-3.5 rounded-lg border border-emerald-200 bg-emerald-50/70 font-mono">
                     <span className="text-[10px] uppercase font-medium text-emerald-800">True Net Profit</span>
                     <div className="text-lg font-semibold font-mono text-emerald-700 mt-1">
-                      {heroSimulatedRtoSavings ? "৳580,730" : "৳549,530"}
+                      {heroSimulatedRtoSavings
+                        ? (currency === "BDT" ? "৳580,730" : "$4,840")
+                        : (currency === "BDT" ? "৳549,530" : "$4,580")}
                     </div>
                     <span className="text-[10px] text-emerald-700 font-medium">
                       {heroSimulatedRtoSavings ? "39.1% True Margin" : "37.0% True Margin"}
@@ -798,10 +803,12 @@ export default function MarketingLandingPage() {
                       <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 font-mono text-[10px] font-bold">
                         Slow-Moving Stock
                       </span>
-                      <span className="text-xs font-bold text-teal-950">৳38,400 Locked in 2 Stagnant SKUs</span>
+                      <span className="text-xs font-bold text-teal-950">
+                        {currency === "BDT" ? "৳38,400" : "$320"} Locked in 2 Stagnant SKUs
+                      </span>
                     </div>
                     <p className="text-xs text-teal-800 leading-relaxed">
-                      Pair slow-moving <strong>Heavyweight Polo (64 idle units)</strong> with hero <strong>Oxford Shirt</strong> at 15% bundle discount to unlock <strong>৳38,400</strong> before inventory month-end.
+                      Pair slow-moving <strong>Heavyweight Polo (64 idle units)</strong> with hero <strong>Oxford Shirt</strong> at 15% bundle discount to unlock <strong>{currency === "BDT" ? "৳38,400" : "$320"}</strong> before inventory month-end.
                     </p>
                   </div>
                   <Link
