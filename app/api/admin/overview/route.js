@@ -113,6 +113,8 @@ export async function GET(request) {
       (b) => b.id !== "00000000-0000-0000-0000-000000000001"
     );
 
+    const allPayments = getAllTenantPayments() || [];
+
     // Map business metrics and owner identities
     const tenants = bizList.map((biz) => {
       const bizProds = allProducts.filter((p) => p.business_id === biz.id);
@@ -134,14 +136,60 @@ export async function GET(request) {
 
       const conf = getTenantConfig(biz.id) || {};
 
+      const approvedPayment = allPayments.find(
+        (p) =>
+          (p.business_id === biz.id ||
+            (p.owner_email && ownerEmail && p.owner_email.toLowerCase() === ownerEmail.toLowerCase())) &&
+          p.status === "APPROVED"
+      );
+
+      // Status resolution:
+      // Stores with verified payments are Active on their paid plan.
+      // Stores without payments are on Trial (unless explicitly Suspended).
+      let resolvedStatus = conf.status || "Trial";
+      let resolvedPlan = conf.plan || "trial";
+
+      if (approvedPayment) {
+        if (resolvedStatus !== "Suspended") {
+          resolvedStatus = "Active";
+        }
+        if (resolvedPlan === "trial" || !resolvedPlan) {
+          const rawP = (approvedPayment.plan || "growth").toLowerCase();
+          resolvedPlan = rawP.includes("starter") ? "starter" : rawP.includes("enterprise") ? "enterprise" : "growth";
+        }
+      } else {
+        if (resolvedStatus !== "Suspended") {
+          resolvedStatus = "Trial";
+        }
+        if (resolvedPlan === "growth" && !conf.phone && !conf.division) {
+          resolvedPlan = "trial";
+        }
+      }
+
+      let orderLimit = conf.order_limit || 150;
+      let skuLimit = conf.sku_limit || 50;
+      if (resolvedPlan === "starter") {
+        orderLimit = 300;
+        skuLimit = 100;
+      } else if (resolvedPlan === "growth") {
+        orderLimit = 1500;
+        skuLimit = 500;
+      } else if (resolvedPlan === "enterprise") {
+        orderLimit = 5000;
+        skuLimit = 2000;
+      } else if (resolvedPlan === "trial") {
+        orderLimit = 150;
+        skuLimit = 50;
+      }
+
       return {
         id: biz.id,
         name: biz.name || "Unnamed Store",
         ownerEmail,
         isOwnerWorkspace,
         created_at: biz.created_at,
-        status: conf.status || "Active",
-        plan: conf.plan || "growth",
+        status: resolvedStatus,
+        plan: resolvedPlan,
         expires_at: conf.expires_at || null,
         daysRemaining: conf.expires_at
           ? Math.ceil((new Date(conf.expires_at).getTime() - Date.now()) / 86400000)
@@ -149,8 +197,8 @@ export async function GET(request) {
         phone: conf.phone || "",
         division: conf.division || "Dhaka",
         features: conf.features || {},
-        order_limit: conf.order_limit || 1000,
-        sku_limit: conf.sku_limit || 250,
+        order_limit: orderLimit,
+        sku_limit: skuLimit,
         totalSkus: bizProds.length,
         totalOrders: bizOrders.length,
         skuCount: bizProds.length,

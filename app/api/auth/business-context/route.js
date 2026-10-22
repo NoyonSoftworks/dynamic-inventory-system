@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
-import { getTenantConfig } from "@/utils/storage/tenant-store";
+import { getTenantConfig, saveTenantConfig } from "@/utils/storage/tenant-store";
 
 /**
  * GET/POST /api/auth/business-context
@@ -117,6 +117,22 @@ async function handleBusinessContext(request) {
           email: userEmail,
           role: "admin",
           business_id: newBiz.id,
+        });
+
+        // Initialize tenant store configuration as Free Trial
+        saveTenantConfig(newBiz.id, {
+          business_id: newBiz.id,
+          plan: "trial",
+          status: "Trial",
+          expires_at: new Date(Date.now() + 15 * 86400000).toISOString(),
+          order_limit: 150,
+          sku_limit: 50,
+          features: {
+            courier_reconciliation: true,
+            expense_profit_tracker: true,
+            ai_reorder_hub: false,
+            thermal_printing: true,
+          },
         });
       }
     }

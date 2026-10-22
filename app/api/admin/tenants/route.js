@@ -9,6 +9,38 @@ import {
   updateTenantPaymentStatus,
 } from "@/utils/storage/tenant-store";
 
+function resolvePlanDetails(rawPlan) {
+  const p = String(rawPlan || "growth").toLowerCase();
+  if (p.includes("starter") || p === "starter") {
+    return {
+      plan: "starter",
+      order_limit: 300,
+      sku_limit: 100,
+      features: {
+        ai_reorder_hub: false,
+      },
+    };
+  }
+  if (p.includes("enterprise") || p === "enterprise" || p.includes("custom")) {
+    return {
+      plan: "enterprise",
+      order_limit: 5000,
+      sku_limit: 2000,
+      features: {
+        ai_reorder_hub: true,
+      },
+    };
+  }
+  return {
+    plan: "growth",
+    order_limit: 1500,
+    sku_limit: 500,
+    features: {
+      ai_reorder_hub: true,
+    },
+  };
+}
+
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey =
@@ -382,7 +414,7 @@ export async function PATCH(request) {
         notes: notes || "Recorded directly by Super Admin",
       });
 
-      // Extend tenant validity by 30 days
+      // Extend tenant validity by 30 days and promote to Active on the paid plan
       if (tenantId) {
         const currentConf = getTenantConfig(tenantId);
         const baseDate =
@@ -390,9 +422,18 @@ export async function PATCH(request) {
             ? new Date(currentConf.expires_at)
             : new Date();
         const newExpiry = new Date(baseDate.getTime() + 30 * 86400000).toISOString();
+        const planDetails = resolvePlanDetails(plan || paymentRec?.plan);
+
         saveTenantConfig(tenantId, {
           status: "Active",
+          plan: planDetails.plan,
+          order_limit: planDetails.order_limit,
+          sku_limit: planDetails.sku_limit,
           expires_at: newExpiry,
+          features: {
+            ...(currentConf?.features || {}),
+            ...planDetails.features,
+          },
         });
       }
 
@@ -416,9 +457,18 @@ export async function PATCH(request) {
             ? new Date(currentConf.expires_at)
             : new Date();
         const newExpiry = new Date(baseDate.getTime() + 30 * 86400000).toISOString();
+        const planDetails = resolvePlanDetails(approved?.plan);
+
         saveTenantConfig(bId, {
           status: "Active",
+          plan: planDetails.plan,
+          order_limit: planDetails.order_limit,
+          sku_limit: planDetails.sku_limit,
           expires_at: newExpiry,
+          features: {
+            ...(currentConf?.features || {}),
+            ...planDetails.features,
+          },
         });
       }
 

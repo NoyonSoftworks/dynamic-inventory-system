@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/server";
 import { logActivity } from "@/utils/logger";
+import { saveTenantConfig, saveTenantPayment } from "@/utils/storage/tenant-store";
 
 /**
  * Validates transaction payload with SSLCommerz Server-to-Server Validation API
@@ -113,14 +114,54 @@ export async function POST(request, context) {
         );
       }
 
-      // Upgrade the tenant's workspace to 'Pro' status in businesses table
+      // Upgrade the tenant's workspace to 'Active' status and paid plan
       if (businessId) {
         const expiresAt = new Date(Date.now() + 30 * 86400000).toISOString(); // 30 Days
+        const paidAmount = Number(amount || tranData?.amount || 1990);
+        let paidPlan = "growth";
+        let orderLimit = 1500;
+        let skuLimit = 500;
+        if (paidAmount < 1500) {
+          paidPlan = "starter";
+          orderLimit = 300;
+          skuLimit = 100;
+        } else if (paidAmount > 3000) {
+          paidPlan = "enterprise";
+          orderLimit = 5000;
+          skuLimit = 2000;
+        }
+
+        saveTenantConfig(businessId, {
+          status: "Active",
+          plan: paidPlan,
+          order_limit: orderLimit,
+          sku_limit: skuLimit,
+          expires_at: expiresAt,
+          features: {
+            courier_reconciliation: true,
+            expense_profit_tracker: true,
+            ai_reorder_hub: paidPlan !== "starter",
+            thermal_printing: true,
+          },
+        });
+
+        saveTenantPayment({
+          business_id: businessId,
+          store_name: tranData?.store_name || "Merchant Store",
+          owner_email: userEmail || "",
+          amount: paidAmount,
+          method: "SSLCommerz Online",
+          phone: tranData?.cus_phone || "",
+          trx_id: tranId,
+          plan: paidPlan === "starter" ? "Starter Plan" : paidPlan === "enterprise" ? "Enterprise" : "Growth Pro",
+          status: "APPROVED",
+          notes: `Online automated payment via SSLCommerz (ValID: ${valId})`,
+        });
 
         await adminClient
           .from("businesses")
           .update({
-            subscription_plan: "pro",
+            subscription_plan: paidPlan,
             subscription_status: "active",
             subscription_expires_at: expiresAt,
             updated_at: new Date().toISOString(),

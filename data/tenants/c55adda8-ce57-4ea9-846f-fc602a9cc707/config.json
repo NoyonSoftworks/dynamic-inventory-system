@@ -1,19 +1,19 @@
 {
   "business_id": "c55adda8-ce57-4ea9-846f-fc602a9cc707",
-  "plan": "growth",
+  "plan": "trial",
   "status": "Trial",
   "expires_at": "2026-11-05T19:35:43.611Z",
   "phone": "",
   "division": "Dhaka",
-  "order_limit": 1000,
-  "sku_limit": 250,
+  "order_limit": 150,
+  "sku_limit": 50,
   "features": {
     "courier_reconciliation": true,
     "expense_profit_tracker": true,
-    "ai_reorder_hub": true,
+    "ai_reorder_hub": false,
     "thermal_printing": true
   },
   "suspension_notice": "",
   "created_at": "2026-10-21T19:23:39.138Z",
-  "updated_at": "2026-10-21T19:23:39.138Z"
+  "updated_at": "2026-10-23T03:30:00.000Z"
 }

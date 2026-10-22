@@ -2994,7 +2994,8 @@ export default function SuperAdminDashboard() {
                       className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 font-medium focus:bg-white focus:outline-none"
                     >
                       <option value="ALL">All Status</option>
-                      <option value="ACTIVE">Active</option>
+                      <option value="ACTIVE">Active (Paid)</option>
+                      <option value="TRIAL">Trial Stores</option>
                       <option value="EXPIRING">Expiring (&le; 7 days)</option>
                       <option value="EXPIRED">Expired</option>
                     </select>
@@ -3022,10 +3023,11 @@ export default function SuperAdminDashboard() {
                               if (billingPlanFilter === "starter" && p !== "starter") return false;
                               if (billingPlanFilter === "growth" && p !== "growth") return false;
                               if (billingPlanFilter === "enterprise" && p !== "enterprise") return false;
-                              if (billingPlanFilter === "free" && p !== "free" && !t.status?.toLowerCase().includes("trial")) return false;
+                              if (billingPlanFilter === "free" && p !== "free" && p !== "trial" && !t.status?.toLowerCase().includes("trial")) return false;
                             }
                             if (billingStatusFilter !== "ALL") {
                               if (billingStatusFilter === "ACTIVE" && t.status !== "Active" && t.status !== "ACTIVE") return false;
+                              if (billingStatusFilter === "TRIAL" && t.status !== "Trial" && !t.status?.toLowerCase().includes("trial")) return false;
                               if (billingStatusFilter === "EXPIRING" && (t.daysRemaining === null || t.daysRemaining > 7 || t.daysRemaining < 0)) return false;
                               if (billingStatusFilter === "EXPIRED" && (t.daysRemaining === null || t.daysRemaining >= 0)) return false;
                             }
@@ -3069,14 +3071,18 @@ export default function SuperAdminDashboard() {
                                   <div className="flex items-center gap-2">
                                     <span
                                       className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider border ${
-                                        planKey === "enterprise"
+                                        isTrial || planKey === "trial"
+                                          ? "bg-amber-50 text-amber-800 border-amber-200"
+                                          : planKey === "enterprise"
                                           ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                                           : planKey === "starter"
                                           ? "bg-blue-50 text-blue-800 border-blue-200"
                                           : "bg-purple-50 text-purple-800 border-purple-200"
                                       }`}
                                     >
-                                      {planKey === "enterprise"
+                                      {isTrial || planKey === "trial"
+                                        ? "Free Trial"
+                                        : planKey === "enterprise"
                                         ? "Enterprise"
                                         : planKey === "starter"
                                         ? "Starter Plan"
@@ -3091,6 +3097,7 @@ export default function SuperAdminDashboard() {
                                       className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-mono text-slate-700 focus:outline-none cursor-pointer"
                                       title="Change store plan tier immediately"
                                     >
+                                      <option value="trial">Free Trial (15 Days)</option>
                                       <option value="starter">Starter (৳999)</option>
                                       <option value="growth">Growth (৳1,990)</option>
                                       <option value="enterprise">Enterprise (৳4,990)</option>

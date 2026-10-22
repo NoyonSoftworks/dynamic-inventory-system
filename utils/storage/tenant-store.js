@@ -558,17 +558,17 @@ export function getTenantConfig(businessId) {
   const filePath = getTenantFilePath(businessId, "config.json");
   const defaultConfig = {
     business_id: businessId,
-    plan: "growth",
-    status: "Active",
-    expires_at: new Date(Date.now() + 30 * 86400000).toISOString(),
+    plan: "trial",
+    status: "Trial",
+    expires_at: new Date(Date.now() + 15 * 86400000).toISOString(),
     phone: "",
     division: "Dhaka",
-    order_limit: 1000,
-    sku_limit: 250,
+    order_limit: 150,
+    sku_limit: 50,
     features: {
       courier_reconciliation: true,
       expense_profit_tracker: true,
-      ai_reorder_hub: true,
+      ai_reorder_hub: false,
       thermal_printing: true,
     },
     suspension_notice: "",

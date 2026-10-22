@@ -96,18 +96,20 @@ export async function GET(request) {
       .select("id", { count: "exact", head: true })
       .eq("business_id", businessId);
 
-    const planNormalized = (config?.plan || "growth").toLowerCase();
+    const planNormalized = (config?.plan || "trial").toLowerCase();
     const statusNormalized = config?.status || "Trial";
 
-    let orderLimit = config?.order_limit || 1500;
+    let orderLimit = config?.order_limit || 150;
     if (planNormalized === "starter") orderLimit = 300;
     else if (planNormalized === "growth") orderLimit = 1500;
     else if (planNormalized === "enterprise") orderLimit = 5000;
+    else if (planNormalized === "trial") orderLimit = 150;
 
-    let skuLimit = config?.sku_limit || 500;
+    let skuLimit = config?.sku_limit || 50;
     if (planNormalized === "starter") skuLimit = 100;
     else if (planNormalized === "growth") skuLimit = 500;
-    else if (planNormalized === "enterprise") skuLimit = 99999;
+    else if (planNormalized === "enterprise") skuLimit = 2000;
+    else if (planNormalized === "trial") skuLimit = 50;
 
     return NextResponse.json({
       success: true,

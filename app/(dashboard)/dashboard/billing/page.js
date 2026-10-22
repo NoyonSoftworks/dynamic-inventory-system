@@ -9,14 +9,14 @@ export default function ClientBillingPage() {
 
   const [loading, setLoading] = useState(true);
   const [subData, setSubData] = useState({
-    plan: "growth",
+    plan: "trial",
     status: "Trial",
     expiresAt: null,
     daysRemaining: 15,
     isTrial: true,
     isExpired: false,
-    orderLimit: 1500,
-    skuLimit: 500,
+    orderLimit: 150,
+    skuLimit: 50,
     currentMonthOrders: 0,
     totalAllTimeOrders: 0,
     currentSkuCount: 0,
@@ -185,6 +185,7 @@ export default function ClientBillingPage() {
     starter: "Starter Plan",
     growth: "Growth Pro",
     enterprise: "Enterprise Tier",
+    trial: "15-Day Free Trial",
   };
 
   const formatExpiryDate = (d) => {
