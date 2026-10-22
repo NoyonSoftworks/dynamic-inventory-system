@@ -67,25 +67,45 @@ function computeOrderRisk(order, allOrders = []) {
       o.customer_phone &&
       o.customer_phone.replace(/[^0-9]/g, "") === phone
   );
+  const totalPast = matchingPast.length;
   const deliveredCount = matchingPast.filter(
     (o) =>
       (o.status || "").toUpperCase() === "DISPATCHED" ||
       (o.status || "").toUpperCase() === "DELIVERED"
   ).length;
+  const returnedCount = matchingPast.filter(
+    (o) =>
+      ["CANCELLED", "RETURNED", "FAILED", "RTO"].includes((o.status || "").toUpperCase())
+  ).length;
+
+  const realRatio = totalPast > 0 ? Math.round((deliveredCount / totalPast) * 100) : null;
 
   let riskBadge = "NEW_CUSTOMER";
-  if (deliveredCount >= 1 && riskScore < 40) {
-    riskBadge = "VERIFIED_BUYER";
-    riskScore = Math.max(5, riskScore - 20);
+  if (phone.length !== 11 || !hasPrefix || /(\d)\1{5,}/.test(phone)) {
+    riskBadge = "HIGH_RISK";
+  } else if (totalPast > 0) {
+    if (realRatio >= 80) {
+      riskBadge = "VERIFIED_BUYER";
+      riskScore = Math.max(5, 100 - realRatio);
+    } else if (realRatio < 60) {
+      riskBadge = "HIGH_RISK";
+      flags.push(`Past order delivery ratio is only ${realRatio}% (${returnedCount} of ${totalPast} cancelled/returned).`);
+    } else {
+      riskBadge = "MODERATE_RISK";
+      riskScore = 100 - realRatio;
+    }
   } else if (riskScore >= 45) {
     riskBadge = "HIGH_RISK";
   }
 
   return {
     riskScore,
-    riskBadge, // 'VERIFIED_BUYER' | 'NEW_CUSTOMER' | 'HIGH_RISK'
+    riskBadge, // 'VERIFIED_BUYER' | 'MODERATE_RISK' | 'NEW_CUSTOMER' | 'HIGH_RISK'
     flags,
+    totalPast,
     deliveredCount,
+    returnedCount,
+    realRatio,
   };
 }
 
@@ -660,7 +680,9 @@ export default function BulkOrdersPage() {
                                 <div className="space-y-1">
                                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
                                     <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                                    High RTO risk (Call to confirm)
+                                    {o.risk.realRatio !== null
+                                      ? `High return risk (${o.risk.realRatio}% delivery ratio)`
+                                      : "High return risk (Call to confirm)"}
                                   </span>
                                   {o.risk.flags.length > 0 && (
                                     <p className="text-[10px] text-rose-600 font-mono">
@@ -674,22 +696,24 @@ export default function BulkOrdersPage() {
                                 <div className="space-y-1">
                                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                    Verified safe buyer (95%+)
+                                    {o.risk.realRatio !== null
+                                      ? `Verified buyer (${o.risk.realRatio}% delivered)`
+                                      : "Verified buyer"}
                                   </span>
                                   <p className="text-[10px] text-emerald-700 font-mono">
-                                    Clean order history
+                                    {o.risk.deliveredCount} successful completed orders
                                   </p>
                                 </div>
                               )}
 
                               {!isHighRisk && !isVerified && (
                                 <div className="space-y-1">
-                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-teal-50 text-teal-700 border border-teal-200">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
-                                    Standard delivery check
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                                    New Buyer (First Order)
                                   </span>
-                                  <p className="text-[10px] text-slate-400 font-mono">
-                                    First order in workspace
+                                  <p className="text-[10px] text-slate-500 font-mono">
+                                    No prior orders recorded
                                   </p>
                                 </div>
                               )}

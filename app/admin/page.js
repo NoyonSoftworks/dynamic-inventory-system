@@ -201,6 +201,7 @@ export default function SuperAdminDashboard() {
 
   // ── Active Navigation Tab: 'overview' | 'pricing' | 'integrations'
   const [activeTab, setActiveTab] = useState("overview");
+  const [adminBlogStudioOption, setAdminBlogStudioOption] = useState("articles");
 
   // ── Sidebar & Analytics Navigation State ───────────────────
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -352,6 +353,138 @@ export default function SuperAdminDashboard() {
   const [selectedTenantForGodMode, setSelectedTenantForGodMode] = useState(null);
   const [godModeSaving, setGodModeSaving] = useState(false);
   const [godModeNewPassword, setGodModeNewPassword] = useState("");
+  const [godModeDraft, setGodModeDraft] = useState({
+    plan: "growth",
+    status: "Active",
+    expires_at: null,
+    features: {
+      courier_sync: true,
+      barcode_scanner: true,
+      multi_user: true,
+      profit_analytics: true,
+    },
+  });
+
+  // Keep draft in sync with selected tenant when opened
+  useEffect(() => {
+    if (selectedTenantForGodMode) {
+      const conf = selectedTenantForGodMode.config || {};
+      setGodModeDraft({
+        plan: conf.plan || selectedTenantForGodMode.plan || "growth",
+        status: conf.status || selectedTenantForGodMode.status || "Active",
+        expires_at: conf.expires_at || selectedTenantForGodMode.expires_at || null,
+        features: {
+          courier_sync: conf.features?.courier_sync ?? true,
+          barcode_scanner: conf.features?.barcode_scanner ?? true,
+          multi_user: conf.features?.multi_user ?? true,
+          profit_analytics: conf.features?.profit_analytics ?? true,
+        },
+      });
+    }
+  }, [selectedTenantForGodMode]);
+
+  // Determine if there are uncommitted changes in God-Mode drawer
+  const isGodModeDirty = Boolean(
+    selectedTenantForGodMode && (
+      godModeDraft.plan !== (selectedTenantForGodMode.config?.plan || selectedTenantForGodMode.plan || "growth") ||
+      godModeDraft.status !== (selectedTenantForGodMode.status || selectedTenantForGodMode.config?.status || "Active") ||
+      godModeDraft.expires_at !== (selectedTenantForGodMode.config?.expires_at || selectedTenantForGodMode.expires_at || null) ||
+      ["courier_sync", "barcode_scanner", "multi_user", "profit_analytics"].some(
+        (k) =>
+          Boolean(godModeDraft.features?.[k] ?? true) !==
+          Boolean((selectedTenantForGodMode.config?.features || {})[k] ?? true)
+      )
+    )
+  );
+
+  function handleGodModeAdjustDays(deltaDays) {
+    const currentExp = godModeDraft.expires_at;
+    const currTime = currentExp ? new Date(currentExp).getTime() : 0;
+    const isPast = currTime < Date.now();
+    const base = (isPast || !currentExp) ? new Date() : new Date(currTime);
+    const newDate = new Date(base.getTime() + deltaDays * 86400000);
+    setGodModeDraft((prev) => ({
+      ...prev,
+      expires_at: newDate.toISOString(),
+    }));
+  }
+
+  function handleGodModeSetCycle(days, newStatus) {
+    const newDate = new Date(Date.now() + days * 86400000).toISOString();
+    setGodModeDraft((prev) => ({
+      ...prev,
+      expires_at: newDate,
+      status: newStatus,
+    }));
+  }
+
+  function handleGodModeDiscardChanges() {
+    if (!selectedTenantForGodMode) return;
+    const conf = selectedTenantForGodMode.config || {};
+    setGodModeDraft({
+      plan: conf.plan || selectedTenantForGodMode.plan || "growth",
+      status: conf.status || selectedTenantForGodMode.status || "Active",
+      expires_at: conf.expires_at || selectedTenantForGodMode.expires_at || null,
+      features: {
+        courier_sync: conf.features?.courier_sync ?? true,
+        barcode_scanner: conf.features?.barcode_scanner ?? true,
+        multi_user: conf.features?.multi_user ?? true,
+        profit_analytics: conf.features?.profit_analytics ?? true,
+      },
+    });
+    triggerToast("info", "Pending validity changes discarded.");
+  }
+
+  async function handleSaveGodModeChanges() {
+    if (!selectedTenantForGodMode) return;
+    setGodModeSaving(true);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "manage_tenant",
+          tenantId: selectedTenantForGodMode.id,
+          plan: godModeDraft.plan,
+          status: godModeDraft.status,
+          customExpiry: godModeDraft.expires_at,
+          features: godModeDraft.features,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to update tenant store.");
+      }
+      triggerToast("success", `✓ Store "${selectedTenantForGodMode.name}" subscription updated successfully!`);
+
+      const updatedConf = {
+        ...(selectedTenantForGodMode.config || {}),
+        ...(json.config || {}),
+        plan: godModeDraft.plan,
+        status: godModeDraft.status,
+        expires_at: godModeDraft.expires_at,
+        features: godModeDraft.features,
+      };
+
+      const updatedTenant = {
+        ...selectedTenantForGodMode,
+        plan: godModeDraft.plan,
+        status: godModeDraft.status,
+        expires_at: godModeDraft.expires_at,
+        config: updatedConf,
+      };
+
+      setSelectedTenantForGodMode(updatedTenant);
+      setTenants((prev) =>
+        prev.map((t) => (t.id === selectedTenantForGodMode.id ? updatedTenant : t))
+      );
+      handleManualRefresh();
+    } catch (err) {
+      triggerToast("error", err.message || "Failed to save changes.");
+    } finally {
+      setGodModeSaving(false);
+    }
+  }
 
   const generateNewStorePassword = () => {
     const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$%";
@@ -1635,43 +1768,70 @@ export default function SuperAdminDashboard() {
                 const isActive = item.tab === activeTab;
 
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveTab(item.tab);
-                      if (item.scrollTo) {
-                        setTimeout(() => {
-                          document.getElementById(item.scrollTo)?.scrollIntoView({ behavior: "smooth" });
-                        }, 100);
-                      }
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
-                      sidebarCollapsed ? "justify-center px-2" : "justify-between"
-                    } ${
-                      isActive
-                        ? "bg-orange-50 text-orange-600 font-semibold"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                    }`}
-                    title={sidebarCollapsed ? item.label : undefined}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className={isActive ? "text-orange-600" : "text-slate-400"}>
-                        {item.icon}
-                      </span>
-                      {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
-                    </div>
-                    {!sidebarCollapsed && (
-                      <div className="flex items-center gap-1.5">
-                        {item.badge !== undefined && item.badge !== null && (
-                          <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-mono text-slate-600">
-                            {item.badge}
-                          </span>
-                        )}
-                        {isActive && <span className="text-orange-600 text-xs font-bold">›</span>}
+                  <div key={item.id} className="space-y-0.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(item.tab);
+                        if (item.scrollTo) {
+                          setTimeout(() => {
+                            document.getElementById(item.scrollTo)?.scrollIntoView({ behavior: "smooth" });
+                          }, 100);
+                        }
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
+                        sidebarCollapsed ? "justify-center px-2" : "justify-between"
+                      } ${
+                        isActive
+                          ? "bg-orange-50 text-orange-600 font-semibold"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      }`}
+                      title={sidebarCollapsed ? item.label : undefined}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className={isActive ? "text-orange-600" : "text-slate-400"}>
+                          {item.icon}
+                        </span>
+                        {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+                      </div>
+                      {!sidebarCollapsed && (
+                        <div className="flex items-center gap-1.5">
+                          {item.badge !== undefined && item.badge !== null && (
+                            <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-mono text-slate-600">
+                              {item.badge}
+                            </span>
+                          )}
+                          {isActive && <span className="text-orange-600 text-xs font-bold">›</span>}
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Sub-items for Blog & SEO CMS when active */}
+                    {item.id === "blog" && isActive && !sidebarCollapsed && (
+                      <div className="ml-7 pl-2 border-l border-orange-200/80 space-y-0.5 pt-0.5 pb-1 animate-fadeIn">
+                        {[
+                          { id: "articles", label: "Articles Library", icon: "📝" },
+                          { id: "gsc", label: "Search Console (GSC)", icon: "🔍" },
+                          { id: "ga4", label: "Google Analytics (GA4)", icon: "📊" },
+                          { id: "settings", label: "Webmaster & Sitemap", icon: "⚙️" },
+                        ].map((sub) => (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            onClick={() => setAdminBlogStudioOption(sub.id)}
+                            className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium transition cursor-pointer text-left ${
+                              adminBlogStudioOption === sub.id
+                                ? "bg-orange-100/70 text-orange-800 font-bold"
+                                : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/60"
+                            }`}
+                          >
+                            <span>{sub.icon}</span>
+                            <span className="truncate">{sub.label}</span>
+                          </button>
+                        ))}
                       </div>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -5259,7 +5419,11 @@ export default function SuperAdminDashboard() {
 
         {/* ── CONTENT & BLOG SEO TAB ──────────────────────────────── */}
         {activeTab === "blog" && (
-          <AdminBlogTab triggerToast={triggerToast} />
+          <AdminBlogTab
+            triggerToast={triggerToast}
+            initialOption={adminBlogStudioOption}
+            onOptionChange={setAdminBlogStudioOption}
+          />
         )}
 
         {/* ── STORE NOTIFICATIONS & READ RECEIPTS TAB ──────────────── */}
@@ -5600,11 +5764,17 @@ export default function SuperAdminDashboard() {
                 <div className="rounded-lg border border-slate-200 p-4 space-y-3.5 bg-white shadow-2xs">
                   {(() => {
                     const currentExp = selectedTenantForGodMode.config?.expires_at || selectedTenantForGodMode.expires_at;
+                    const draftExp = godModeDraft.expires_at;
                     const diffDays = currentExp
                       ? Math.ceil((new Date(currentExp).getTime() - Date.now()) / 86400000)
                       : null;
+                    const draftDiffDays = draftExp
+                      ? Math.ceil((new Date(draftExp).getTime() - Date.now()) / 86400000)
+                      : null;
                     const isExp = diffDays !== null && diffDays <= 0;
-                    const formattedDate = currentExp ? new Date(currentExp).toLocaleDateString() : "No Expiry";
+                    const formattedCurrentDate = currentExp ? new Date(currentExp).toLocaleDateString() : "No Expiry";
+                    const formattedDraftDate = draftExp ? new Date(draftExp).toLocaleDateString() : "No Expiry / Ongoing";
+                    const isDateChanged = currentExp !== draftExp;
 
                     return (
                       <>
@@ -5615,27 +5785,43 @@ export default function SuperAdminDashboard() {
                               <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Ongoing</span>
                             ) : isExp ? (
                               <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold border border-rose-200">
-                                🔴 Expired ({formattedDate})
+                                🔴 Expired ({formattedCurrentDate})
                               </span>
                             ) : diffDays <= 5 ? (
                               <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold border border-amber-200">
-                                ⚠️ {diffDays} days left ({formattedDate})
+                                ⚠️ {diffDays}d left ({formattedCurrentDate})
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
-                                🟢 {diffDays} days left ({formattedDate})
+                                🟢 {diffDays}d left ({formattedCurrentDate})
                               </span>
                             )}
                           </div>
                         </div>
+
+                        {/* Staged Date Diff Preview if Changed */}
+                        {isDateChanged && (
+                          <div className="p-2.5 rounded-lg border border-amber-200 bg-amber-50/70 text-xs space-y-1 animate-in fade-in duration-150">
+                            <div className="flex items-center justify-between font-medium text-amber-900">
+                              <span>Proposed Expiry (Unsaved):</span>
+                              <span className="font-mono font-semibold">
+                                {formattedDraftDate} ({draftDiffDays !== null ? `${draftDiffDays}d left` : "Ongoing"})
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-[11px] text-amber-700">
+                              <span>Currently in Database:</span>
+                              <span className="font-mono">{formattedCurrentDate}</span>
+                            </div>
+                          </div>
+                        )}
 
                         <div>
                           <label className="block text-[11px] font-medium text-slate-700 mb-1">
                             Assigned Plan Tier
                           </label>
                           <select
-                            value={selectedTenantForGodMode.config?.plan || selectedTenantForGodMode.plan || "growth"}
-                            onChange={(e) => handleGodModePlanUpdate(e.target.value, 0)}
+                            value={godModeDraft.plan}
+                            onChange={(e) => setGodModeDraft((prev) => ({ ...prev, plan: e.target.value }))}
                             disabled={godModeSaving}
                             className="w-full rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white font-medium"
                           >
@@ -5648,16 +5834,13 @@ export default function SuperAdminDashboard() {
                         {/* Reset / Standard Cycle Presets from Today */}
                         <div>
                           <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                            Set Cycle From Today
+                            Set Standard Cycle (From Today)
                           </label>
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
                               disabled={godModeSaving}
-                              onClick={() => {
-                                const newDate = new Date(Date.now() + 15 * 86400000).toISOString();
-                                handleGodModePlanUpdate(null, null, newDate, "Trial");
-                              }}
+                              onClick={() => handleGodModeSetCycle(15, "Trial")}
                               className="px-2.5 py-1.5 rounded border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-medium shadow-2xs transition disabled:opacity-50 text-center"
                             >
                               ⚡ Set 15-Day Trial
@@ -5665,10 +5848,7 @@ export default function SuperAdminDashboard() {
                             <button
                               type="button"
                               disabled={godModeSaving}
-                              onClick={() => {
-                                const newDate = new Date(Date.now() + 30 * 86400000).toISOString();
-                                handleGodModePlanUpdate(null, null, newDate, "Active");
-                              }}
+                              onClick={() => handleGodModeSetCycle(30, "Active")}
                               className="px-2.5 py-1.5 rounded border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-medium shadow-2xs transition disabled:opacity-50 text-center"
                             >
                               ✓ Set 30-Day Active Cycle
@@ -5676,29 +5856,66 @@ export default function SuperAdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Quick Add Extensions */}
+                        {/* Quick Adjust Extensions: Deduct & Add */}
                         <div>
-                          <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                            Add Days to Current Validity
-                          </label>
-                          <div className="grid grid-cols-5 gap-1.5">
-                            {[
-                              { label: "+7 Days", days: 7 },
-                              { label: "+15 Days", days: 15 },
-                              { label: "+30 Days", days: 30 },
-                              { label: "+90 Days", days: 90 },
-                              { label: "+1 Year", days: 365 },
-                            ].map((btn) => (
-                              <button
-                                key={btn.label}
-                                type="button"
-                                disabled={godModeSaving}
-                                onClick={() => handleGodModePlanUpdate(null, btn.days)}
-                                className="px-1.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-mono text-slate-700 shadow-2xs transition disabled:opacity-50 text-center"
-                              >
-                                {btn.label}
-                              </button>
-                            ))}
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-[11px] font-medium text-slate-700">
+                              Adjust Validity Days (Deduct − or Add +)
+                            </label>
+                            <span className="text-[10px] text-slate-400">Stages changes locally</span>
+                          </div>
+
+                          {/* Deduct (Minus) row */}
+                          <div className="mb-2">
+                            <div className="text-[10px] font-semibold text-rose-600 mb-1 flex items-center gap-1">
+                              <span>Deduct Days (−):</span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-1.5">
+                              {[
+                                { label: "−30 Days", days: -30 },
+                                { label: "−15 Days", days: -15 },
+                                { label: "−7 Days", days: -7 },
+                                { label: "−1 Day", days: -1 },
+                              ].map((btn) => (
+                                <button
+                                  key={btn.label}
+                                  type="button"
+                                  disabled={godModeSaving}
+                                  onClick={() => handleGodModeAdjustDays(btn.days)}
+                                  className="px-1.5 py-1 rounded border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-[11px] font-mono font-medium text-rose-700 shadow-2xs transition disabled:opacity-50 text-center cursor-pointer"
+                                  title={`Deduct ${Math.abs(btn.days)} days from validity`}
+                                >
+                                  {btn.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Add (Plus) row */}
+                          <div>
+                            <div className="text-[10px] font-semibold text-emerald-600 mb-1 flex items-center gap-1">
+                              <span>Add Days (+):</span>
+                            </div>
+                            <div className="grid grid-cols-5 gap-1.5">
+                              {[
+                                { label: "+1 Day", days: 1 },
+                                { label: "+7 Days", days: 7 },
+                                { label: "+15 Days", days: 15 },
+                                { label: "+30 Days", days: 30 },
+                                { label: "+90 Days", days: 90 },
+                              ].map((btn) => (
+                                <button
+                                  key={btn.label}
+                                  type="button"
+                                  disabled={godModeSaving}
+                                  onClick={() => handleGodModeAdjustDays(btn.days)}
+                                  className="px-1.5 py-1 rounded border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100 text-[11px] font-mono font-medium text-emerald-700 shadow-2xs transition disabled:opacity-50 text-center cursor-pointer"
+                                  title={`Add ${btn.days} days to validity`}
+                                >
+                                  {btn.label}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
 
@@ -5710,28 +5927,33 @@ export default function SuperAdminDashboard() {
                           <div className="flex items-center gap-2">
                             <input
                               type="date"
-                              id="godmode-custom-date-input"
-                              defaultValue={
-                                currentExp
-                                  ? new Date(currentExp).toISOString().split("T")[0]
-                                  : new Date().toISOString().split("T")[0]
+                              value={
+                                godModeDraft.expires_at
+                                  ? new Date(godModeDraft.expires_at).toISOString().split("T")[0]
+                                  : ""
                               }
-                              className="flex-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
-                            />
-                            <button
-                              type="button"
-                              disabled={godModeSaving}
-                              onClick={() => {
-                                const input = document.getElementById("godmode-custom-date-input");
-                                if (input && input.value) {
-                                  const dateVal = new Date(input.value).toISOString();
-                                  handleGodModePlanUpdate(null, null, dateVal);
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  const d = new Date(e.target.value);
+                                  d.setHours(23, 59, 59, 999);
+                                  setGodModeDraft((prev) => ({ ...prev, expires_at: d.toISOString() }));
+                                } else {
+                                  setGodModeDraft((prev) => ({ ...prev, expires_at: null }));
                                 }
                               }}
-                              className="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition disabled:opacity-50 shrink-0"
-                            >
-                              Apply Date
-                            </button>
+                              className="flex-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-mono text-slate-900 shadow-2xs focus:border-slate-900 focus:outline-none bg-white"
+                            />
+                            {godModeDraft.expires_at && (
+                              <button
+                                type="button"
+                                disabled={godModeSaving}
+                                onClick={() => setGodModeDraft((prev) => ({ ...prev, expires_at: null }))}
+                                className="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-600 transition shrink-0"
+                                title="Clear expiry date for continuous ongoing access"
+                              >
+                                Set Ongoing
+                              </button>
+                            )}
                           </div>
                         </div>
                       </>
@@ -5739,19 +5961,55 @@ export default function SuperAdminDashboard() {
                   })()}
 
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs text-slate-600 font-medium">Store Operational Access</span>
+                    <div>
+                      <span className="text-xs text-slate-600 font-medium block">Store Operational Access</span>
+                      <span className="text-[10px] text-slate-400">
+                        Draft Status: <strong className={godModeDraft.status === "Active" ? "text-emerald-600" : "text-rose-600"}>{godModeDraft.status}</strong>
+                      </span>
+                    </div>
                     <button
                       type="button"
                       disabled={godModeSaving}
-                      onClick={() => handleToggleTenantStatus(selectedTenantForGodMode.id, selectedTenantForGodMode.status)}
-                      className={`px-3 py-1 rounded text-xs font-medium transition ${
-                        selectedTenantForGodMode.status === "Active"
+                      onClick={() =>
+                        setGodModeDraft((prev) => ({
+                          ...prev,
+                          status: prev.status === "Active" ? "Suspended" : "Active",
+                        }))
+                      }
+                      className={`px-3 py-1 rounded text-xs font-medium transition cursor-pointer ${
+                        godModeDraft.status === "Active"
                           ? "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
                           : "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
                       }`}
                     >
-                      {selectedTenantForGodMode.status === "Active" ? "Suspend Store Access" : "Activate Store Access"}
+                      {godModeDraft.status === "Active" ? "Set to Suspended" : "Set to Active"}
                     </button>
+                  </div>
+
+                  {/* Section Save & Discard Buttons */}
+                  <div className="pt-3 border-t border-slate-200 flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={godModeSaving || !isGodModeDirty}
+                      onClick={handleSaveGodModeChanges}
+                      className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs transition ${
+                        isGodModeDirty
+                          ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                          : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                      }`}
+                    >
+                      {godModeSaving ? "Saving Changes..." : isGodModeDirty ? "💾 Save Changes" : "✓ No Changes to Save"}
+                    </button>
+                    {isGodModeDirty && (
+                      <button
+                        type="button"
+                        disabled={godModeSaving}
+                        onClick={handleGodModeDiscardChanges}
+                        className="py-2 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 transition cursor-pointer"
+                      >
+                        ↺ Discard
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -5765,7 +6023,7 @@ export default function SuperAdminDashboard() {
                       { key: "multi_user", label: "Multi-User Staff Access", desc: "Warehouse staff operator accounts with RBAC" },
                       { key: "profit_analytics", label: "Profit & Loss Margin Reports", desc: "COGS calculations, net profit & expense tracking" },
                     ].map((feat) => {
-                      const isEnabled = selectedTenantForGodMode.config?.features?.[feat.key] ?? true;
+                      const isEnabled = godModeDraft.features?.[feat.key] ?? true;
                       return (
                         <div key={feat.key} className="flex items-center justify-between py-1 border-b border-slate-100 last:border-0">
                           <div>
@@ -5775,8 +6033,16 @@ export default function SuperAdminDashboard() {
                           <button
                             type="button"
                             disabled={godModeSaving}
-                            onClick={() => handleGodModeFeatureToggle(feat.key, !isEnabled)}
-                            className={`w-10 h-5 flex items-center rounded-full p-0.5 transition duration-200 ${
+                            onClick={() =>
+                              setGodModeDraft((prev) => ({
+                                ...prev,
+                                features: {
+                                  ...prev.features,
+                                  [feat.key]: !isEnabled,
+                                },
+                              }))
+                            }
+                            className={`w-10 h-5 flex items-center rounded-full p-0.5 transition duration-200 cursor-pointer ${
                               isEnabled ? "bg-slate-900 justify-end" : "bg-slate-200 justify-start"
                             }`}
                           >
@@ -5837,6 +6103,34 @@ export default function SuperAdminDashboard() {
                   </button>
                 </div>
               </div>
+
+              {/* Sticky Action Footer when changes are staged */}
+              {isGodModeDirty && (
+                <div className="p-4 border-t border-amber-200 bg-amber-50/95 backdrop-blur-xs flex items-center justify-between gap-3 shrink-0 shadow-lg animate-in slide-in-from-bottom duration-150">
+                  <div className="flex items-center gap-2 text-xs text-amber-900 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                    <span>Unsaved store changes pending</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={godModeSaving}
+                      onClick={handleGodModeDiscardChanges}
+                      className="px-3 py-1.5 rounded-md border border-amber-300 bg-white hover:bg-amber-100/60 text-xs font-medium text-slate-700 transition cursor-pointer"
+                    >
+                      ↺ Discard
+                    </button>
+                    <button
+                      type="button"
+                      disabled={godModeSaving}
+                      onClick={handleSaveGodModeChanges}
+                      className="px-3.5 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {godModeSaving ? "Saving..." : "💾 Save Changes"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

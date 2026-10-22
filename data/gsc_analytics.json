@@ -1,115 +1,49 @@
 {
   "performance": {
     "range_7d": {
-      "clicks": 490,
-      "impressions": 9850,
-      "ctr": "4.97%",
-      "position": 3.1
+      "clicks": 0,
+      "impressions": 0,
+      "ctr": "0.0%",
+      "position": 0
     },
     "range_28d": {
-      "clicks": 1840,
-      "impressions": 38200,
-      "ctr": "4.82%",
-      "position": 3.4
+      "clicks": 0,
+      "impressions": 0,
+      "ctr": "0.0%",
+      "position": 0
     },
     "range_90d": {
-      "clicks": 5620,
-      "impressions": 114000,
-      "ctr": "4.93%",
-      "position": 3.6
+      "clicks": 0,
+      "impressions": 0,
+      "ctr": "0.0%",
+      "position": 0
     }
   },
-  "top_queries": [
-    {
-      "query": "steadfast courier api bangladesh",
-      "clicks": 480,
-      "impressions": 6400,
-      "ctr": "7.5%",
-      "position": 1.8,
-      "trend": "up"
-    },
-    {
-      "query": "inventory management software saas",
-      "clicks": 360,
-      "impressions": 7200,
-      "ctr": "5.0%",
-      "position": 2.4,
-      "trend": "up"
-    },
-    {
-      "query": "mobile barcode scanner without hardware",
-      "clicks": 290,
-      "impressions": 5800,
-      "ctr": "5.0%",
-      "position": 2.1,
-      "trend": "stable"
-    },
-    {
-      "query": "courier cod settlement automation",
-      "clicks": 240,
-      "impressions": 4900,
-      "ctr": "4.9%",
-      "position": 3.2,
-      "trend": "up"
-    },
-    {
-      "query": "ecommerce rto return prevention bangladesh",
-      "clicks": 195,
-      "impressions": 4100,
-      "ctr": "4.8%",
-      "position": 3.5,
-      "trend": "up"
-    },
-    {
-      "query": "how to create saas inventory account",
-      "clicks": 160,
-      "impressions": 3800,
-      "ctr": "4.2%",
-      "position": 4.1,
-      "trend": "up"
-    },
-    {
-      "query": "thermal shipping label 4x6 print code128",
-      "clicks": 115,
-      "impressions": 3200,
-      "ctr": "3.6%",
-      "position": 4.8,
-      "trend": "stable"
-    }
-  ],
+  "top_queries": [],
   "indexing": {
     "sitemap_url": "/sitemap.xml",
-    "total_discovered_urls": 67,
-    "indexed_urls": 65,
-    "excluded_urls": 2,
-    "last_ping_at": "2026-10-22T08:30:00Z",
-    "last_crawl_status": "Success (200 OK • Googlebot Smartphone)",
-    "coverage_verdict": "Valid with Sitemaps"
+    "total_discovered_urls": 0,
+    "indexed_urls": 0,
+    "excluded_urls": 0,
+    "last_ping_at": null,
+    "last_crawl_status": "Ready for Search Engine Submission",
+    "coverage_verdict": "Sitemap Generated & Valid"
   },
   "ga4": {
-    "active_users_now": 7,
-    "avg_engagement_time": "3m 42s",
+    "active_users_now": 0,
+    "avg_engagement_time": "0s",
     "traffic_channels": {
-      "organic_search": 64,
-      "direct": 22,
-      "social": 10,
-      "referral": 4
+      "organic_search": 0,
+      "direct": 0,
+      "social": 0,
+      "referral": 0
     },
     "devices": {
-      "mobile": 68,
-      "desktop": 29,
-      "tablet": 3
+      "mobile": 0,
+      "desktop": 0,
+      "tablet": 0
     },
-    "regions": [
-      { "name": "Dhaka Division", "percentage": 58 },
-      { "name": "Chittagong", "percentage": 21 },
-      { "name": "Sylhet", "percentage": 9 },
-      { "name": "Rajshahi / Other", "percentage": 8 },
-      { "name": "International Expat", "percentage": 4 }
-    ],
-    "conversions": {
-      "free_trial_cta_clicks": 142,
-      "demo_views": 88
-    }
+    "top_countries": [],
+    "recent_page_views": []
   }
 }

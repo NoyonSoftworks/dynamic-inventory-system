@@ -8,21 +8,21 @@ import { useBusinessContext } from "@/utils/supabase/business";
 // ── Sample Presets for RTO Risk Testing ──────────────────────
 const RTO_PRESETS = [
   {
-    label: "High Risk Vague Address",
+    label: "Invalid Dummy Number (01700...)",
     phone: "01700000000",
     address: "Dhaka mor",
     codAmount: 7500,
     courier: "Steadfast",
   },
   {
-    label: "Safe Verified Order",
+    label: "Standard Urban Address (Banani)",
     phone: "01712345678",
     address: "House 24, Road 7, Block C, Banani, Dhaka-1213",
     codAmount: 1850,
     courier: "Steadfast",
   },
   {
-    label: "Remote District COD",
+    label: "Remote District Consignment (Kurigram)",
     phone: "01819283746",
     address: "Post Office Road, Sadar Thana, Kurigram",
     codAmount: 4200,
@@ -686,31 +686,42 @@ export default function AiOperationsHubPage() {
             {/* Analysis Result Output */}
             <div className="lg:col-span-7">
               {rtoResult ? (
-                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs space-y-5 animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                     <div>
                       <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                        Consignment Risk Evaluation
+                        Consignment &amp; Customer Ratio Assessment
                       </span>
-                      <h3 className="text-lg font-semibold text-slate-900 mt-0.5">
-                        Risk verdict:{" "}
+                      <h3 className="text-lg font-bold text-slate-900 mt-0.5">
+                        Verdict:{" "}
                         <span
                           className={
                             rtoResult.riskLevel === "HIGH"
                               ? "text-rose-600"
                               : rtoResult.riskLevel === "MEDIUM"
                               ? "text-amber-600"
+                              : rtoResult.riskLevel === "NEW"
+                              ? "text-blue-600"
                               : "text-emerald-600"
                           }
                         >
-                          {rtoResult.riskLevel} RISK
+                          {rtoResult.riskLevel === "HIGH"
+                            ? "🔴 HIGH RETURN RISK"
+                            : rtoResult.riskLevel === "MEDIUM"
+                            ? "🟡 MODERATE RISK"
+                            : rtoResult.riskLevel === "NEW"
+                            ? "🔵 NEW BUYER (NO RECORD)"
+                            : "🟢 LOW RISK (RELIABLE)"}
                         </span>
                       </h3>
+                      <div className="text-xs font-mono text-slate-500 mt-0.5">
+                        Phone: <strong className="text-slate-800">{rtoResult.phone}</strong>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <div className="text-right">
-                        <div className="text-2xl font-semibold font-mono text-slate-900">
+                        <div className="text-2xl font-black font-mono text-slate-900">
                           {rtoResult.riskScore}
                           <span className="text-xs text-slate-400 font-normal">/100</span>
                         </div>
@@ -719,35 +730,80 @@ export default function AiOperationsHubPage() {
                     </div>
                   </div>
 
-                  {/* Progress Risk Bar */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-[11px] font-mono text-slate-500">
-                      <span>Safe (0-30)</span>
-                      <span>Moderate (31-60)</span>
-                      <span>High Risk (61-100)</span>
+                  {/* 3 Real Delivery Ratio Metric Cards */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 text-center space-y-0.5">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 font-mono block">
+                        Delivery Ratio
+                      </span>
+                      <span className={`text-xl font-black font-mono block ${
+                        rtoResult.deliveryRatioNumeric === null
+                          ? "text-slate-500"
+                          : rtoResult.deliveryRatioNumeric >= 80
+                          ? "text-emerald-600"
+                          : rtoResult.deliveryRatioNumeric >= 60
+                          ? "text-amber-600"
+                          : "text-rose-600"
+                      }`}>
+                        {rtoResult.deliveryRatio}
+                      </span>
+                      <span className="text-[10px] text-slate-400 block truncate">
+                        {rtoResult.totalParcels > 0
+                          ? `${rtoResult.totalDelivered}/${rtoResult.totalParcels} successful`
+                          : "First-time order"}
+                      </span>
                     </div>
-                    <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden flex">
-                      <div
-                        className={`h-full transition-all duration-500 ${
-                          rtoResult.riskLevel === "HIGH"
-                            ? "bg-rose-500"
-                            : rtoResult.riskLevel === "MEDIUM"
-                            ? "bg-amber-500"
-                            : "bg-emerald-500"
-                        }`}
-                        style={{ width: `${rtoResult.riskScore}%` }}
-                      />
+
+                    <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 text-center space-y-0.5">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 font-mono block">
+                        Delivered
+                      </span>
+                      <span className="text-xl font-black font-mono text-emerald-600 block">
+                        {rtoResult.totalDelivered}
+                      </span>
+                      <span className="text-[10px] text-slate-400 block">
+                        Accepted orders
+                      </span>
                     </div>
+
+                    <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 text-center space-y-0.5">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 font-mono block">
+                        Cancelled / RTO
+                      </span>
+                      <span className={`text-xl font-black font-mono block ${
+                        rtoResult.totalCancelled > 0 ? "text-rose-600" : "text-slate-600"
+                      }`}>
+                        {rtoResult.totalCancelled}
+                      </span>
+                      <span className="text-[10px] text-slate-400 block">
+                        Refused parcels
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Data Source Notice */}
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-400 font-mono">📡 Data Source:</span>
+                      <span className="font-semibold text-slate-800">{rtoResult.dataSource}</span>
+                    </div>
+                    {rtoResult.courierApiError && (
+                      <span className="text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        {rtoResult.courierApiError}
+                      </span>
+                    )}
                   </div>
 
                   {/* Recommended Action Pill */}
                   <div
                     className={`p-4 rounded-xl border space-y-1.5 ${
                       rtoResult.riskLevel === "HIGH"
-                        ? "bg-rose-50/70 border-rose-200 text-rose-900"
+                        ? "bg-rose-50/80 border-rose-200 text-rose-900"
                         : rtoResult.riskLevel === "MEDIUM"
-                        ? "bg-amber-50/70 border-amber-200 text-amber-900"
-                        : "bg-emerald-50/70 border-emerald-200 text-emerald-900"
+                        ? "bg-amber-50/80 border-amber-200 text-amber-900"
+                        : rtoResult.riskLevel === "NEW"
+                        ? "bg-blue-50/80 border-blue-200 text-blue-900"
+                        : "bg-emerald-50/80 border-emerald-200 text-emerald-900"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -757,6 +813,8 @@ export default function AiOperationsHubPage() {
                             ? "bg-rose-500"
                             : rtoResult.riskLevel === "MEDIUM"
                             ? "bg-amber-500"
+                            : rtoResult.riskLevel === "NEW"
+                            ? "bg-blue-500"
                             : "bg-emerald-500"
                         }`}
                       />
@@ -772,7 +830,7 @@ export default function AiOperationsHubPage() {
                   {/* Detected Risk Factors / Flags */}
                   <div>
                     <h4 className="text-xs font-bold uppercase font-mono text-slate-700 mb-2">
-                      Detected Signal Vectors ({rtoResult.flags?.length || 0})
+                      Logistics Signal Vectors ({rtoResult.flags?.length || 0})
                     </h4>
                     {rtoResult.flags?.length > 0 ? (
                       <div className="space-y-2">
@@ -793,19 +851,21 @@ export default function AiOperationsHubPage() {
                         <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>Zero fraud or delivery anomaly flags detected. Recipient details match valid fulfillment profile.</span>
+                        <span>Verified clean delivery profile. Past orders show reliable parcel acceptance.</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Financial Loss Prevented Metric */}
+                  {/* WhatsApp Action Footer */}
                   <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <div>
                       <span className="text-[11px] font-mono text-slate-400 block uppercase">
-                        Potential Return Loss Prevented
+                        Return Loss Safeguard
                       </span>
-                      <span className="text-lg font-semibold font-mono text-emerald-600">
-                        ৳{rtoResult.estimatedLossPrevented.toLocaleString()}
+                      <span className="text-base font-bold font-mono text-emerald-600">
+                        {rtoResult.estimatedLossPrevented > 0
+                          ? `৳${rtoResult.estimatedLossPrevented.toLocaleString()} Protected`
+                          : "Verified Safe"}
                       </span>
                     </div>
                     <button
@@ -814,12 +874,12 @@ export default function AiOperationsHubPage() {
                         triggerToast(
                           rtoResult.advanceFeeRequired
                             ? "Action recorded: Advance delivery fee request queued for customer WhatsApp."
-                            : "Order verified: Dispatched to courier queue."
+                            : "Order verified: Approved for courier handover."
                         );
                       }}
-                      className="btn-tactile px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition"
+                      className="btn-tactile px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer"
                     >
-                      {rtoResult.advanceFeeRequired ? "Request ৳150 Advance via WhatsApp" : "Approve for Fast Dispatch"}
+                      {rtoResult.advanceFeeRequired ? "Request Advance Delivery Fee" : "Approve for Fast Dispatch"}
                     </button>
                   </div>
                 </div>
@@ -832,10 +892,10 @@ export default function AiOperationsHubPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-900">
-                      Awaiting Consignment Parameters
+                      Enter Customer Phone to Check Delivery Ratio
                     </h3>
                     <p className="text-xs text-slate-500 max-w-sm mt-1">
-                      Select a scenario preset on the left or enter recipient details, then click <strong>"Analyze Consignment Return Risk"</strong> to run automated risk scoring.
+                      Enter recipient mobile number and consignment details on the left, then click <strong>"Analyze Consignment Return Risk"</strong> to verify real courier delivery success rates.
                     </p>
                   </div>
                 </div>

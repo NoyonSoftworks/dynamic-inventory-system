@@ -43,11 +43,19 @@ export async function GET(request) {
     // Dynamically update total discovered based on live posts
     const livePostCount = posts.filter((p) => p.is_published !== false).length;
     const totalDiscovered = livePostCount + 4; // plus homepage, /blog, /demo, /login
+    const isGoogleVerified = Boolean(saasSettings.google_site_verification);
+    const isGa4Connected = Boolean(saasSettings.google_analytics_id);
 
     const indexing = {
       ...(gscData.indexing || {}),
       total_discovered_urls: totalDiscovered,
-      indexed_urls: Math.max(1, totalDiscovered - (posts.filter((p) => p.is_published === false).length)),
+      published_indexable_urls: livePostCount + 4,
+      google_verified: isGoogleVerified,
+      ga4_connected: isGa4Connected,
+      sitemap_status: "Valid XML (/sitemap.xml)",
+      crawl_coverage_note: isGoogleVerified
+        ? "Google Site Verification Key configured. Submit /sitemap.xml in Google Search Console to index all URLs."
+        : "Google Search Console is not connected yet. Add your verification tag in Settings to enable Googlebot index tracking.",
     };
 
     return NextResponse.json({
@@ -56,6 +64,8 @@ export async function GET(request) {
       top_queries: gscData.top_queries || [],
       indexing,
       ga4: gscData.ga4 || {},
+      is_google_verified: isGoogleVerified,
+      is_ga4_connected: isGa4Connected,
       settings: {
         google_site_verification: saasSettings.google_site_verification || "",
         google_analytics_id: saasSettings.google_analytics_id || "",
@@ -132,6 +142,7 @@ export async function POST(request) {
       const isLive = found.is_published !== false;
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://smartinventory.io";
       const canonical = found.canonical_url || `${baseUrl}/blog/${found.slug}`;
+      const searchDomain = baseUrl.replace(/^https?:\/\//, "");
 
       return NextResponse.json({
         success: true,
@@ -139,18 +150,21 @@ export async function POST(request) {
         url: `${baseUrl}/blog/${found.slug}`,
         slug: found.slug,
         title: found.title,
-        verdict: isLive ? "URL is on Google (Indexed & Serving)" : "Discovered - Currently Not Indexed (Draft)",
+        verdict: isLive ? "Technical Audit: Passed (Indexable & Published)" : "Draft (Not Submitted for Indexing)",
+        is_live: isLive,
+        google_search_url: `https://www.google.com/search?q=site%3A${encodeURIComponent(searchDomain + "/blog/" + found.slug)}`,
         details: {
           indexable: isLive,
-          indexing_allowed: true,
-          canonical_status: "Google-selected canonical matches user-declared canonical",
+          indexing_allowed: isLive ? "Yes (robots: index, follow)" : "No (Draft)",
+          canonical_status: "Canonical meta tag declared & matches target URL",
           canonical,
           mobile_usable: true,
-          mobile_verdict: "Page is usable on mobile (Viewport configured, content sized to screen)",
+          mobile_verdict: "Page is responsive and mobile-friendly (Viewport configured)",
           crawl_agent: "Googlebot Smartphone",
           schema_valid: true,
           schema_types: ["TechArticle", "BreadcrumbList", ...(found.faq?.length ? ["FAQPage"] : [])],
           last_crawled: found.updated_at || found.created_at,
+          serp_notice: "Actual Google SERP indexing requires Googlebot crawling (usually 24-72 hours after sitemap submission). Click 'Verify on Google' to check live index state.",
         },
       });
     }

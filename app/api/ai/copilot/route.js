@@ -92,87 +92,210 @@ export async function POST(request) {
           customerName = "",
         } = payload || {};
 
-        let riskScore = 12; // Base baseline risk
-        const flags = [];
-        const cleanPhone = String(phone).replace(/[^0-9]/g, "");
+        let cleanPhone = String(phone).replace(/[^0-9]/g, "");
+        if (cleanPhone.startsWith("8801")) cleanPhone = cleanPhone.slice(2);
         const cleanAddress = String(address).trim();
         const numAmount = Number(codAmount) || 0;
+        const flags = [];
 
-        // Check 1: Phone number validity in Bangladesh
+        // ── Check 1: Format & Syntactic Phone Validity ───────────
         const bdPrefixes = ["013", "014", "015", "016", "017", "018", "019"];
         const hasValidPrefix = bdPrefixes.some((p) => cleanPhone.startsWith(p));
+        const isRepeatedDummy = /(\d)\1{5,}/.test(cleanPhone);
 
         if (cleanPhone.length !== 11) {
-          riskScore += 35;
-          flags.push("Invalid phone length (must be exactly 11 digits in Bangladesh).");
+          flags.push("Invalid mobile number length (must be 11 digits e.g. 017XXXXXXXX).");
         } else if (!hasValidPrefix) {
-          riskScore += 30;
-          flags.push("Unrecognized mobile operator prefix.");
+          flags.push("Unrecognized Bangladesh mobile operator prefix.");
+        }
+        if (isRepeatedDummy) {
+          flags.push("Suspicious repeating/dummy digits detected in phone number.");
         }
 
-        // Check for suspicious repeating or dummy numbers (e.g. 01700000000 or 01712345678)
-        if (/(\d)\1{5,}/.test(cleanPhone)) {
-          riskScore += 45;
-          flags.push("Suspicious repeating digits detected in phone number.");
+        // ── Check 2: Real Store Database Order History ──────────
+        let storeOrders = [];
+        let storeTotal = 0;
+        let storeDelivered = 0;
+        let storeCancelled = 0;
+
+        if (cleanPhone.length >= 10) {
+          try {
+            const last10 = cleanPhone.slice(-10);
+            let q = adminClient
+              .from("orders")
+              .select("id, status, total_amount, created_at, customer_name, customer_address")
+              .ilike("customer_phone", `%${last10}%`);
+
+            if (callerBusinessId) {
+              q = q.eq("business_id", callerBusinessId);
+            }
+            const { data: ords } = await q.limit(40);
+            storeOrders = ords || [];
+            storeTotal = storeOrders.length;
+            storeDelivered = storeOrders.filter((o) =>
+              ["DELIVERED", "DISPATCHED"].includes((o.status || "").toUpperCase())
+            ).length;
+            storeCancelled = storeOrders.filter((o) =>
+              ["CANCELLED", "RETURNED", "FAILED", "RTO"].includes((o.status || "").toUpperCase())
+            ).length;
+          } catch (err) {
+            console.warn("Store order history query warning:", err.message);
+          }
         }
 
-        // Check 2: Address detail & completeness
+        // ── Check 3: Real Steadfast Courier Fraud API ───────────
+        let steadfastData = null;
+        let courierApiChecked = false;
+        let courierApiError = null;
+
+        if (cleanPhone.length === 11 && hasValidPrefix && !isRepeatedDummy) {
+          try {
+            let sQuery = adminClient
+              .from("courier_settings")
+              .select("api_key, api_secret")
+              .eq("courier_name", "Steadfast");
+
+            if (callerBusinessId) {
+              sQuery = sQuery.eq("business_id", callerBusinessId);
+            }
+            const { data: cSettings } = await sQuery.maybeSingle();
+
+            const apiKey = cSettings?.api_key || process.env.STEADFAST_API_KEY;
+            const secretKey = cSettings?.api_secret || process.env.STEADFAST_SECRET_KEY;
+
+            if (apiKey && secretKey) {
+              courierApiChecked = true;
+              const controller = new AbortController();
+              const timeout = setTimeout(() => controller.abort(), 6000);
+
+              const sfRes = await fetch(
+                `https://portal.steadfast.com.bd/api/v1/fraud_check/${cleanPhone}`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Api-Key": apiKey,
+                    "Secret-Key": secretKey,
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                  },
+                  signal: controller.signal,
+                }
+              ).catch((e) => ({ ok: false, status: 500, error: e.message }));
+              clearTimeout(timeout);
+
+              if (sfRes?.ok) {
+                const sfJson = await sfRes.json().catch(() => null);
+                if (sfJson && (sfJson.status === 200 || sfJson.total_parcels !== undefined)) {
+                  steadfastData = {
+                    total_parcels: Number(sfJson.total_parcels) || 0,
+                    total_delivered: Number(sfJson.total_delivered) || 0,
+                    total_cancelled: Number(sfJson.total_cancelled ?? sfJson.total_returned) || 0,
+                  };
+                }
+              } else if (sfRes?.status === 401) {
+                courierApiError = "Steadfast API credentials in Settings are invalid or expired.";
+              }
+            }
+          } catch (err) {
+            console.warn("Steadfast API check notice:", err.message);
+          }
+        }
+
+        // ── Check 4: Address Clarity Check ──────────────────────
         const addressWords = cleanAddress.split(/\s+/).filter(Boolean);
-        if (cleanAddress.length < 12 || addressWords.length < 3) {
-          riskScore += 30;
-          flags.push("Incomplete or vague address (lacks house/road/thana specification).");
+        if (cleanAddress.length > 0 && (cleanAddress.length < 12 || addressWords.length < 3)) {
+          flags.push("Incomplete or vague delivery address (missing house/road/thana).");
         }
 
-        const vagueTerms = ["dhaka", "chittagong", "bazar", "mor", "near school", "bari"];
-        if (cleanAddress.length < 20 && vagueTerms.some((t) => cleanAddress.toLowerCase() === t)) {
-          riskScore += 25;
-          flags.push("Single-word or landmark-only address without specific recipient house.");
+        // ── Check 5: Consolidate Real Logistics Metrics ─────────
+        let netParcels = 0;
+        let netDelivered = 0;
+        let netCancelled = 0;
+        let dataSource = "Store Order Database";
+
+        if (steadfastData && steadfastData.total_parcels > 0) {
+          netParcels = steadfastData.total_parcels;
+          netDelivered = steadfastData.total_delivered;
+          netCancelled = steadfastData.total_cancelled;
+          dataSource = "Steadfast Courier Nationwide Network";
+        } else if (storeTotal > 0) {
+          netParcels = storeTotal;
+          netDelivered = storeDelivered;
+          netCancelled = storeCancelled;
+          dataSource = `Your Store Order History (${storeTotal} logged orders)`;
+        } else {
+          dataSource = courierApiChecked
+            ? "Steadfast Network + Store (0 Prior Consignments)"
+            : "Store Database (No Prior Orders)";
         }
 
-        // Check 3: COD Order Value Risk Threshold
-        if (numAmount > 6000) {
-          riskScore += 18;
-          flags.push(`High COD consignment value (৳${numAmount.toLocaleString()}) increases refusal probability.`);
-        } else if (numAmount > 3500) {
-          riskScore += 8;
-        }
+        // Compute Truthful Ratio
+        const hasHistory = netParcels > 0;
+        const deliveryRatioNumeric = hasHistory
+          ? Math.round((netDelivered / netParcels) * 100)
+          : null;
 
-        // Check 4: Remote Courier Delivery Zone
-        const isRemoteDistrict = /kurigram|panchagarh|bandarban|khagrachari|rangamati|barguna|sunamganj/i.test(
-          cleanAddress
-        );
-        if (isRemoteDistrict) {
-          riskScore += 12;
-          flags.push("Remote district destination with longer transit turnaround SLA.");
-        }
-
-        // Clamp score between 5 and 98
-        const finalScore = Math.min(98, Math.max(5, riskScore));
-
-        let riskLevel = "LOW";
-        let recommendation = "Safe to dispatch via automated booking.";
+        let riskLevel = "NEW";
+        let riskScore = 20;
+        let recommendation = "";
         let advanceFeeRequired = false;
 
-        if (finalScore >= 60) {
+        if (cleanPhone.length !== 11 || !hasValidPrefix || isRepeatedDummy) {
           riskLevel = "HIGH";
-          recommendation =
-            "DO NOT dispatch as COD directly. Collect delivery fee (৳130-৳150) in advance via bKash/Nagad before shipment.";
+          riskScore = 92;
+          recommendation = "Invalid customer phone number. Do not dispatch until verified via direct phone call.";
           advanceFeeRequired = true;
-        } else if (finalScore >= 35) {
-          riskLevel = "MEDIUM";
+        } else if (!hasHistory) {
+          riskLevel = "NEW";
+          riskScore = 25;
           recommendation =
-            "Call customer to confirm active delivery address and availability before handing over to courier.";
+            "First-time buyer with no prior courier history recorded. Standard practice: Call customer to confirm availability before packing, or collect ৳100–৳150 delivery fee in advance.";
+          advanceFeeRequired = numAmount > 4000;
+          flags.push("No prior delivery history found across store or connected carrier for this number.");
+        } else if (deliveryRatioNumeric >= 85) {
+          riskLevel = "LOW";
+          riskScore = Math.max(5, 100 - deliveryRatioNumeric);
+          recommendation = `Reliable buyer with proven ${deliveryRatioNumeric}% delivery success rate (${netDelivered}/${netParcels} delivered). Safe for automated 1-click dispatch.`;
           advanceFeeRequired = false;
+        } else if (deliveryRatioNumeric >= 60) {
+          riskLevel = "MEDIUM";
+          riskScore = 100 - deliveryRatioNumeric;
+          recommendation = `Moderate delivery ratio (${deliveryRatioNumeric}%). Customer has returned/refused ${netCancelled} parcels in the past. Call before dispatch.`;
+          advanceFeeRequired = false;
+          flags.push(`Customer has refused/returned ${netCancelled} parcels in past delivery records.`);
+        } else {
+          riskLevel = "HIGH";
+          riskScore = Math.min(95, 100 - deliveryRatioNumeric);
+          recommendation = `High RTO return risk! Customer delivery ratio is only ${deliveryRatioNumeric}% (${netCancelled} of ${netParcels} parcels cancelled/returned). Mandatory: Collect full delivery charge in advance via bKash/Nagad.`;
+          advanceFeeRequired = true;
+          flags.push(`High refusal rate: ${netCancelled} of ${netParcels} parcels were returned to merchants.`);
+        }
+
+        if (numAmount > 6000) {
+          flags.push(`High COD consignment value (৳${numAmount.toLocaleString()}) increases return exposure.`);
         }
 
         return NextResponse.json({
           success: true,
-          riskScore: finalScore,
+          phone: cleanPhone,
+          hasHistory,
+          totalParcels: netParcels,
+          totalDelivered: netDelivered,
+          totalCancelled: netCancelled,
+          deliveryRatio: deliveryRatioNumeric !== null ? `${deliveryRatioNumeric}%` : "N/A (New Buyer)",
+          deliveryRatioNumeric,
+          riskScore,
           riskLevel,
           flags,
           recommendation,
           advanceFeeRequired,
-          estimatedLossPrevented: finalScore >= 50 ? 160 + Math.round(numAmount * 0.05) : 0,
+          dataSource,
+          courierApiChecked,
+          courierApiError,
+          estimatedLossPrevented:
+            riskLevel === "HIGH" || riskLevel === "MEDIUM"
+              ? 160 + Math.round(numAmount * 0.04)
+              : 0,
           customerName: customerName || "Customer",
           courier,
         });

@@ -391,6 +391,7 @@ export async function POST(request) {
       stripe_secret_key,
       admin_recovery_email,
       admin_recovery_phone,
+      admin_recovery_pin,
       support_phone,
       support_whatsapp,
       support_email,
@@ -627,7 +628,7 @@ export async function POST(request) {
   } catch (err) {
     console.error("POST /api/admin/settings exception:", err);
     return NextResponse.json(
-      { success: false, error: "Internal server error." },
+      { success: false, error: err?.message || "Internal server error." },
       { status: 500 }
     );
   }

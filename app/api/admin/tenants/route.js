@@ -526,9 +526,9 @@ export async function PATCH(request) {
       const currentConfig = getTenantConfig(tenantId);
 
       let newExpiry = currentConfig.expires_at;
-      if (customExpiry) {
-        newExpiry = new Date(customExpiry).toISOString();
-      } else if (addDays !== undefined && addDays !== null && Number(addDays) > 0) {
+      if (customExpiry !== undefined) {
+        newExpiry = customExpiry ? new Date(customExpiry).toISOString() : null;
+      } else if (addDays !== undefined && addDays !== null && Number(addDays) !== 0) {
         const currTime = currentConfig.expires_at ? new Date(currentConfig.expires_at).getTime() : 0;
         const isFarFuture = currTime > Date.now() + 3650 * 86400000;
         const isPast = currTime < Date.now();

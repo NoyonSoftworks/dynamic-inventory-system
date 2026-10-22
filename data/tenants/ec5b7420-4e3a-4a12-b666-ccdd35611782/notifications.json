@@ -1,5 +1,17 @@
 [
   {
+    "id": "notif-1792681950327-vzy9",
+    "business_id": "ec5b7420-4e3a-4a12-b666-ccdd35611782",
+    "title": "1 Day Left on Your Subscription",
+    "message": "Dear Wearzobd team, your subscription will expire in 1 day. Renew today to continue processing customer parcels without interruption.",
+    "type": "warning",
+    "category": "renewal",
+    "created_at": "2026-10-22T15:12:30.328Z",
+    "read": false,
+    "sender": "Super Admin",
+    "expires_at": null
+  },
+  {
     "id": "notif-1792614338682-77w9",
     "business_id": "ec5b7420-4e3a-4a12-b666-ccdd35611782",
     "title": "New Update: Enhanced Courier Auto-Reconciliation",

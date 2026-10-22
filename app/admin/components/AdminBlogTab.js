@@ -5,9 +5,11 @@ import Link from "next/link";
 import { calculateSeoScore, extractDefaultKeyword } from "@/utils/seo-analyzer";
 
 function formatRelativeTime(dateStr) {
-  if (!dateStr) return "Recently";
+  if (!dateStr || dateStr === "Recently") return "Recently";
   try {
-    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const time = new Date(dateStr).getTime();
+    if (isNaN(time)) return "Recently";
+    const diffMs = Date.now() - time;
     const diffSec = Math.floor(diffMs / 1000);
     const diffMin = Math.floor(diffSec / 60);
     const diffHr = Math.floor(diffMin / 60);
@@ -322,7 +324,7 @@ function BlogMarkdownPreview({ content }) {
   return <div className="space-y-1">{renderedElements}</div>;
 }
 
-export default function AdminBlogTab({ triggerToast }) {
+export default function AdminBlogTab({ triggerToast, initialOption = "articles", onOptionChange }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterQuery, setFilterQuery] = useState("");
@@ -346,14 +348,22 @@ export default function AdminBlogTab({ triggerToast }) {
   const [analyticsModalTab, setAnalyticsModalTab] = useState("traffic"); // "traffic" | "seo" | "preview"
 
   // ── OPTION-WISE STUDIO ARCHITECTURE (ORGANIZED VIEWS) ──
-  const [studioOption, setStudioOption] = useState("articles"); // "articles" | "gsc" | "ga4" | "settings"
+  const normalizeStudioOption = (opt) => {
+    if (opt === "webmaster" || opt === "setup") return "settings";
+    return opt || "articles";
+  };
+
+  const [studioOption, setStudioOptionInternal] = useState(() => normalizeStudioOption(initialOption)); // "articles" | "gsc" | "ga4" | "settings"
+  const [isOptionDropdownOpen, setIsOptionDropdownOpen] = useState(false);
   const [gscData, setGscData] = useState(null);
-  const [gscRange, setGscRange] = useState("range_28d"); // "range_7d" | "range_28d" | "range_90d"
+  const [gscRange, setGscRange] = useState("28d"); // "7d" | "28d" | "90d"
   const [loadingGsc, setLoadingGsc] = useState(false);
   const [urlInspectInput, setUrlInspectInput] = useState("");
   const [inspectResult, setInspectResult] = useState(null);
   const [inspecting, setInspecting] = useState(false);
+  const [inspectLoading, setInspectLoading] = useState(false);
   const [pingingSitemap, setPingingSitemap] = useState(false);
+  const [sitemapPingResult, setSitemapPingResult] = useState(null);
   const [webmasterSettings, setWebmasterSettings] = useState({
     google_site_verification: "",
     google_analytics_id: "",
@@ -361,6 +371,22 @@ export default function AdminBlogTab({ triggerToast }) {
     bing_site_verification: "",
   });
   const [savingWebmaster, setSavingWebmaster] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
+  useEffect(() => {
+    if (initialOption) {
+      const normalized = normalizeStudioOption(initialOption);
+      if (normalized !== studioOption) {
+        setStudioOptionInternal(normalized);
+      }
+    }
+  }, [initialOption]);
+
+  const setStudioOption = (opt) => {
+    const target = normalizeStudioOption(opt);
+    setStudioOptionInternal(target);
+    onOptionChange?.(target);
+  };
 
   // SERP & Social Preview State in Editor
   const [serpPreviewDevice, setSerpPreviewDevice] = useState("desktop"); // "desktop" | "mobile"
@@ -468,6 +494,7 @@ export default function AdminBlogTab({ triggerToast }) {
     e?.preventDefault?.();
     try {
       setSavingWebmaster(true);
+      setSettingsSaving(true);
       const res = await fetch("/api/admin/blog/gsc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -479,6 +506,7 @@ export default function AdminBlogTab({ triggerToast }) {
       const json = await res.json();
       if (res.ok && json.success) {
         triggerToast?.("success", "✓ Google Search Console & Analytics settings saved!");
+        await loadGscData();
       } else {
         throw new Error(json.error || "Failed to save settings.");
       }
@@ -486,22 +514,25 @@ export default function AdminBlogTab({ triggerToast }) {
       triggerToast?.("error", err.message);
     } finally {
       setSavingWebmaster(false);
+      setSettingsSaving(false);
     }
   }
 
-  async function handleInspectUrl() {
-    if (!urlInspectInput.trim()) {
+  async function handleInspectUrl(customUrl = null) {
+    const targetUrl = String(customUrl || urlInspectInput || "").trim();
+    if (!targetUrl) {
       triggerToast?.("error", "Please enter a blog slug or URL to inspect.");
       return;
     }
     try {
       setInspecting(true);
+      setInspectLoading(true);
       const res = await fetch("/api/admin/blog/gsc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "inspect_url",
-          url: urlInspectInput.trim(),
+          url: targetUrl,
         }),
       });
       const json = await res.json();
@@ -515,6 +546,7 @@ export default function AdminBlogTab({ triggerToast }) {
       triggerToast?.("error", err.message);
     } finally {
       setInspecting(false);
+      setInspectLoading(false);
     }
   }
 
@@ -528,6 +560,7 @@ export default function AdminBlogTab({ triggerToast }) {
       });
       const json = await res.json();
       if (res.ok && json.success) {
+        setSitemapPingResult(json);
         triggerToast?.("success", "🚀 Googlebot & Bingbot notified! XML Sitemap submitted.");
         loadGscData();
       } else {
@@ -1162,24 +1195,155 @@ export default function AdminBlogTab({ triggerToast }) {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* ── Studio Mode Dropdown (Compact & Modern in Header Corner) ── */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsOptionDropdownOpen((prev) => !prev)}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 text-xs font-bold text-slate-800 shadow-2xs transition cursor-pointer"
+                title="Switch Studio View"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="text-sm">
+                    {studioOption === "articles" ? "📝" : studioOption === "gsc" ? "🔍" : studioOption === "ga4" ? "📊" : "⚙️"}
+                  </span>
+                  <span>
+                    {studioOption === "articles" ? "Articles Library" : studioOption === "gsc" ? "Search Console" : studioOption === "ga4" ? "Google Analytics" : "Webmaster & Sitemap"}
+                  </span>
+                </span>
+                <span className="text-[10px] text-slate-400">▼</span>
+              </button>
+
+              {isOptionDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setIsOptionDropdownOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white shadow-xl z-40 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+                    <button
+                      type="button"
+                      onClick={() => { setStudioOption("articles"); setIsOptionDropdownOpen(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                        studioOption === "articles" ? "bg-orange-50 text-orange-700 font-bold" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>📝</span>
+                        <span>Articles Library</span>
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 font-mono text-slate-600">
+                        {totalArticles}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setStudioOption("gsc"); setIsOptionDropdownOpen(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                        studioOption === "gsc" ? "bg-blue-50 text-blue-700 font-bold" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>🔍</span>
+                        <span>Google Search Console</span>
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] bg-blue-100/70 font-mono text-blue-700 font-bold">
+                        GSC
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setStudioOption("ga4"); setIsOptionDropdownOpen(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                        studioOption === "ga4" ? "bg-amber-50 text-amber-700 font-bold" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>📊</span>
+                        <span>Google Analytics (GA4)</span>
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] bg-amber-100/70 font-mono text-amber-700 font-bold">
+                        Live
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setStudioOption("settings"); setIsOptionDropdownOpen(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                        studioOption === "settings" ? "bg-slate-100 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>⚙️</span>
+                        <span>Webmaster &amp; Sitemap Setup</span>
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Quick Segmented Switcher for Desktop */}
+            <div className="hidden md:inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/80 gap-1">
+              <button
+                type="button"
+                onClick={() => setStudioOption("articles")}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  studioOption === "articles" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>📝 Articles</span>
+                <span className="text-[10px] font-mono px-1 rounded bg-slate-200/80 text-slate-700">
+                  {totalArticles}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStudioOption("gsc")}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  studioOption === "gsc" ? "bg-white text-blue-700 shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>🔍 GSC</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStudioOption("ga4")}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  studioOption === "ga4" ? "bg-white text-amber-700 shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>📊 GA4</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStudioOption("settings")}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  studioOption === "settings" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>⚙️ Setup</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={loadGscData}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition shadow-2xs cursor-pointer"
+              title="Sync Google Search Console & Analytics data"
+            >
+              <span className={`text-xs ${loadingGsc ? "animate-spin" : ""}`}>🔄</span>
+            </button>
+
             <Link
               href="/blog"
               target="_blank"
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition shadow-2xs"
             >
-              <span>View Public /blog</span>
+              <span>View /blog</span>
               <span className="text-[11px] text-slate-400">↗</span>
             </Link>
-
-            <button
-              type="button"
-              onClick={handleSeedDefaults}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs cursor-pointer"
-              title="Restore default high-ranking SEO guides if needed"
-            >
-              <span>🔄 Restore Seeds</span>
-            </button>
 
             <button
               type="button"
@@ -1187,84 +1351,6 @@ export default function AdminBlogTab({ triggerToast }) {
               className="inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-600/20 transition cursor-pointer"
             >
               <span>✍️ New Article</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Option-Wise Sub-Navigation Tabs */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/80 pt-3">
-          <div className="inline-flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200/80 gap-1">
-            <button
-              type="button"
-              onClick={() => setStudioOption("articles")}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                studioOption === "articles"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>📝 Articles Library</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${studioOption === "articles" ? "bg-orange-100 text-orange-700" : "bg-slate-200 text-slate-600"}`}>
-                {totalArticles}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStudioOption("gsc")}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                studioOption === "gsc"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span className="text-blue-600">🔍</span>
-              <span>Google Search Console</span>
-              <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] bg-blue-50 text-blue-700 font-mono font-bold">
-                GSC
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStudioOption("ga4")}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                studioOption === "ga4"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span className="text-amber-600">📊</span>
-              <span>Google Analytics</span>
-              <span className="flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] bg-amber-50 text-amber-700 font-mono font-bold">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                GA4
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStudioOption("settings")}
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                studioOption === "settings"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span className="text-slate-700">⚙️</span>
-              <span>Webmaster &amp; Sitemap</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={loadGscData}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition cursor-pointer"
-              title="Refresh Google Search Console & Analytics live data"
-            >
-              <span>🔄</span>
-              <span className="text-[11px]">Sync Google Data</span>
             </button>
           </div>
         </div>
@@ -1489,7 +1575,7 @@ export default function AdminBlogTab({ triggerToast }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
             const count =
@@ -1945,7 +2031,7 @@ export default function AdminBlogTab({ triggerToast }) {
                       </div>
                       <div className="flex items-baseline gap-2 mt-1">
                         <span className="text-2xl font-black text-slate-900 font-mono">
-                          {perf.clicks.toLocaleString()}
+                          {(perf.clicks || 0).toLocaleString()}
                         </span>
                         <span className="text-xs text-slate-500 font-medium">organic visits</span>
                       </div>
@@ -1958,7 +2044,7 @@ export default function AdminBlogTab({ triggerToast }) {
                       </div>
                       <div className="flex items-baseline gap-2 mt-1">
                         <span className="text-2xl font-black text-slate-900 font-mono">
-                          {perf.impressions.toLocaleString()}
+                          {(perf.impressions || 0).toLocaleString()}
                         </span>
                         <span className="text-xs text-slate-500 font-medium">search appearances</span>
                       </div>
@@ -1970,7 +2056,7 @@ export default function AdminBlogTab({ triggerToast }) {
                         <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Target &gt;3%</span>
                       </div>
                       <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-2xl font-black text-emerald-700 font-mono">{perf.ctr}</span>
+                        <span className="text-2xl font-black text-emerald-700 font-mono">{perf.ctr || "0%"}</span>
                         <span className="text-xs text-slate-500 font-medium">click-through rate</span>
                       </div>
                     </div>
@@ -1981,7 +2067,7 @@ export default function AdminBlogTab({ triggerToast }) {
                         <span className="text-xs font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-mono">Top 5</span>
                       </div>
                       <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-2xl font-black text-slate-900 font-mono">#{perf.position}</span>
+                        <span className="text-2xl font-black text-slate-900 font-mono">#{perf.position || 0}</span>
                         <span className="text-xs text-slate-500 font-medium">on SERP</span>
                       </div>
                     </div>
@@ -2007,49 +2093,119 @@ export default function AdminBlogTab({ triggerToast }) {
                 </div>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-slate-100">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold">
-                      <th className="py-2.5 px-3">Search Query / Keyword</th>
-                      <th className="py-2.5 px-3 text-center">Avg Rank</th>
-                      <th className="py-2.5 px-3 text-right">Clicks</th>
-                      <th className="py-2.5 px-3 text-right">Impressions</th>
-                      <th className="py-2.5 px-3 text-right">CTR</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-sans">
-                    {(gscData?.top_queries || []).map((q, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/60 transition">
-                        <td className="py-2.5 px-3 font-semibold text-slate-800 flex items-center gap-2">
-                          <span className="text-slate-400 font-mono text-[11px]">{idx + 1}.</span>
-                          <span className="truncate max-w-xs sm:max-w-md">{q.query}</span>
-                        </td>
-                        <td className="py-2.5 px-3 text-center">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md font-mono font-bold text-[11px] ${
-                            q.position <= 2
-                              ? "bg-emerald-100 text-emerald-800"
-                              : q.position <= 4
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}>
-                            #{q.position}
+              {(!gscData?.top_queries || gscData.top_queries.length === 0) ? (
+                <div className="py-12 text-center px-4 space-y-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/60">
+                  <div className="h-10 w-10 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-lg">
+                    🔍
+                  </div>
+                  <div className="text-xs font-bold text-slate-800">
+                    {gscData?.is_google_verified
+                      ? "Awaiting Search Traffic Data from Googlebot"
+                      : "Google Search Console is Not Connected"}
+                  </div>
+                  <p className="text-[11px] text-slate-500 max-w-md mx-auto leading-relaxed">
+                    {gscData?.is_google_verified
+                      ? "Your Google Site Verification is active. Once Google crawls and indexes your blog articles from /sitemap.xml, live organic queries, impressions, and click-through rates will appear here directly from Google."
+                      : "To track live Google organic keyword rankings, CTR, and search impressions, verify domain ownership by adding your Google Site Verification meta tag in Webmaster Settings."}
+                  </p>
+                  {!gscData?.is_google_verified && (
+                    <div className="max-w-md mx-auto pt-2 space-y-3">
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs text-left space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-slate-700">
+                            Paste Verification Tag / Token:
                           </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
-                          {q.clicks.toLocaleString()}
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-mono text-slate-600">
-                          {q.impressions.toLocaleString()}
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-mono font-semibold text-emerald-700">
-                          {q.ctr}
-                        </td>
+                          <a
+                            href="https://search.google.com/search-console"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:underline"
+                          >
+                            <span>Open Search Console</span>
+                            <span>↗</span>
+                          </a>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            placeholder="e.g. dZ9_token or <meta name='google-site-verification' content='...' />"
+                            value={webmasterSettings?.google_site_verification || ""}
+                            onChange={(e) => {
+                              let val = e.target.value;
+                              const match = val.match(/content=["']([^"']+)["']/i);
+                              if (match && match[1]) val = match[1];
+                              setWebmasterSettings((prev) => ({ ...(prev || {}), google_site_verification: val }));
+                            }}
+                            className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleSaveWebmasterSettings}
+                            disabled={savingWebmaster}
+                            className="px-3.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-xs font-bold shadow-2xs transition cursor-pointer shrink-0"
+                          >
+                            {savingWebmaster ? "Saving..." : "Save & Connect"}
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between pt-0.5 text-[11px]">
+                          <span className="text-[10px] text-slate-400">Auto-injected into HTML &lt;head&gt;</span>
+                          <button
+                            type="button"
+                            onClick={() => setStudioOption("settings")}
+                            className="text-slate-500 hover:text-slate-800 font-medium cursor-pointer"
+                          >
+                            Webmaster &amp; Sitemap Setup ⚙️
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-slate-100">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold">
+                        <th className="py-2.5 px-3">Search Query / Keyword</th>
+                        <th className="py-2.5 px-3 text-center">Avg Rank</th>
+                        <th className="py-2.5 px-3 text-right">Clicks</th>
+                        <th className="py-2.5 px-3 text-right">Impressions</th>
+                        <th className="py-2.5 px-3 text-right">CTR</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-sans">
+                      {gscData.top_queries.map((q, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50/60 transition">
+                          <td className="py-2.5 px-3 font-semibold text-slate-800 flex items-center gap-2">
+                            <span className="text-slate-400 font-mono text-[11px]">{idx + 1}.</span>
+                            <span className="truncate max-w-xs sm:max-w-md">{q.query}</span>
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md font-mono font-bold text-[11px] ${
+                              q.position <= 2
+                                ? "bg-emerald-100 text-emerald-800"
+                                : q.position <= 4
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}>
+                              #{q.position}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+                            {q.clicks.toLocaleString()}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-600">
+                            {q.impressions.toLocaleString()}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-semibold text-emerald-700">
+                            {q.ctr}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             {/* Google Indexing Coverage Monitor (1 col) */}
@@ -2057,25 +2213,31 @@ export default function AdminBlogTab({ triggerToast }) {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <span>🤖 Googlebot Crawl &amp; Indexing</span>
+                    <span>🤖 Search Engine Index Readiness</span>
                   </h4>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                    Healthy
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    gscData?.is_google_verified
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}>
+                    {gscData?.is_google_verified ? "GSC Verified" : "Verification Pending"}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500">Live coverage status for all published blog posts &amp; routes.</p>
 
                 <div className="space-y-2.5 pt-1">
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-xs text-slate-600 font-medium">Valid Indexed URLs</span>
-                    <span className="text-xs font-mono font-black text-emerald-700">
-                      {gscData?.indexing?.indexed_urls || (publishedArticles + 4)} / {gscData?.indexing?.total_discovered_urls || (totalArticles + 4)}
+                    <span className="text-xs text-slate-600 font-medium">Published Indexable URLs</span>
+                    <span className="text-xs font-mono font-black text-slate-900">
+                      {publishedArticles + 4} Live Routes
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-xs text-slate-600 font-medium">Crawl Agent</span>
-                    <span className="text-xs font-mono font-bold text-slate-800">Googlebot Smartphone</span>
+                    <span className="text-xs text-slate-600 font-medium">Google Verification Tag</span>
+                    <span className={`text-xs font-bold ${gscData?.is_google_verified ? "text-emerald-700" : "text-amber-600"}`}>
+                      {gscData?.is_google_verified ? "✓ Active in HTML" : "⚠️ Not Connected"}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
@@ -2098,7 +2260,7 @@ export default function AdminBlogTab({ triggerToast }) {
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
                     <span className="text-xs text-slate-600 font-medium">Last Search Ping</span>
                     <span className="text-[11px] font-mono text-slate-700">
-                      {formatRelativeTime(gscData?.indexing?.last_ping_at)}
+                      {formatRelativeTime(gscData?.indexing?.last_ping_at) || "Not pinged yet"}
                     </span>
                   </div>
                 </div>
@@ -2108,9 +2270,10 @@ export default function AdminBlogTab({ triggerToast }) {
                 <button
                   type="button"
                   onClick={handlePingSitemap}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
+                  disabled={pingingSitemap}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
                 >
-                  <span>🔔 Ping Googlebot with Sitemap</span>
+                  <span>{pingingSitemap ? "⏳ Pinging Search Engines…" : "🔔 Ping Googlebot with Sitemap"}</span>
                 </button>
                 {sitemapPingResult && (
                   <p className="text-[11px] text-center text-emerald-700 font-medium mt-2">
@@ -2147,10 +2310,10 @@ export default function AdminBlogTab({ triggerToast }) {
               <button
                 type="button"
                 onClick={() => handleInspectUrl()}
-                disabled={inspectLoading}
+                disabled={inspecting}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 px-5 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
               >
-                {inspectLoading ? (
+                {inspecting ? (
                   <>
                     <span className="animate-spin text-sm">⏳</span>
                     <span>Inspecting...</span>
@@ -2186,46 +2349,71 @@ export default function AdminBlogTab({ triggerToast }) {
             {/* Inspection Result Card */}
             {inspectResult && (
               <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3 mt-3 animate-fadeIn">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200">
                   <div className="flex items-center gap-2">
                     <span className={`h-2.5 w-2.5 rounded-full ${inspectResult.details?.indexable ? "bg-emerald-500" : "bg-amber-500"}`} />
                     <span className="text-xs font-bold text-slate-900 font-mono">
                       {inspectResult.url || inspectResult.slug}
                     </span>
                   </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    inspectResult.details?.indexable
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-amber-100 text-amber-800"
-                  }`}>
-                    {inspectResult.verdict}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      inspectResult.details?.indexable
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        : "bg-amber-100 text-amber-800 border border-amber-200"
+                    }`}>
+                      {inspectResult.verdict}
+                    </span>
+                    {inspectResult.google_search_url && (
+                      <a
+                        href={inspectResult.google_search_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-[11px] font-semibold flex items-center gap-1 transition"
+                        title="Search Google live to verify if indexed on actual Google SERP"
+                      >
+                        <span>Check on Google (site:)</span>
+                        <span>↗</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {inspectResult.found ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs pt-1">
-                    <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Indexing Allowed</span>
-                      <span className="font-semibold text-emerald-700">Yes (Index, Follow)</span>
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs pt-1">
+                      <div className="p-2.5 rounded-lg bg-white border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Indexing Allowed</span>
+                        <span className="font-semibold text-emerald-700">{inspectResult.details?.indexing_allowed || "Yes"}</span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-white border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Mobile Usability</span>
+                        <span className="font-semibold text-emerald-700">Pass (Mobile-Friendly)</span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-white border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Structured Data</span>
+                        <span className="font-semibold text-blue-700 truncate block">
+                          {(inspectResult.details?.schema_types || []).join(", ")}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-white border border-slate-200">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Canonical URL</span>
+                        <span className="font-mono text-[11px] text-slate-700 truncate block" title={inspectResult.details?.canonical}>
+                          Declared &amp; Valid
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Mobile Usability</span>
-                      <span className="font-semibold text-emerald-700">Pass (Mobile-Friendly)</span>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Structured Data</span>
-                      <span className="font-semibold text-blue-700 truncate block">
-                        {(inspectResult.details?.schema_types || []).join(", ")}
-                      </span>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-white border border-slate-200">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Googlebot Crawler</span>
-                      <span className="font-semibold text-slate-800">Smartphone</span>
-                    </div>
-                  </div>
+                    {inspectResult.details?.serp_notice && (
+                      <div className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-200 text-[11px] text-blue-900 flex items-start gap-2">
+                        <span className="text-blue-600 text-xs mt-0.5">ℹ️</span>
+                        <span>{inspectResult.details.serp_notice}</span>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <p className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
                     URL or slug was not found in published articles. Make sure the article exists and is published.
@@ -2263,15 +2451,61 @@ export default function AdminBlogTab({ triggerToast }) {
 
               {/* Real-time Reader Pill */}
               <div className="flex items-center gap-3 bg-white px-3.5 py-2 rounded-xl border border-amber-200 shadow-2xs self-start sm:self-auto">
-                <span className="text-2xl font-black text-emerald-600 font-mono">
-                  {gscData?.ga4?.active_users_now || 7}
+                <span className={`text-2xl font-black font-mono ${gscData?.is_ga4_connected ? "text-emerald-600" : "text-slate-400"}`}>
+                  {gscData?.is_ga4_connected ? (gscData?.ga4?.active_users_now ?? 0) : "—"}
                 </span>
                 <div className="text-left leading-tight">
                   <span className="text-[11px] font-bold text-slate-900 block">Active Readers</span>
-                  <span className="text-[10px] text-slate-500">on blog right now</span>
+                  <span className="text-[10px] text-slate-500">
+                    {gscData?.is_ga4_connected ? "live on blog" : "GA4 not connected"}
+                  </span>
                 </div>
               </div>
             </div>
+
+            {!gscData?.is_ga4_connected && (
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📊</span>
+                    <span>Google Analytics 4 Measurement ID is not connected yet. Paste your <strong>G-XXXXXXXXXX</strong> tag below to start tracking live visitors.</span>
+                  </div>
+                  <a
+                    href="https://analytics.google.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 hover:text-amber-950 underline shrink-0"
+                  >
+                    <span>Open Google Analytics</span>
+                    <span>↗</span>
+                  </a>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 max-w-lg">
+                  <input
+                    type="text"
+                    placeholder="e.g. G-XXXXXXXXXX"
+                    value={webmasterSettings?.google_analytics_id || ""}
+                    onChange={(e) => setWebmasterSettings((prev) => ({ ...(prev || {}), google_analytics_id: e.target.value.trim() }))}
+                    className="flex-1 rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-amber-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveWebmasterSettings}
+                    disabled={savingWebmaster}
+                    className="px-4 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-bold shadow-2xs transition cursor-pointer shrink-0"
+                  >
+                    {savingWebmaster ? "Connecting..." : "Save & Connect GA4"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStudioOption("settings")}
+                    className="px-3 py-1.5 rounded-xl border border-amber-300 bg-white hover:bg-amber-100 text-amber-900 text-xs font-semibold shadow-2xs transition cursor-pointer shrink-0"
+                  >
+                    Webmaster Setup ⚙️
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Top 4 GA4 Metric Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
@@ -2279,40 +2513,48 @@ export default function AdminBlogTab({ triggerToast }) {
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Avg Engagement Time</span>
                 <div className="flex items-baseline gap-1.5 mt-1">
                   <span className="text-2xl font-black text-slate-900 font-mono">
-                    {gscData?.ga4?.avg_engagement_time || "3m 42s"}
+                    {gscData?.ga4?.avg_engagement_time || "0s"}
                   </span>
                 </div>
-                <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">High reading intent</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5">
+                  {gscData?.is_ga4_connected ? "Session duration" : "Requires GA4"}
+                </span>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Organic Search Share</span>
                 <div className="flex items-baseline gap-1.5 mt-1">
                   <span className="text-2xl font-black text-blue-700 font-mono">
-                    {gscData?.ga4?.traffic_channels?.organic_search || 64}%
+                    {gscData?.ga4?.traffic_channels?.organic_search || 0}%
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-500 block mt-0.5">Primary inbound driver</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5">
+                  {gscData?.is_ga4_connected ? "Search traffic share" : "Requires GA4"}
+                </span>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Mobile Readers</span>
                 <div className="flex items-baseline gap-1.5 mt-1">
                   <span className="text-2xl font-black text-orange-600 font-mono">
-                    {gscData?.ga4?.devices?.mobile || 68}%
+                    {gscData?.ga4?.devices?.mobile || 0}%
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-500 block mt-0.5">Mobile-first BD audience</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5">
+                  {gscData?.is_ga4_connected ? "Mobile traffic share" : "Requires GA4"}
+                </span>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">CTA Trial Conversions</span>
                 <div className="flex items-baseline gap-1.5 mt-1">
                   <span className="text-2xl font-black text-emerald-700 font-mono">
-                    {gscData?.ga4?.conversions?.free_trial_cta_clicks || 142}
+                    {gscData?.ga4?.conversions?.free_trial_cta_clicks || 0}
                   </span>
                 </div>
-                <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">Merchant leads generated</span>
+                <span className="text-[10px] text-slate-500 block mt-0.5">
+                  {gscData?.is_ga4_connected ? "Direct lead clicks" : "Requires GA4"}
+                </span>
               </div>
             </div>
           </div>
@@ -2333,10 +2575,10 @@ export default function AdminBlogTab({ triggerToast }) {
 
               {/* Multi-channel Progress Bar */}
               <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden flex">
-                <div className="bg-blue-600 h-full" style={{ width: `${gscData?.ga4?.traffic_channels?.organic_search || 64}%` }} title="Organic Search" />
-                <div className="bg-emerald-500 h-full" style={{ width: `${gscData?.ga4?.traffic_channels?.direct || 22}%` }} title="Direct" />
-                <div className="bg-purple-500 h-full" style={{ width: `${gscData?.ga4?.traffic_channels?.social || 10}%` }} title="Social & WhatsApp" />
-                <div className="bg-amber-400 h-full" style={{ width: `${gscData?.ga4?.traffic_channels?.referral || 4}%` }} title="Referral" />
+                <div className="bg-blue-600 h-full" style={{ width: `${gscData?.ga4?.traffic_channels?.organic_search || 0}%` }} title="Organic Search" />
+                <div className="bg-emerald-500 h-full" style={{ width: `${gscData?.ga4?.traffic_channels?.direct || 0}%` }} title="Direct" />
+                <div className="bg-purple-500 h-full" style={{ width: `${gscData?.ga4?.traffic_channels?.social || 0}%` }} title="Social & WhatsApp" />
+                <div className="bg-amber-400 h-full" style={{ width: `${gscData?.ga4?.traffic_channels?.referral || 0}%` }} title="Referral" />
               </div>
 
               {/* Channel Breakdown Cards */}
@@ -2347,7 +2589,7 @@ export default function AdminBlogTab({ triggerToast }) {
                     <span className="text-xs font-semibold text-slate-800">Organic Search (Google, Bing)</span>
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-900">
-                    {gscData?.ga4?.traffic_channels?.organic_search || 64}%
+                    {gscData?.ga4?.traffic_channels?.organic_search || 0}%
                   </span>
                 </div>
 
@@ -2357,7 +2599,7 @@ export default function AdminBlogTab({ triggerToast }) {
                     <span className="text-xs font-semibold text-slate-800">Direct &amp; Brand Searches</span>
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-900">
-                    {gscData?.ga4?.traffic_channels?.direct || 22}%
+                    {gscData?.ga4?.traffic_channels?.direct || 0}%
                   </span>
                 </div>
 
@@ -2367,7 +2609,7 @@ export default function AdminBlogTab({ triggerToast }) {
                     <span className="text-xs font-semibold text-slate-800">Social &amp; WhatsApp Business Groups</span>
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-900">
-                    {gscData?.ga4?.traffic_channels?.social || 10}%
+                    {gscData?.ga4?.traffic_channels?.social || 0}%
                   </span>
                 </div>
 
@@ -2377,7 +2619,7 @@ export default function AdminBlogTab({ triggerToast }) {
                     <span className="text-xs font-semibold text-slate-800">Referral &amp; Partner Sites</span>
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-900">
-                    {gscData?.ga4?.traffic_channels?.referral || 4}%
+                    {gscData?.ga4?.traffic_channels?.referral || 0}%
                   </span>
                 </div>
               </div>
@@ -2398,7 +2640,7 @@ export default function AdminBlogTab({ triggerToast }) {
                   <span className="text-lg block">📱</span>
                   <span className="text-[11px] font-bold text-slate-800 block mt-1">Mobile</span>
                   <span className="text-xs font-mono font-black text-orange-600">
-                    {gscData?.ga4?.devices?.mobile || 68}%
+                    {gscData?.ga4?.devices?.mobile || 0}%
                   </span>
                 </div>
 
@@ -2406,7 +2648,7 @@ export default function AdminBlogTab({ triggerToast }) {
                   <span className="text-lg block">💻</span>
                   <span className="text-[11px] font-bold text-slate-800 block mt-1">Desktop</span>
                   <span className="text-xs font-mono font-black text-blue-600">
-                    {gscData?.ga4?.devices?.desktop || 29}%
+                    {gscData?.ga4?.devices?.desktop || 0}%
                   </span>
                 </div>
 
@@ -2414,7 +2656,7 @@ export default function AdminBlogTab({ triggerToast }) {
                   <span className="text-lg block">📟</span>
                   <span className="text-[11px] font-bold text-slate-800 block mt-1">Tablet</span>
                   <span className="text-xs font-mono font-black text-slate-600">
-                    {gscData?.ga4?.devices?.tablet || 3}%
+                    {gscData?.ga4?.devices?.tablet || 0}%
                   </span>
                 </div>
               </div>
@@ -2444,7 +2686,7 @@ export default function AdminBlogTab({ triggerToast }) {
       )}
 
       {/* ── OPTION 4: WEBMASTER & SITEMAP SETUP ── */}
-      {studioOption === "settings" && (
+      {(studioOption === "settings" || studioOption === "webmaster") && (
         <div className="space-y-6 animate-fadeIn">
           {/* Webmaster Header */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
@@ -2463,18 +2705,29 @@ export default function AdminBlogTab({ triggerToast }) {
             {/* Form Fields Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <span className="text-blue-600">🔍</span>
-                  <span>Google Search Console Verification Tag</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="text-blue-600">🔍</span>
+                    <span>Google Search Console Verification Tag</span>
+                  </label>
+                  <a
+                    href="https://search.google.com/search-console"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-0.5"
+                  >
+                    <span>Open Console</span>
+                    <span>↗</span>
+                  </a>
+                </div>
                 <input
                   type="text"
-                  value={webmasterSettings.google_site_verification}
+                  value={webmasterSettings?.google_site_verification || ""}
                   onChange={(e) => {
                     let val = e.target.value;
                     const match = val.match(/content=["']([^"']+)["']/i);
                     if (match && match[1]) val = match[1];
-                    setWebmasterSettings({ ...webmasterSettings, google_site_verification: val });
+                    setWebmasterSettings((prev) => ({ ...(prev || {}), google_site_verification: val }));
                   }}
                   placeholder="e.g. dZ9_example_token_or_paste_full_meta_tag"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
@@ -2485,14 +2738,25 @@ export default function AdminBlogTab({ triggerToast }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <span className="text-amber-600">📊</span>
-                  <span>Google Analytics 4 Measurement ID</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="text-amber-600">📊</span>
+                    <span>Google Analytics 4 Measurement ID</span>
+                  </label>
+                  <a
+                    href="https://analytics.google.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 hover:underline flex items-center gap-0.5"
+                  >
+                    <span>Open GA4</span>
+                    <span>↗</span>
+                  </a>
+                </div>
                 <input
                   type="text"
-                  value={webmasterSettings.google_analytics_id}
-                  onChange={(e) => setWebmasterSettings({ ...webmasterSettings, google_analytics_id: e.target.value.trim() })}
+                  value={webmasterSettings?.google_analytics_id || ""}
+                  onChange={(e) => setWebmasterSettings((prev) => ({ ...(prev || {}), google_analytics_id: e.target.value.trim() }))}
                   placeholder="e.g. G-XXXXXXXXXX"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-amber-500 font-mono"
                 />
@@ -2508,8 +2772,8 @@ export default function AdminBlogTab({ triggerToast }) {
                 </label>
                 <input
                   type="text"
-                  value={webmasterSettings.google_tag_manager_id}
-                  onChange={(e) => setWebmasterSettings({ ...webmasterSettings, google_tag_manager_id: e.target.value.trim() })}
+                  value={webmasterSettings?.google_tag_manager_id || ""}
+                  onChange={(e) => setWebmasterSettings((prev) => ({ ...(prev || {}), google_tag_manager_id: e.target.value.trim() }))}
                   placeholder="e.g. GTM-XXXXXXX (Optional)"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-indigo-500 font-mono"
                 />
@@ -2519,18 +2783,29 @@ export default function AdminBlogTab({ triggerToast }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <span className="text-teal-600">🌐</span>
-                  <span>Bing Webmaster Tools Verification</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="text-teal-600">🌐</span>
+                    <span>Bing Webmaster Tools Verification</span>
+                  </label>
+                  <a
+                    href="https://www.bing.com/webmasters"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-semibold text-teal-600 hover:text-teal-700 hover:underline flex items-center gap-0.5"
+                  >
+                    <span>Open Bing</span>
+                    <span>↗</span>
+                  </a>
+                </div>
                 <input
                   type="text"
-                  value={webmasterSettings.bing_site_verification}
+                  value={webmasterSettings?.bing_site_verification || ""}
                   onChange={(e) => {
                     let val = e.target.value;
                     const match = val.match(/content=["']([^"']+)["']/i);
                     if (match && match[1]) val = match[1];
-                    setWebmasterSettings({ ...webmasterSettings, bing_site_verification: val });
+                    setWebmasterSettings((prev) => ({ ...(prev || {}), bing_site_verification: val }));
                   }}
                   placeholder="e.g. msvalidate.01 token (Optional)"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-teal-500 font-mono"
@@ -2545,10 +2820,10 @@ export default function AdminBlogTab({ triggerToast }) {
               <button
                 type="button"
                 onClick={handleSaveWebmasterSettings}
-                disabled={settingsSaving}
+                disabled={savingWebmaster}
                 className="inline-flex items-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-50 px-5 py-2 text-xs font-bold text-white shadow-md shadow-orange-600/20 transition cursor-pointer"
               >
-                {settingsSaving ? (
+                {savingWebmaster ? (
                   <>
                     <span className="animate-spin text-sm">⏳</span>
                     <span>Saving Settings...</span>
