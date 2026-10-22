@@ -1,0 +1,55 @@
+{
+  "name": "SmartInventory — Inventory & Fulfillment",
+  "short_name": "SmartInventory",
+  "description": "Smart Multi-Tenant Cloud ERP, Smartphone Barcode Scanning & Steadfast Courier Management System",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#EA580C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Camera Scanner",
+      "short_name": "Scanner",
+      "description": "Open smartphone camera barcode scanner",
+      "url": "/dashboard/scanner",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Orders & Dispatch",
+      "short_name": "Orders",
+      "description": "Fulfill orders with Steadfast Courier",
+      "url": "/bulk-orders",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Super Admin Console",
+      "short_name": "Admin",
+      "description": "Platform management control plane",
+      "url": "/admin",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

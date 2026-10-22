@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import {
   getTenantExpenses,
@@ -6,6 +8,29 @@ import {
   getTenantConfig,
   saveSupportTicket,
 } from "@/utils/storage/tenant-store";
+
+function getPikuGlobalSupportContacts() {
+  try {
+    const settingsPath = path.join(process.cwd(), "data", "saas_settings.json");
+    if (fs.existsSync(settingsPath)) {
+      const data = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+      return {
+        supportPhone: data.support_phone || data.admin_recovery_phone || "01753082749",
+        whatsappNumber: data.support_whatsapp || "8801753082749",
+        supportEmail: data.support_email || "support@smartinventory.app",
+        supportHours: data.support_hours || "10:00 AM - 11:00 PM (Daily)",
+      };
+    }
+  } catch (err) {
+    console.warn("Error reading saas_settings in piku:", err);
+  }
+  return {
+    supportPhone: "01753082749",
+    whatsappNumber: "8801753082749",
+    supportEmail: "support@smartinventory.app",
+    supportHours: "10:00 AM - 11:00 PM (Daily)",
+  };
+}
 
 /**
  * Detect language of merchant message:
@@ -629,6 +654,7 @@ Piku could not find a matching parcel for \`${extractedTrackingId}\` in your sto
     let reply = "";
     let quickActions = [];
     let suggestedQuestions = [];
+    const globalContact = getPikuGlobalSupportContacts();
 
     const systemPrompt = `You are "Piku" (পিকু), an intelligent, friendly, senior AI Store Copilot & E-Commerce Operations Advisor designed for online store merchants and D2C brands in Bangladesh.
 You assist merchants with:
@@ -637,6 +663,7 @@ You assist merchants with:
 3. Courier logistics in Bangladesh (Steadfast, Pathao, RedX), reducing RTO (Return-to-Origin), fraud prevention, advancing delivery charges.
 4. Courier reconciliation, COD payments, automated invoice matching, return parcel tracking.
 5. Business finance, daily expenses, calculating true net profit.
+6. Platform helpline and official support details.
 
 LIVE STORE CONTEXT:
 - Store Name: "${storeSnapshot.businessName}"
@@ -648,6 +675,12 @@ LIVE STORE CONTEXT:
 - Monthly Recorded Expenses: ৳${storeSnapshot.totalExpensesAmount.toLocaleString()}
 - Courier Reconciliations Logged: ${storeSnapshot.reconciliationCount}
 - Plan: ${storeSnapshot.plan}
+
+OFFICIAL PLATFORM SUPPORT CONTACTS:
+- Hotline Phone: ${globalContact.supportPhone}
+- Support WhatsApp: ${globalContact.whatsappNumber}
+- Official Support Email: ${globalContact.supportEmail}
+- Support Hours: ${globalContact.supportHours}
 
 LANGUAGE & OUTPUT RULES:
 - The user's input language is detected as: "${detectedLang.toUpperCase()}".
@@ -922,6 +955,63 @@ Couriers often deduct extra weight charges, duplicate return fees, or 1% COD fee
           suggestedQuestions = [
             "পার্সেল SF-8841029 এর ট্র্যাকিং স্ট্যাটাস কি?",
             "কুরিয়ারের ১% সিওডি চার্জ কিভাবে খরচ হিসেবে যুক্ত করব?",
+          ];
+        }
+      }
+
+      // INTENT: OFFICIAL SUPPORT, HELPLINE & HOTLINE INQUIRY
+      else if (
+        hasAny([
+          "hotline", "helpline", "support number", "admin number", "super admin", "contact",
+          "whatsapp", "jogajog", "যোগাযোগ", "ফোন নাম্বার", "helpdesk", "support desk",
+          "call admin", "kotha bolbo", "কথা বলতে চাই", "support chai"
+        ])
+      ) {
+        const cleanWa = (globalContact.whatsappNumber || "8801753082749").replace(/[^0-9]/g, "");
+        const waLink = `https://wa.me/${cleanWa.startsWith("88") ? cleanWa : "88" + cleanWa}?text=Hello%20SmartInventory%20Support`;
+        if (isEnglish) {
+          reply = `### 📞 **SmartInventory Official Platform Support & Hotline** 💬✨
+
+Need urgent assistance or have questions about your store, billing, API gateways, or courier integrations? Our dedicated technical operations team is here to assist you:
+
+- 📱 **Direct Hotline:** [${globalContact.supportPhone}](tel:${globalContact.supportPhone.replace(/[^0-9+]/g, "")})
+- 💬 **Live WhatsApp Support:** [Chat on WhatsApp](${waLink}) (\`${globalContact.supportPhone}\`)
+- 📧 **Official Support Email:** [${globalContact.supportEmail}](mailto:${globalContact.supportEmail})
+- ⏰ **Support Operating Hours:** \`${globalContact.supportHours}\`
+- 🎫 **Official Support Desk:** You can also open an expedited ticket in our [Merchant Support Desk](/dashboard/support).
+
+Type **"Raise issue for [tracking id]"** anytime and Piku will open a high-priority ticket for you automatically!`;
+
+          quickActions = [
+            { label: "🎫 Support Desk", href: "/dashboard/support" },
+            { label: "💬 WhatsApp Chat", href: waLink },
+            { label: "💳 Billing & Plans", href: "/dashboard/billing" },
+          ];
+          suggestedQuestions = [
+            "How do I reduce courier return (RTO) rates?",
+            "How to automate courier payment reconciliation?",
+          ];
+        } else {
+          reply = `### 📞 **স্মার্টইনভেন্টরি অফিসিয়াল সাপোর্ট ও হেল্পলাইন** 💬✨
+
+আপনার স্টোরের বিলিং, কুরিয়ার ইন্টিগ্রেশন, পেমেন্ট বা যেকোনো টেকনিক্যাল সহায়তার জন্য সরাসরি আমাদের হেল্পলাইনে যোগাযোগ করতে পারেন:
+
+- 📱 **সাপোর্ট হটলাইন:** [${globalContact.supportPhone}](tel:${globalContact.supportPhone.replace(/[^0-9+]/g, "")})
+- 💬 **অফিসিয়াল হোয়াটসঅ্যাপ:** [হোয়াটসঅ্যাপে সরাসরি মেসেজ দিন](${waLink}) (\`${globalContact.supportPhone}\`)
+- 📧 **অফিসিয়াল ইমেইল:** [${globalContact.supportEmail}](mailto:${globalContact.supportEmail})
+- ⏰ **সাপোর্ট সময়সূচী:** \`${globalContact.supportHours}\`
+- 🎫 **সাপোর্ট টিকিট ডেস্ক:** এছাড়াও আমাদের [মার্চেন্ট সাপোর্ট ডেস্ক](/dashboard/support) থেকে যেকোনো সময় টিকিট সাবমিট করতে পারেন।
+
+কোনো নির্দিষ্ট পার্সেল বা ডেলিভারি নিয়ে অভিযোগ জানাতে চাইলে লিখুন: *"SF-8841029 এর সমস্যা নিয়ে টিকিট ওপেন করো"*—আমি সাথে সাথে টিকিট খুলে দেব!`;
+
+          quickActions = [
+            { label: "🎫 সাপোর্ট টিকিট ডেস্ক", href: "/dashboard/support" },
+            { label: "💬 হোয়াটসঅ্যাপ সাপোর্ট", href: waLink },
+            { label: "💳 সাবস্ক্রিপশন ও বিলিং", href: "/dashboard/billing" },
+          ];
+          suggestedQuestions = [
+            "📦 কুরিয়ারে RTO রিটার্ন পার্সেল কমানোর উপায় কি?",
+            "💰 Steadfast & Pathao অটো-রিকনসিলিয়েশন কিভাবে করব?",
           ];
         }
       }

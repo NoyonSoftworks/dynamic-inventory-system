@@ -26,6 +26,15 @@ export default function ClientBillingPage() {
     bkash_number: "01753082749",
     nagad_number: "01753082749",
     admin_phone: "01753082749",
+    support_phone: "01753082749",
+    support_whatsapp: "8801753082749",
+    support_hours: "10:00 AM - 11:00 PM (Daily)",
+    starter_plan_price_bdt: 999,
+    growth_plan_price_bdt: 1990,
+    enterprise_plan_price_bdt: 4990,
+    starter_order_limit: 300,
+    growth_order_limit: 1500,
+    enterprise_order_limit: 5000,
     sslcommerz_configured: false,
   });
 
@@ -92,9 +101,9 @@ export default function ClientBillingPage() {
     setSubmittingPayment(true);
     try {
       const planPriceMap = {
-        starter: 999,
-        growth: 1990,
-        enterprise: 4990,
+        starter: gatewaySettings.starter_plan_price_bdt || 999,
+        growth: gatewaySettings.growth_plan_price_bdt || 1990,
+        enterprise: gatewaySettings.enterprise_plan_price_bdt || 4990,
       };
 
       const res = await fetch("/api/tenant/subscription", {
@@ -393,7 +402,9 @@ export default function ClientBillingPage() {
                 <div>
                   <h4 className="text-base font-semibold text-slate-900">Starter Plan</h4>
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-2xl font-semibold font-mono text-slate-900">৳999</span>
+                    <span className="text-2xl font-semibold font-mono text-slate-900">
+                      ৳{(gatewaySettings.starter_plan_price_bdt || 999).toLocaleString()}
+                    </span>
                     <span className="text-xs text-slate-500 font-medium">/ month</span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">
@@ -406,7 +417,7 @@ export default function ClientBillingPage() {
                     <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span>Up to 300 orders / month</span>
+                    <span>Up to {(gatewaySettings.starter_order_limit || 300).toLocaleString()} orders / month</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -447,7 +458,11 @@ export default function ClientBillingPage() {
                     : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                {plan === "starter" ? (isTrial ? "Extend Starter (৳999)" : "Renew Starter") : "Select Starter Plan"}
+                {plan === "starter"
+                  ? isTrial
+                    ? `Extend Starter (৳${(gatewaySettings.starter_plan_price_bdt || 999).toLocaleString()})`
+                    : "Renew Starter"
+                  : "Select Starter Plan"}
               </button>
             </div>
 
@@ -474,7 +489,9 @@ export default function ClientBillingPage() {
                 <div>
                   <h4 className="text-base font-semibold text-slate-900">Growth Pro</h4>
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-2xl font-semibold font-mono text-slate-900">৳1,990</span>
+                    <span className="text-2xl font-semibold font-mono text-slate-900">
+                      ৳{(gatewaySettings.growth_plan_price_bdt || 1990).toLocaleString()}
+                    </span>
                     <span className="text-xs text-slate-500 font-medium">/ month</span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">
@@ -487,7 +504,7 @@ export default function ClientBillingPage() {
                     <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span>Up to 1,500 orders / month</span>
+                    <span>Up to {(gatewaySettings.growth_order_limit || 1500).toLocaleString()} orders / month</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -524,7 +541,11 @@ export default function ClientBillingPage() {
                 }}
                 className="w-full py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition"
               >
-                {plan === "growth" ? (isTrial ? "Extend Growth Pro (৳1,990)" : "Renew Growth Pro") : "Upgrade to Growth Pro"}
+                {plan === "growth"
+                  ? isTrial
+                    ? `Extend Growth Pro (৳${(gatewaySettings.growth_plan_price_bdt || 1990).toLocaleString()})`
+                    : "Renew Growth Pro"
+                  : "Upgrade to Growth Pro"}
               </button>
             </div>
 
@@ -551,7 +572,9 @@ export default function ClientBillingPage() {
                 <div>
                   <h4 className="text-base font-semibold text-slate-900">Enterprise Tier</h4>
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-2xl font-semibold font-mono text-slate-900">৳4,990</span>
+                    <span className="text-2xl font-semibold font-mono text-slate-900">
+                      ৳{(gatewaySettings.enterprise_plan_price_bdt || 4990).toLocaleString()}
+                    </span>
                     <span className="text-xs text-slate-500 font-medium">/ month</span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">
@@ -564,7 +587,7 @@ export default function ClientBillingPage() {
                     <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span>Up to 5,000 orders / month</span>
+                    <span>Up to {(gatewaySettings.enterprise_order_limit || 5000).toLocaleString()} orders / month</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -605,7 +628,11 @@ export default function ClientBillingPage() {
                     : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                {plan === "enterprise" ? (isTrial ? "Extend Enterprise" : "Renew Enterprise") : "Upgrade to Enterprise"}
+                {plan === "enterprise"
+                  ? isTrial
+                    ? `Extend Enterprise (৳${(gatewaySettings.enterprise_plan_price_bdt || 4990).toLocaleString()})`
+                    : "Renew Enterprise"
+                  : "Upgrade to Enterprise"}
               </button>
             </div>
           </div>
@@ -627,9 +654,17 @@ export default function ClientBillingPage() {
               </p>
             </div>
             <div>
-              <div className="text-xs font-semibold text-slate-900 mb-1">Super Admin Hotline</div>
+              <div className="text-xs font-semibold text-slate-900 mb-1">Super Admin Hotline &amp; Support</div>
               <p className="text-[11px] text-slate-500 leading-relaxed font-mono">
-                WhatsApp: {gatewaySettings.admin_phone || "01753082749"} (10:00 AM - 11:00 PM)
+                <a
+                  href={`https://wa.me/${(gatewaySettings.support_whatsapp || gatewaySettings.admin_phone || "8801753082749").replace(/[^0-9]/g, "").startsWith("88") ? (gatewaySettings.support_whatsapp || gatewaySettings.admin_phone || "8801753082749").replace(/[^0-9]/g, "") : "88" + (gatewaySettings.support_whatsapp || gatewaySettings.admin_phone || "01753082749").replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hello Super Admin, I need assistance with my store billing or manual subscription.")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline text-emerald-600 font-medium inline-flex items-center gap-1"
+                >
+                  WhatsApp: {gatewaySettings.support_phone || gatewaySettings.admin_phone || "01753082749"}
+                </a>{" "}
+                ({gatewaySettings.support_hours || "10:00 AM - 11:00 PM"})
               </p>
             </div>
           </div>
@@ -669,9 +704,9 @@ export default function ClientBillingPage() {
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { id: "starter", title: "Starter", price: "৳999" },
-                    { id: "growth", title: "Growth Pro", price: "৳1,990" },
-                    { id: "enterprise", title: "Enterprise", price: "৳4,990" },
+                    { id: "starter", title: "Starter", price: `৳${(gatewaySettings.starter_plan_price_bdt || 999).toLocaleString()}` },
+                    { id: "growth", title: "Growth Pro", price: `৳${(gatewaySettings.growth_plan_price_bdt || 1990).toLocaleString()}` },
+                    { id: "enterprise", title: "Enterprise", price: `৳${(gatewaySettings.enterprise_plan_price_bdt || 4990).toLocaleString()}` },
                   ].map((p) => (
                     <button
                       key={p.id}

@@ -1,5 +1,29 @@
 [
   {
+    "id": "notif-1792656977141-6auc",
+    "business_id": "0d831df8-dc84-4b7e-8c74-dc917d401b4d",
+    "title": "Support Ticket Updated: TICK-336202",
+    "message": "Status: RESOLVED. Admin response: \"Issue inspected and resolved by engineering team.\"",
+    "type": "success",
+    "category": "system",
+    "created_at": "2026-10-22T08:16:17.141Z",
+    "read": false,
+    "sender": "Support Team",
+    "expires_at": null
+  },
+  {
+    "id": "notif-1792656973978-ataz",
+    "business_id": "0d831df8-dc84-4b7e-8c74-dc917d401b4d",
+    "title": "Support Ticket Updated: TICK-336202",
+    "message": "Status: CLOSED. Admin response: \"Issue inspected and resolved by engineering team.\"",
+    "type": "info",
+    "category": "system",
+    "created_at": "2026-10-22T08:16:13.978Z",
+    "read": false,
+    "sender": "Support Team",
+    "expires_at": null
+  },
+  {
     "id": "notif-1792617385323-hxvq",
     "business_id": "0d831df8-dc84-4b7e-8c74-dc917d401b4d",
     "title": "Support Ticket Updated: TICK-336202",

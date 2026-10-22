@@ -143,6 +143,9 @@ export async function GET(request) {
         status: conf.status || "Active",
         plan: conf.plan || "growth",
         expires_at: conf.expires_at || null,
+        daysRemaining: conf.expires_at
+          ? Math.ceil((new Date(conf.expires_at).getTime() - Date.now()) / 86400000)
+          : null,
         phone: conf.phone || "",
         division: conf.division || "Dhaka",
         features: conf.features || {},

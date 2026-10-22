@@ -39,6 +39,9 @@ export default function AdminSupportTab({
   loading = false,
   onRefresh,
   triggerToast,
+  supportPhone = "01753082749",
+  whatsappNumber = "8801753082749",
+  onManageHotline,
 }) {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -165,15 +168,30 @@ export default function AdminSupportTab({
         {/* Admin Quick Action Hotline Badges */}
         <div className="flex items-center gap-2 shrink-0">
           <a
-            href="https://wa.me/8801753082749"
+            href={`https://wa.me/${(whatsappNumber || "8801753082749").replace(/[^0-9]/g, "").startsWith("88") ? (whatsappNumber || "8801753082749").replace(/[^0-9]/g, "") : "88" + (whatsappNumber || "01753082749").replace(/[^0-9]/g, "")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-medium transition"
             title="Open Super Admin WhatsApp"
           >
             <WhatsAppIcon className="w-4 h-4 text-emerald-600" />
-            <span className="font-mono">01753082749</span>
+            <span className="font-mono">{supportPhone || "01753082749"}</span>
           </a>
+
+          {onManageHotline && (
+            <button
+              type="button"
+              onClick={onManageHotline}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-medium transition cursor-pointer"
+              title="Configure Global Support & Hotline Numbers"
+            >
+              <svg className="w-3.5 h-3.5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Manage Hotline</span>
+            </button>
+          )}
 
           <button
             type="button"

@@ -14,6 +14,7 @@ import {
   AdminMrrDualAxisChart,
   PlanDistributionList,
 } from "./components/AdminCharts";
+import PWAInstallButton, { PWAMobileBanner } from "@/components/PWAInstallPrompt";
 
 function CheckIcon({ className = "w-4 h-4 text-emerald-600" }) {
   return (
@@ -257,8 +258,23 @@ export default function SuperAdminDashboard() {
     sslcommerz_is_live: false,
     stripe_public_key: "",
     stripe_secret_key: "",
-    admin_recovery_email: "mdnoyon356268@gmail.com",
-    admin_recovery_phone: "",
+    admin_recovery_email: "hossainmdnoyon528@gmail.com",
+    admin_recovery_phone: "01753082749",
+    support_phone: "01753082749",
+    support_whatsapp: "8801753082749",
+    support_email: "support@smartinventory.app",
+    support_hours: "10:00 AM - 11:00 PM (Daily)",
+    bkash_number: "01753082749",
+    nagad_number: "01753082749",
+    starter_plan_price_bdt: 999,
+    starter_plan_price_usd: 19,
+    starter_order_limit: 300,
+    growth_plan_price_bdt: 1990,
+    growth_plan_price_usd: 39,
+    growth_order_limit: 1500,
+    enterprise_plan_price_bdt: 4990,
+    enterprise_plan_price_usd: 99,
+    enterprise_order_limit: 5000,
   });
 
   // Password visibility toggles
@@ -296,6 +312,14 @@ export default function SuperAdminDashboard() {
     plan: "Growth Pro",
     notes: "",
   });
+
+  // ── Unified Billing & Subscriptions Desk State ───────────────
+  const [billingSubTab, setBillingSubTab] = useState("roster"); // "roster" | "plans" | "payments"
+  const [billingSearchQuery, setBillingSearchQuery] = useState("");
+  const [billingPlanFilter, setBillingPlanFilter] = useState("ALL");
+  const [billingStatusFilter, setBillingStatusFilter] = useState("ALL");
+  const [extendingTenantId, setExtendingTenantId] = useState(null);
+  const [updatingPlanTenantId, setUpdatingPlanTenantId] = useState(null);
 
   // ── Merchant Support Desk State ────────────────────────────
   const [supportTickets, setSupportTickets] = useState([]);
@@ -931,6 +955,58 @@ export default function SuperAdminDashboard() {
     }
   }
 
+  // ── Quick Extend Store Validity (+30, +90, +365 days) ──────
+  async function handleQuickExtendTenant(tenantId, addDays = 30) {
+    setExtendingTenantId(tenantId);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_plan",
+          tenantId,
+          addDays,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to extend subscription validity.");
+      }
+      triggerToast("success", `Added +${addDays} days validity to store subscription!`);
+      handleManualRefresh();
+    } catch (err) {
+      triggerToast("error", err.message || "Failed to extend validity.");
+    } finally {
+      setExtendingTenantId(null);
+    }
+  }
+
+  // ── Quick Change Store Plan ────────────────────────────────
+  async function handleQuickChangePlan(tenantId, newPlan) {
+    setUpdatingPlanTenantId(tenantId);
+    try {
+      const res = await fetch("/api/admin/tenants", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_plan",
+          tenantId,
+          plan: newPlan,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to update store plan.");
+      }
+      triggerToast("success", `Store tier updated to ${newPlan.toUpperCase()}!`);
+      handleManualRefresh();
+    } catch (err) {
+      triggerToast("error", err.message || "Failed to update plan.");
+    } finally {
+      setUpdatingPlanTenantId(null);
+    }
+  }
+
   // ── Delete / Purge Tenant ──────────────────────────────────
   async function handleDeleteTenant(tenantId, tenantName) {
     if (
@@ -1322,8 +1398,12 @@ export default function SuperAdminDashboard() {
         },
         {
           id: "pricing",
-          label: "Subscriptions & Plans",
+          label: "Billing & Subscriptions",
           tab: "pricing",
+          badge:
+            payments.filter((p) => p.status === "PENDING").length > 0
+              ? `${payments.filter((p) => p.status === "PENDING").length} pending`
+              : null,
           icon: (
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1334,7 +1414,9 @@ export default function SuperAdminDashboard() {
           id: "payments",
           label: "Payment Approvals",
           tab: "payments",
-          badge: (saasSettings.sslcommerz_store_id || saasSettings.stripe_public_key) ? "Live" : null,
+          badge: payments.filter((p) => p.status === "PENDING").length > 0
+            ? `${payments.filter((p) => p.status === "PENDING").length} pending`
+            : ((saasSettings.sslcommerz_store_id || saasSettings.stripe_public_key) ? "Live" : null),
           icon: (
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -1413,6 +1495,17 @@ export default function SuperAdminDashboard() {
           ),
         },
         {
+          id: "support-contacts",
+          label: "Hotline & Contacts",
+          tab: "security",
+          scrollTo: "support-contact-settings",
+          icon: (
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+          ),
+        },
+        {
           id: "footprints",
           label: "Audit Trail",
           tab: "footprints",
@@ -1452,40 +1545,58 @@ export default function SuperAdminDashboard() {
         }`}
       >
         {/* Brand Header */}
-        <div className="h-14 border-b border-slate-200/80 flex items-center justify-between px-3.5">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white shadow-xs shrink-0">
+        <div
+          className={`h-14 border-b border-slate-200/80 flex items-center transition-all ${
+            sidebarCollapsed ? "justify-center px-2" : "justify-between px-3.5"
+          }`}
+        >
+          {sidebarCollapsed ? (
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(false)}
+              className="group relative flex h-9 w-9 items-center justify-center rounded-xl bg-orange-600 text-white shadow-xs hover:bg-orange-700 transition cursor-pointer"
+              title="Expand sidebar (Click to open full menu)"
+            >
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-            </div>
-            {!sidebarCollapsed && (
-              <div className="flex flex-col leading-tight min-w-0">
-                <span className="font-semibold text-sm tracking-tight text-slate-900 truncate">
-                  Super Admin
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  Control Plane
-                </span>
+              <span className="sr-only">Expand sidebar</span>
+            </button>
+          ) : (
+            <>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white shadow-xs shrink-0">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <div className="flex flex-col leading-tight min-w-0">
+                  <span className="font-semibold text-sm tracking-tight text-slate-900 truncate">
+                    Super Admin
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Control Plane
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
 
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shrink-0 cursor-pointer"
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <svg
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${sidebarCollapsed ? "rotate-180" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(true)}
+                className="w-7 h-7 rounded-md border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition shrink-0 cursor-pointer"
+                title="Collapse sidebar"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            </>
+          )}
         </div>
 
         {/* Scrollable Navigation Groups */}
@@ -1549,6 +1660,12 @@ export default function SuperAdminDashboard() {
 
         {/* Bottom Profile & Logout Footer */}
         <div className="p-3 border-t border-slate-200/80 bg-slate-50/50 space-y-2">
+          {!sidebarCollapsed && (
+            <div className="pb-1">
+              <PWAInstallButton className="w-full justify-center" />
+            </div>
+          )}
+
           <div className={`flex items-center gap-2.5 ${sidebarCollapsed ? "justify-center" : "px-1"}`}>
             <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-700 font-bold flex items-center justify-center text-xs shrink-0">
               N
@@ -1560,6 +1677,26 @@ export default function SuperAdminDashboard() {
               </div>
             )}
           </div>
+
+          {/* Toggle sidebar button at footer */}
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-medium transition cursor-pointer ${
+              sidebarCollapsed ? "justify-center" : ""
+            }`}
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <svg
+              className={`w-3.5 h-3.5 shrink-0 transition-transform ${sidebarCollapsed ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+            {!sidebarCollapsed && <span>{sidebarCollapsed ? "Expand" : "Collapse Sidebar"}</span>}
+          </button>
 
           <button
             type="button"
@@ -1577,28 +1714,57 @@ export default function SuperAdminDashboard() {
         </div>
       </aside>
 
-      {/* ── MOBILE HEADER BAR & DRAWER ─────────────────────────── */}
-      <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 h-14 bg-white border-b border-slate-200">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-600 text-white">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {/* ── MOBILE HEADER BAR & DRAWER (lg:hidden) ──────────────── */}
+      <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-3.5 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 text-white shrink-0 shadow-xs">
+            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
-          <span className="font-semibold text-sm text-slate-900">Admin Console</span>
+          <div className="flex flex-col min-w-0 leading-tight">
+            <span className="font-bold text-xs tracking-tight text-slate-900 truncate">
+              Super Admin
+            </span>
+            <span className="text-[10px] text-orange-600 font-semibold truncate capitalize">
+              {activeTab === "overview"
+                ? "Dashboard"
+                : activeTab === "support"
+                ? "Helpdesk"
+                : activeTab === "pricing"
+                ? "Billing & SaaS"
+                : activeTab.replace("-", " ")}
+            </span>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMobileSidebarOpen(true)}
-          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
-          aria-label="Open navigation menu"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <PWAInstallButton compact={true} />
+
+          <button
+            onClick={handleManualRefresh}
+            disabled={refreshing || loading}
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
+            title="Sync data"
+            aria-label="Synchronize data"
+          >
+            <svg className={`w-4 h-4 ${refreshing ? "animate-spin text-orange-600" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileSidebarOpen(true)}
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+            aria-label="Open navigation menu"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </header>
 
       {mobileSidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
@@ -1608,7 +1774,14 @@ export default function SuperAdminDashboard() {
           />
           <div className="relative w-72 max-w-[85vw] bg-white flex flex-col justify-between h-full shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             <div className="h-14 border-b border-slate-200 flex items-center justify-between px-4">
-              <span className="font-semibold text-sm text-slate-900">Admin Navigation</span>
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-600 text-white">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-sm text-slate-900">Admin Navigation</span>
+              </div>
               <button
                 type="button"
                 onClick={() => setMobileSidebarOpen(false)}
@@ -1619,6 +1792,10 @@ export default function SuperAdminDashboard() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+              <div className="pb-2">
+                <PWAInstallButton className="w-full justify-center" />
+              </div>
+
               {ADMIN_NAV_GROUPS.map((grp) => (
                 <div key={grp.group} className="space-y-1">
                   <div className="text-[11px] font-semibold tracking-wider text-slate-400 px-3 mb-1.5 uppercase font-mono">
@@ -1658,10 +1835,17 @@ export default function SuperAdminDashboard() {
             </div>
 
             <div className="p-4 border-t border-slate-200 space-y-2">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileSidebarOpen(false)}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs font-medium transition"
+              >
+                <span>Switch to Merchant App →</span>
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-medium"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-medium transition cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -1679,8 +1863,8 @@ export default function SuperAdminDashboard() {
           sidebarCollapsed ? "lg:pl-20" : "lg:pl-64"
         }`}
       >
-        {/* Sticky Desktop Top Header */}
-        <header className="sticky top-0 z-20 h-14 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        {/* Sticky Desktop Top Header (Hidden on Mobile) */}
+        <header className="hidden lg:flex sticky top-0 z-20 h-14 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs">
               <span className="font-semibold text-slate-900 capitalize">
@@ -1706,6 +1890,8 @@ export default function SuperAdminDashboard() {
               </span>
             )}
 
+            <PWAInstallButton />
+
             <button
               onClick={handleManualRefresh}
               disabled={refreshing || loading}
@@ -1728,7 +1914,7 @@ export default function SuperAdminDashboard() {
         </header>
 
         {/* Main Content Body */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto pb-24 lg:pb-8">
           {/* Error Banner */}
           {error && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-center justify-between">
@@ -2435,62 +2621,731 @@ export default function SuperAdminDashboard() {
           )}
 
         {/* ========================================================= */}
-        {/* TAB 2: PRICING CONTROLLER                                 */}
+        {/* TAB 2: UNIFIED BILLING, SUBSCRIPTIONS & STORE VALIDITY     */}
         {/* ========================================================= */}
         {activeTab === "pricing" && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* Form Card */}
-              <div className="lg:col-span-7 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-semibold">
-                    Tier Pricing
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Top Control Header */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full">
+                    SaaS Billing Command Center
                   </span>
-                  <h2 className="mt-2 text-xl font-semibold text-slate-900 tracking-tight">
-                    SaaS Subscription &amp; Tier Controls
-                  </h2>
-                  <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-                    Update subscription pricing and free monthly order allowances in real-time.
-                    Changes take effect across the dynamic client billing page instantly without server redeployment.
-                  </p>
+                  {payments.filter((p) => p.status === "PENDING").length > 0 && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full animate-pulse">
+                      {payments.filter((p) => p.status === "PENDING").length} TrxID Submissions Awaiting Approval
+                    </span>
+                  )}
+                </div>
+                <h2 className="mt-1.5 text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                  <CreditCardIcon className="w-5 h-5 text-orange-600" />
+                  <span>Billing, Subscriptions &amp; Store Validity Desk</span>
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Full control over merchant plans, validity extensions (+30d/+90d), manual bKash/Nagad TrxID approvals, and multi-tier SaaS pricing.
+                </p>
+              </div>
+
+              {/* Action Buttons & Sub-Tab Switcher */}
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowRecordPaymentModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Record Offline Payment</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleManualRefresh}
+                  disabled={refreshing}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition disabled:opacity-50 cursor-pointer"
+                  title="Refresh subscription data"
+                >
+                  <RefreshIcon className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-orange-600" : "text-slate-500"}`} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            {/* KPI Metrics Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Total Stores</span>
+                <p className="mt-1 text-xl font-bold text-slate-900 font-mono">{tenants.length}</p>
+                <span className="text-[10px] text-slate-400 block mt-0.5">Active workspaces</span>
+              </div>
+
+              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-3.5 shadow-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">Active Subscriptions</span>
+                <p className="mt-1 text-xl font-bold text-emerald-700 font-mono">
+                  {tenants.filter((t) => (t.status === "Active" || t.status === "ACTIVE") && t.plan && t.plan !== "free").length}
+                </p>
+                <span className="text-[10px] text-emerald-600 block mt-0.5">Paid plans running</span>
+              </div>
+
+              <div className="rounded-xl border border-amber-200/80 bg-amber-50/30 p-3.5 shadow-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">Expiring Soon</span>
+                <p className="mt-1 text-xl font-bold text-amber-700 font-mono">
+                  {tenants.filter((t) => t.daysRemaining !== null && t.daysRemaining >= 0 && t.daysRemaining <= 7).length}
+                </p>
+                <span className="text-[10px] text-amber-600 block mt-0.5">&le; 7 days left</span>
+              </div>
+
+              <div className="rounded-xl border border-rose-200/80 bg-rose-50/30 p-3.5 shadow-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800 block">Expired Stores</span>
+                <p className="mt-1 text-xl font-bold text-rose-700 font-mono">
+                  {tenants.filter((t) => t.daysRemaining !== null && t.daysRemaining < 0).length}
+                </p>
+                <span className="text-[10px] text-rose-600 block mt-0.5">Action required</span>
+              </div>
+
+              <div className="rounded-xl border border-blue-200/80 bg-blue-50/30 p-3.5 shadow-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800 block">Collected Revenue</span>
+                <p className="mt-1 text-xl font-bold text-blue-700 font-mono">
+                  ৳{payments.filter((p) => p.status === "APPROVED").reduce((acc, p) => acc + (Number(p.amount) || 0), 0).toLocaleString()}
+                </p>
+                <span className="text-[10px] text-blue-600 block mt-0.5">Approved subscriptions</span>
+              </div>
+
+              <div
+                onClick={() => setBillingSubTab("payments")}
+                className="rounded-xl border border-purple-200/80 bg-purple-50/30 p-3.5 shadow-xs cursor-pointer hover:bg-purple-100/40 transition"
+              >
+                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-800 block">Pending TrxIDs</span>
+                <p className="mt-1 text-xl font-bold text-purple-700 font-mono">
+                  {payments.filter((p) => p.status === "PENDING").length}
+                </p>
+                <span className="text-[10px] text-purple-600 block mt-0.5 font-medium underline">Review queue &rarr;</span>
+              </div>
+            </div>
+
+            {/* Sub-Tab Navigation Bar */}
+            <div className="flex items-center gap-1 border-b border-slate-200 pb-px">
+              <button
+                type="button"
+                onClick={() => setBillingSubTab("roster")}
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                  billingSubTab === "roster"
+                    ? "border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-lg"
+                    : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span>Merchant Subscriptions &amp; Store Validity ({tenants.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBillingSubTab("plans")}
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                  billingSubTab === "plans"
+                    ? "border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-lg"
+                    : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Tier Pricing Controls (Starter, Growth, Enterprise)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBillingSubTab("payments")}
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer ${
+                  billingSubTab === "payments"
+                    ? "border-orange-600 text-orange-600 bg-orange-50/50 rounded-t-lg"
+                    : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+                }`}
+              >
+                <CreditCardIcon className="w-4 h-4" />
+                <span>TrxID Approvals Desk</span>
+                {payments.filter((p) => p.status === "PENDING").length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500 text-white font-bold">
+                    {payments.filter((p) => p.status === "PENDING").length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* ── SUB-TAB 1: MERCHANT SUBSCRIPTIONS & STORE VALIDITY ROSTER ── */}
+            {billingSubTab === "roster" && (
+              <div className="space-y-4">
+                {/* Search & Filter Bar */}
+                <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="relative flex-1 max-w-md">
+                    <input
+                      type="text"
+                      value={billingSearchQuery}
+                      onChange={(e) => setBillingSearchQuery(e.target.value)}
+                      placeholder="Search store name, owner email, or phone…"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <svg className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={billingPlanFilter}
+                      onChange={(e) => setBillingPlanFilter(e.target.value)}
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 font-medium focus:bg-white focus:outline-none"
+                    >
+                      <option value="ALL">All Plans</option>
+                      <option value="starter">Starter Plan</option>
+                      <option value="growth">Growth Pro</option>
+                      <option value="enterprise">Enterprise</option>
+                      <option value="free">Trial / Free</option>
+                    </select>
+
+                    <select
+                      value={billingStatusFilter}
+                      onChange={(e) => setBillingStatusFilter(e.target.value)}
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 font-medium focus:bg-white focus:outline-none"
+                    >
+                      <option value="ALL">All Status</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="EXPIRING">Expiring (&le; 7 days)</option>
+                      <option value="EXPIRED">Expired</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div className="space-y-5 pt-2">
-                  {/* Pro Plan Monthly Price */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Pro Plan Monthly Price (USD $)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">
-                        $
-                      </span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={saasSettings.pro_plan_price}
-                        onChange={(e) =>
-                          setSaasSettings((prev) => ({
-                            ...prev,
-                            pro_plan_price: parseFloat(e.target.value) || 0,
-                          }))
-                        }
-                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 pl-8 pr-4 py-3 text-sm text-slate-900 font-mono font-bold focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
-                        placeholder="49.00"
-                      />
+                {/* Subscriptions Table */}
+                <div className="rounded-xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200 text-left text-xs font-sans">
+                      <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 text-[11px] font-mono">
+                        <tr>
+                          <th className="px-5 py-3 font-semibold">Store &amp; Account</th>
+                          <th className="px-5 py-3 font-semibold">Active Plan</th>
+                          <th className="px-5 py-3 font-semibold">Validity &amp; Expiry</th>
+                          <th className="px-5 py-3 font-semibold">Usage Limits</th>
+                          <th className="px-5 py-3 font-semibold text-right">Quick Billing Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 bg-white font-sans">
+                        {tenants
+                          .filter((t) => {
+                            if (billingPlanFilter !== "ALL") {
+                              const p = (t.plan || "growth").toLowerCase();
+                              if (billingPlanFilter === "starter" && p !== "starter") return false;
+                              if (billingPlanFilter === "growth" && p !== "growth") return false;
+                              if (billingPlanFilter === "enterprise" && p !== "enterprise") return false;
+                              if (billingPlanFilter === "free" && p !== "free" && !t.status?.toLowerCase().includes("trial")) return false;
+                            }
+                            if (billingStatusFilter !== "ALL") {
+                              if (billingStatusFilter === "ACTIVE" && t.status !== "Active" && t.status !== "ACTIVE") return false;
+                              if (billingStatusFilter === "EXPIRING" && (t.daysRemaining === null || t.daysRemaining > 7 || t.daysRemaining < 0)) return false;
+                              if (billingStatusFilter === "EXPIRED" && (t.daysRemaining === null || t.daysRemaining >= 0)) return false;
+                            }
+                            if (billingSearchQuery.trim()) {
+                              const q = billingSearchQuery.toLowerCase().trim();
+                              const matchName = String(t.name || "").toLowerCase().includes(q);
+                              const matchEmail = String(t.ownerEmail || "").toLowerCase().includes(q);
+                              const matchPhone = String(t.phone || "").toLowerCase().includes(q);
+                              return matchName || matchEmail || matchPhone;
+                            }
+                            return true;
+                          })
+                          .map((t) => {
+                            const planKey = (t.plan || "growth").toLowerCase();
+                            const isTrial = t.status === "Trial" || String(t.status || "").toLowerCase().includes("trial");
+                            const isExpired = t.daysRemaining !== null && t.daysRemaining < 0;
+                            const isExpiringSoon = t.daysRemaining !== null && t.daysRemaining >= 0 && t.daysRemaining <= 7;
+
+                            return (
+                              <tr key={t.id} className="hover:bg-slate-50/70 transition">
+                                <td className="px-5 py-3.5">
+                                  <div className="font-semibold text-slate-900 text-xs flex items-center gap-2">
+                                    <span>{t.name || "Unnamed Store"}</span>
+                                    {t.division && (
+                                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-slate-100 text-slate-600 border border-slate-200">
+                                        {t.division}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                                    {t.ownerEmail}
+                                  </div>
+                                  {t.phone && (
+                                    <div className="text-[10px] text-slate-400 font-mono">
+                                      📞 {t.phone}
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="px-5 py-3.5">
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider border ${
+                                        planKey === "enterprise"
+                                          ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                          : planKey === "starter"
+                                          ? "bg-blue-50 text-blue-800 border-blue-200"
+                                          : "bg-purple-50 text-purple-800 border-purple-200"
+                                      }`}
+                                    >
+                                      {planKey === "enterprise"
+                                        ? "Enterprise"
+                                        : planKey === "starter"
+                                        ? "Starter Plan"
+                                        : "Growth Pro"}
+                                    </span>
+
+                                    {/* 1-Click Plan Switcher */}
+                                    <select
+                                      value={planKey}
+                                      disabled={updatingPlanTenantId === t.id}
+                                      onChange={(e) => handleQuickChangePlan(t.id, e.target.value)}
+                                      className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-mono text-slate-700 focus:outline-none cursor-pointer"
+                                      title="Change store plan tier immediately"
+                                    >
+                                      <option value="starter">Starter (৳999)</option>
+                                      <option value="growth">Growth (৳1,990)</option>
+                                      <option value="enterprise">Enterprise (৳4,990)</option>
+                                    </select>
+                                  </div>
+                                </td>
+
+                                <td className="px-5 py-3.5">
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
+                                        isExpired
+                                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                                          : isExpiringSoon
+                                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                                          : isTrial
+                                          ? "bg-sky-50 text-sky-700 border-sky-200"
+                                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                      }`}
+                                    >
+                                      <span
+                                        className={`h-1.5 w-1.5 rounded-full ${
+                                          isExpired
+                                            ? "bg-rose-500"
+                                            : isExpiringSoon
+                                            ? "bg-amber-500 animate-ping"
+                                            : isTrial
+                                            ? "bg-sky-500"
+                                            : "bg-emerald-500"
+                                        }`}
+                                      />
+                                      {isExpired
+                                        ? "Expired"
+                                        : isExpiringSoon
+                                        ? "Expiring Soon"
+                                        : isTrial
+                                        ? "15-Day Trial"
+                                        : "Active"}
+                                    </span>
+
+                                    {t.daysRemaining !== null && (
+                                      <span
+                                        className={`text-[10px] font-mono font-semibold ${
+                                          isExpired
+                                            ? "text-rose-600"
+                                            : isExpiringSoon
+                                            ? "text-amber-600"
+                                            : "text-slate-600"
+                                        }`}
+                                      >
+                                        {isExpired
+                                          ? `(${Math.abs(t.daysRemaining)}d overdue)`
+                                          : `(${t.daysRemaining}d left)`}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="text-[10px] text-slate-500 font-mono mt-1">
+                                    {t.expires_at ? (
+                                      <span>Expires: {new Date(t.expires_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                    ) : (
+                                      <span className="text-slate-400">No expiration date set</span>
+                                    )}
+                                  </div>
+                                </td>
+
+                                <td className="px-5 py-3.5 text-xs font-mono">
+                                  <div className="text-slate-700">
+                                    Orders: <span className="font-semibold text-slate-900">{t.totalOrders || 0}</span> / {t.order_limit || 1000}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500">
+                                    SKUs: <span className="font-semibold text-slate-900">{t.totalSkus || 0}</span> / {t.sku_limit || 250}
+                                  </div>
+                                </td>
+
+                                <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                                  <div className="inline-flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      disabled={extendingTenantId === t.id}
+                                      onClick={() => handleQuickExtendTenant(t.id, 30)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-semibold transition disabled:opacity-50 cursor-pointer"
+                                      title="Add 30 days subscription validity instantly"
+                                    >
+                                      <span>{extendingTenantId === t.id ? "…" : "+30 Days"}</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      disabled={extendingTenantId === t.id}
+                                      onClick={() => handleQuickExtendTenant(t.id, 90)}
+                                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-medium transition disabled:opacity-50 cursor-pointer"
+                                      title="Add 90 days validity (Quarterly)"
+                                    >
+                                      <span>+90d</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEditStore(t)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-medium shadow-2xs transition cursor-pointer"
+                                      title="Edit store quotas, features, or custom dates"
+                                    >
+                                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                      <span>Manage</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── SUB-TAB 2: TIER PRICING CONTROLS (STARTER, GROWTH, ENTERPRISE) ── */}
+            {billingSubTab === "plans" && (
+              <div className="space-y-6">
+                {/* 3 Tier Plan Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                  {/* Tier 1: Starter Plan */}
+                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col justify-between space-y-5">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                          Tier 1
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono">Starter</span>
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900">Starter Plan</h3>
+                      <p className="text-xs text-slate-500">
+                        Designed for early-stage online shops, boutique stores, and single-courier setups.
+                      </p>
+
+                      <div className="space-y-3 pt-2">
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Price (৳ BDT)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-mono font-bold text-xs">
+                              ৳
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={saasSettings.starter_plan_price_bdt ?? 999}
+                              onChange={(e) =>
+                                setSaasSettings((prev) => ({
+                                  ...prev,
+                                  starter_plan_price_bdt: Number(e.target.value) || 0,
+                                }))
+                              }
+                              className="block w-full rounded-xl border border-slate-200 bg-slate-50 pl-7 pr-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Price ($ USD)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-mono font-bold text-xs">
+                              $
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={saasSettings.starter_plan_price_usd ?? 19}
+                              onChange={(e) =>
+                                setSaasSettings((prev) => ({
+                                  ...prev,
+                                  starter_plan_price_usd: Number(e.target.value) || 0,
+                                }))
+                              }
+                              className="block w-full rounded-xl border border-slate-200 bg-slate-50 pl-7 pr-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Order Allowance
+                          </label>
+                          <input
+                            type="number"
+                            min="10"
+                            value={saasSettings.starter_order_limit ?? 300}
+                            onChange={(e) =>
+                              setSaasSettings((prev) => ({
+                                ...prev,
+                                starter_order_limit: parseInt(e.target.value, 10) || 300,
+                              }))
+                            }
+                            className="block w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-slate-500">
-                      The monthly recurring fee billed to upgraded merchant stores.
+
+                    <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-500 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Up to {saasSettings.starter_order_limit ?? 300} orders / month</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>100 Product SKU catalog</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Single Courier Webhook</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tier 2: Growth Pro Plan */}
+                  <div className="rounded-3xl border-2 border-orange-500/80 bg-white p-6 shadow-md shadow-orange-500/5 flex flex-col justify-between space-y-5 relative">
+                    <span className="absolute -top-3 right-6 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold bg-orange-600 text-white uppercase tracking-wider shadow-xs">
+                      Most Popular
+                    </span>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-orange-50 text-orange-700 border border-orange-200 uppercase">
+                          Tier 2
+                        </span>
+                        <span className="text-xs text-orange-600 font-mono font-semibold">Recommended</span>
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900">Growth Pro Plan</h3>
+                      <p className="text-xs text-slate-500">
+                        Complete warehouse automation for growing D2C brands, automated RTO prevention, and courier audit.
+                      </p>
+
+                      <div className="space-y-3 pt-2">
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Price (৳ BDT)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-mono font-bold text-xs">
+                              ৳
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={saasSettings.growth_plan_price_bdt ?? 1990}
+                              onChange={(e) =>
+                                setSaasSettings((prev) => ({
+                                  ...prev,
+                                  growth_plan_price_bdt: Number(e.target.value) || 0,
+                                }))
+                              }
+                              className="block w-full rounded-xl border border-slate-200 bg-slate-50 pl-7 pr-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Price ($ USD)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-mono font-bold text-xs">
+                              $
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={saasSettings.growth_plan_price_usd ?? 39}
+                              onChange={(e) =>
+                                setSaasSettings((prev) => ({
+                                  ...prev,
+                                  growth_plan_price_usd: Number(e.target.value) || 0,
+                                }))
+                              }
+                              className="block w-full rounded-xl border border-slate-200 bg-slate-50 pl-7 pr-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Order Allowance
+                          </label>
+                          <input
+                            type="number"
+                            min="50"
+                            value={saasSettings.growth_order_limit ?? 1500}
+                            onChange={(e) =>
+                              setSaasSettings((prev) => ({
+                                ...prev,
+                                growth_order_limit: parseInt(e.target.value, 10) || 1500,
+                              }))
+                            }
+                            className="block w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-500 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Up to {saasSettings.growth_order_limit ?? 1500} orders / month</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>500 Product SKU catalog</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Steadfast &amp; Pathao Reconciliation</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tier 3: Enterprise Plan */}
+                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col justify-between space-y-5">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">
+                          Tier 3
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono">Unlimited</span>
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900">Enterprise Plan</h3>
+                      <p className="text-xs text-slate-500">
+                        High-volume retailers, large multi-branch hubs, and merchants requiring dedicated operations support.
+                      </p>
+
+                      <div className="space-y-3 pt-2">
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Price (৳ BDT)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-mono font-bold text-xs">
+                              ৳
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={saasSettings.enterprise_plan_price_bdt ?? 4990}
+                              onChange={(e) =>
+                                setSaasSettings((prev) => ({
+                                  ...prev,
+                                  enterprise_plan_price_bdt: Number(e.target.value) || 0,
+                                }))
+                              }
+                              className="block w-full rounded-xl border border-slate-200 bg-slate-50 pl-7 pr-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Price ($ USD)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-mono font-bold text-xs">
+                              $
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={saasSettings.enterprise_plan_price_usd ?? 99}
+                              onChange={(e) =>
+                                setSaasSettings((prev) => ({
+                                  ...prev,
+                                  enterprise_plan_price_usd: Number(e.target.value) || 0,
+                                }))
+                              }
+                              className="block w-full rounded-xl border border-slate-200 bg-slate-50 pl-7 pr-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                            Monthly Order Allowance
+                          </label>
+                          <input
+                            type="number"
+                            min="100"
+                            value={saasSettings.enterprise_order_limit ?? 5000}
+                            onChange={(e) =>
+                              setSaasSettings((prev) => ({
+                                ...prev,
+                                enterprise_order_limit: parseInt(e.target.value, 10) || 5000,
+                              }))
+                            }
+                            className="block w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-500 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Up to {saasSettings.enterprise_order_limit ?? 5000} orders / month</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Unlimited Product SKU catalog</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Dedicated Hotline &amp; Priority SLA</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Currency & Quotas Settings Card */}
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+                  <div className="border-b border-slate-100 pb-4">
+                    <h3 className="text-base font-bold text-slate-900">Platform Currency &amp; Quotas Policy</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Configure exchange rates and client-side currency display across the landing page and merchant billing checkout.
                     </p>
                   </div>
 
-                  {/* Free Monthly Order Quota */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Free Tier Monthly Order Allowance
-                    </label>
-                    <div className="relative">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Free Tier Monthly Order Allowance */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Free Monthly Order Quota
+                      </label>
                       <input
                         type="number"
                         min="1"
@@ -2501,158 +3356,241 @@ export default function SuperAdminDashboard() {
                             free_order_limit: parseInt(e.target.value, 10) || 1,
                           }))
                         }
-                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 font-mono font-bold focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
+                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono font-bold focus:bg-white focus:border-orange-500 focus:outline-none"
                         placeholder="100"
                       />
+                      <p className="text-[11px] text-slate-500">
+                        Dispatched orders allowed on free trial before upgrade banner triggers.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-slate-500">
-                      Number of dispatched orders allowed per calendar month before upgrade warning.
-                    </p>
-                  </div>
 
-                  {/* Multi-Currency Mode Controller */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Platform Currency Mode
-                    </label>
-                    <div className="grid grid-cols-3 gap-2.5">
-                      {[
-                        { id: "AUTO", label: "Auto (Geo / Switcher)", desc: "Visitors can toggle BDT / USD" },
-                        { id: "BDT", label: "BDT (৳ Only)", desc: "Enforce Bangladeshi Taka" },
-                        { id: "USD", label: "USD ($ Only)", desc: "Enforce US Dollars" },
-                      ].map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() =>
+                    {/* Platform Currency Mode */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Platform Currency Mode
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: "AUTO", label: "Auto", desc: "Geo Switcher" },
+                          { id: "BDT", label: "BDT (৳)", desc: "Enforce Taka" },
+                          { id: "USD", label: "USD ($)", desc: "Enforce USD" },
+                        ].map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() =>
+                              setSaasSettings((prev) => ({
+                                ...prev,
+                                currency_mode: item.id,
+                              }))
+                            }
+                            className={`rounded-xl border p-2 text-left transition cursor-pointer ${
+                              saasSettings.currency_mode === item.id
+                                ? "border-orange-500 bg-orange-50 text-orange-950 font-bold"
+                                : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-white"
+                            }`}
+                          >
+                            <div className="text-xs font-bold">{item.label}</div>
+                            <div className="text-[9px] text-slate-500">{item.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* USD to BDT Exchange Rate */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Exchange Rate (৳ per $1 USD)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-xs">
+                          ৳
+                        </span>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="1"
+                          value={saasSettings.bdt_exchange_rate}
+                          onChange={(e) =>
                             setSaasSettings((prev) => ({
                               ...prev,
-                              currency_mode: item.id,
+                              bdt_exchange_rate: parseFloat(e.target.value) || 122.0,
                             }))
                           }
-                          className={`rounded-2xl border p-3 text-left transition ${
-                            saasSettings.currency_mode === item.id
-                              ? "border-orange-500 bg-orange-50 text-orange-950 font-bold shadow-xs"
-                              : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white"
-                          }`}
-                        >
-                          <div className="text-xs font-bold">{item.label}</div>
-                          <div className="text-[10px] text-slate-500 mt-0.5">{item.desc}</div>
-                        </button>
-                      ))}
+                          className="block w-full rounded-2xl border border-slate-200 bg-slate-50 pl-8 pr-4 py-2.5 text-xs text-slate-900 font-mono font-bold focus:bg-white focus:border-orange-500 focus:outline-none"
+                          placeholder="122.00"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        Used for live BDT to USD conversions across merchant subscription modals.
+                      </p>
                     </div>
                   </div>
 
-                  {/* BDT Exchange Rate */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      USD to BDT Exchange Rate (৳ per $1 USD)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-mono font-bold text-sm">
-                        ৳
-                      </span>
-                      <input
-                        type="number"
-                        step="0.1"
-                        min="1"
-                        value={saasSettings.bdt_exchange_rate}
-                        onChange={(e) =>
-                          setSaasSettings((prev) => ({
-                            ...prev,
-                            bdt_exchange_rate: parseFloat(e.target.value) || 122.0,
-                          }))
-                        }
-                        className="block w-full rounded-2xl border border-slate-200 bg-slate-50 pl-8 pr-4 py-3 text-sm text-slate-900 font-mono font-bold focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition"
-                        placeholder="122.00"
-                      />
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500">
+                      Saved dynamically to <code className="text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded font-mono">saas_settings.json</code> &amp; database
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveSettings("Pricing Tiers & Plan Quotas")}
+                      disabled={savingSettings || settingsLoading}
+                      className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50 cursor-pointer"
+                    >
+                      <span>{savingSettings ? "Saving…" : "Save Pricing Tiers & Plan Quotas"}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── SUB-TAB 3: PAYMENT SUBMISSIONS & TRXID APPROVALS DESK ── */}
+            {billingSubTab === "payments" && (
+              <div className="rounded-xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+                <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <CreditCardIcon className="w-4 h-4 text-slate-700" />
+                      <h2 className="text-sm font-semibold text-slate-900">
+                        Subscription Payments &amp; TrxID Approvals Desk
+                      </h2>
+                      {payments.filter((p) => p.status === "PENDING").length > 0 && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          {payments.filter((p) => p.status === "PENDING").length} Pending
+                        </span>
+                      )}
                     </div>
-                    <p className="text-[11px] text-slate-500">
-                      Used for real-time conversion across the landing page and SSLCommerz BDT checkouts.
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      1-click bKash, Nagad &amp; Bank TrxID approvals to activate plans and credit 30 days validity.
                     </p>
                   </div>
-                </div>
 
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-500">
-                    Saved dynamically in <code className="text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded font-mono">saas_settings</code>
-                  </span>
                   <button
                     type="button"
-                    onClick={() => handleSaveSettings("Pricing & Currency")}
-                    disabled={savingSettings || settingsLoading}
-                    className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50"
+                    onClick={() => setShowRecordPaymentModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-2xs transition self-start sm:self-auto shrink-0 cursor-pointer"
                   >
-                    {savingSettings ? "Saving…" : "Save Pricing & Currency"}
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Record Offline Payment</span>
                   </button>
                 </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-200 text-left text-xs font-mono">
+                    <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 text-[11px]">
+                      <tr>
+                        <th className="px-5 py-3 font-semibold">Date &amp; Time</th>
+                        <th className="px-5 py-3 font-semibold">Store / Owner</th>
+                        <th className="px-5 py-3 font-semibold">Method &amp; TrxID</th>
+                        <th className="px-5 py-3 font-semibold">Amount</th>
+                        <th className="px-5 py-3 font-semibold">Plan</th>
+                        <th className="px-5 py-3 font-semibold">Status</th>
+                        <th className="px-5 py-3 font-semibold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white font-sans">
+                      {payments.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="px-5 py-8 text-center text-slate-400 text-xs font-sans">
+                            No merchant subscription payment submissions found.
+                          </td>
+                        </tr>
+                      ) : (
+                        payments.map((p) => (
+                          <tr key={p.id} className="hover:bg-slate-50/70 transition">
+                            <td className="px-5 py-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
+                              {(() => {
+                                const rawDate = p.submitted_at || p.created_at || p.approved_at;
+                                const d = rawDate ? new Date(rawDate) : null;
+                                return d && !isNaN(d.getTime()) ? (
+                                  <div>
+                                    <div className="font-semibold text-slate-900">
+                                      {d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 font-mono">
+                                      {d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400 font-mono">—</span>
+                                );
+                              })()}
+                            </td>
+                            <td className="px-5 py-3">
+                              <div className="font-medium text-slate-900 text-xs">
+                                {p.store_name || "Store #" + (p.business_id ? p.business_id.slice(0, 6) : "Direct")}
+                              </div>
+                              <div className="text-[11px] text-slate-500 font-mono">
+                                {p.owner_email || "—"}
+                              </div>
+                            </td>
+                            <td className="px-5 py-3">
+                              <div className="font-medium text-slate-800 text-xs">{p.method}</div>
+                              <div className="font-mono text-[11px] text-slate-600 select-all">
+                                TrxID: {p.trx_id || p.phone || "—"}
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 font-mono font-semibold text-slate-900">
+                              ৳{p.amount}
+                            </td>
+                            <td className="px-5 py-3">
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                                {p.plan}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
+                                  p.status === "APPROVED"
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                    : p.status === "REJECTED"
+                                    ? "bg-rose-50 text-rose-700 border-rose-200"
+                                    : "bg-amber-50 text-amber-700 border-amber-200"
+                                }`}
+                              >
+                                <span
+                                  className={`h-1.5 w-1.5 rounded-full ${
+                                    p.status === "APPROVED"
+                                      ? "bg-emerald-500"
+                                      : p.status === "REJECTED"
+                                      ? "bg-rose-500"
+                                      : "bg-amber-500"
+                                  }`}
+                                />
+                                {p.status}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 text-right whitespace-nowrap">
+                              {p.status === "PENDING" ? (
+                                <div className="inline-flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    disabled={approvingPaymentId === p.id}
+                                    onClick={() => handleApprovePayment(p.id, p.business_id)}
+                                    className="inline-flex items-center gap-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 text-[11px] font-medium shadow-2xs transition disabled:opacity-50 cursor-pointer"
+                                  >
+                                    {approvingPaymentId === p.id ? "Approving…" : "Approve & Credit"}
+                                  </button>
+                                </div>
+                              ) : p.status === "APPROVED" ? (
+                                <span className="text-emerald-700 text-[11px] font-medium inline-flex items-center gap-1">
+                                  <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Credited</span>
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 text-[11px]">Rejected</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-
-              {/* Live Preview Card */}
-              <div className="lg:col-span-5 rounded-3xl border border-slate-200 bg-slate-50/80 p-6 sm:p-7 shadow-xs space-y-6 relative overflow-hidden">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-orange-700 bg-orange-100/70 border border-orange-200 px-2.5 py-0.5 rounded-md font-mono">
-                    Live Client View Preview
-                  </span>
-                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                    Mode: {saasSettings.currency_mode || "AUTO"}
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-slate-900">Pro Enterprise Plan</h3>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl font-semibold text-slate-900 font-mono">
-                        ${Number(saasSettings.pro_plan_price).toFixed(2)}
-                      </span>
-                      <span className="text-xs text-slate-500 font-medium">/ month (USD)</span>
-                    </div>
-                    <div className="flex items-baseline gap-1.5 text-emerald-700 font-mono font-bold text-lg">
-                      <span>৳{Math.round(Number(saasSettings.pro_plan_price || 0) * Number(saasSettings.bdt_exchange_rate || 122)).toLocaleString()}</span>
-                      <span className="text-xs text-slate-500 font-normal">/ month (BDT)</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Full warehouse automation, unlimited orders, and automated multi-carrier dispatch.
-                  </p>
-                </div>
-
-                {/* Quota Indicator Preview */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2.5 shadow-2xs">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-600 font-medium">Free Monthly Quota:</span>
-                    <span className="font-mono font-bold text-slate-900">
-                      {saasSettings.free_order_limit} Orders / mo
-                    </span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-slate-150 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-orange-500 to-teal-500"
-                      style={{ width: "45%" }}
-                    />
-                  </div>
-                  <div className="text-[10px] text-slate-500 text-right">
-                    Clients will see this usage gauge on /dashboard/billing
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-xs text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Unlimited order volume past {saasSettings.free_order_limit}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Automated WhatsApp &amp; SMS tracking alerts</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckIcon className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Multi-user warehouse role permissions</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -2717,7 +3655,22 @@ export default function SuperAdminDashboard() {
                       payments.map((p) => (
                         <tr key={p.id} className="hover:bg-slate-50/70 transition">
                           <td className="px-5 py-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                            {new Date(p.created_at).toLocaleDateString()}
+                            {(() => {
+                              const rawDate = p.submitted_at || p.created_at || p.approved_at;
+                              const d = rawDate ? new Date(rawDate) : null;
+                              return d && !isNaN(d.getTime()) ? (
+                                <div>
+                                  <div className="font-semibold text-slate-900">
+                                    {d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 font-mono">
+                                    {d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 font-mono">—</span>
+                              );
+                            })()}
                           </td>
                           <td className="px-5 py-3">
                             <div className="font-medium text-slate-900 text-xs">
@@ -3070,6 +4023,14 @@ export default function SuperAdminDashboard() {
             loading={ticketsLoading}
             onRefresh={fetchSupportTickets}
             triggerToast={triggerToast}
+            supportPhone={saasSettings.support_phone || "01753082749"}
+            whatsappNumber={saasSettings.support_whatsapp || "8801753082749"}
+            onManageHotline={() => {
+              setActiveTab("security");
+              setTimeout(() => {
+                document.getElementById("support-contact-settings")?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
           />
         )}
 
@@ -3287,6 +4248,264 @@ export default function SuperAdminDashboard() {
         {/* ========================================================= */}
         {activeTab === "security" && (
           <div className="space-y-6 animate-in fade-in duration-300">
+            {/* ── GLOBAL SUPPORT & CONTACT CENTER SETTINGS ── */}
+            <div id="support-contact-settings" className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono uppercase tracking-[0.12em] text-orange-600 font-semibold bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full">
+                      Global Contact Hub
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Auto-syncs Everywhere
+                    </span>
+                  </div>
+                  <h2 className="mt-2 text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                    <PhoneIcon className="w-5 h-5 text-orange-600" />
+                    <span>Global Support Hotline &amp; Payment Contacts</span>
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500 max-w-3xl">
+                    Change support phone, WhatsApp hotline, working hours, and merchant subscription payment numbers in this single place. Any changes saved here automatically propagate across all Merchant Help Desks, Manual Billing modals, Piku AI, and the Landing Page.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={`https://wa.me/${(saasSettings.support_whatsapp || "8801753082749").replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3.5 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 shadow-2xs transition"
+                    title="Test configured WhatsApp"
+                  >
+                    <svg className="w-3.5 h-3.5 text-emerald-600 fill-current" viewBox="0 0 24 24">
+                      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.101.005.232-.038.362.275.144.346.491 1.199.534 1.286.043.087.072.188.014.303-.058.116-.087.188-.173.289l-.26.303c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.072.043.419-.101.824z" />
+                    </svg>
+                    <span>Test WhatsApp</span>
+                    <span>↗</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Live Preview Metric Tiles */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Support Hotline
+                  </span>
+                  <p className="text-xs font-bold text-slate-900 font-mono truncate">
+                    {saasSettings.support_phone || "01753082749"}
+                  </p>
+                  <span className="text-[10px] text-emerald-600 block">Live Call Link</span>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Support WhatsApp
+                  </span>
+                  <p className="text-xs font-bold text-slate-900 font-mono truncate">
+                    {saasSettings.support_whatsapp || "8801753082749"}
+                  </p>
+                  <span className="text-[10px] text-emerald-600 block">1-Click Chat</span>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Working Hours
+                  </span>
+                  <p className="text-xs font-bold text-slate-900 truncate">
+                    {saasSettings.support_hours || "10 AM - 11 PM"}
+                  </p>
+                  <span className="text-[10px] text-slate-500 block">Daily Service</span>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                    bKash Account
+                  </span>
+                  <p className="text-xs font-bold text-slate-900 font-mono truncate">
+                    {saasSettings.bkash_number || saasSettings.support_phone || "01753082749"}
+                  </p>
+                  <span className="text-[10px] text-pink-600 block">Billing Modal</span>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Nagad Account
+                  </span>
+                  <p className="text-xs font-bold text-slate-900 font-mono truncate">
+                    {saasSettings.nagad_number || saasSettings.support_phone || "01753082749"}
+                  </p>
+                  <span className="text-[10px] text-orange-600 block">Billing Modal</span>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                    Support Email
+                  </span>
+                  <p className="text-xs font-bold text-slate-900 font-mono truncate">
+                    {saasSettings.support_email || "support@smartinventory.app"}
+                  </p>
+                  <span className="text-[10px] text-slate-500 block">Ticket Desk</span>
+                </div>
+              </div>
+
+              {/* Form Grid */}
+              <div className="border-t border-slate-100 pt-5 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {/* Support Phone / Direct Hotline */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Support Hotline Phone
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.support_phone || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          support_phone: e.target.value,
+                        }))
+                      }
+                      placeholder="01753082749"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Primary phone number displayed on merchant support desk &amp; billing hotline.
+                    </p>
+                  </div>
+
+                  {/* Support WhatsApp Number */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Support WhatsApp Number
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.support_whatsapp || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          support_whatsapp: e.target.value,
+                        }))
+                      }
+                      placeholder="8801753082749"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Target WhatsApp number for 1-click live chat buttons (include country code 880...).
+                    </p>
+                  </div>
+
+                  {/* Support Operating Hours */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Support Operating Hours
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.support_hours || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          support_hours: e.target.value,
+                        }))
+                      }
+                      placeholder="10:00 AM - 11:00 PM (Daily)"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Working hours displayed to merchants on ticket desk, billing, and Piku AI.
+                    </p>
+                  </div>
+
+                  {/* Official Support Email */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Official Support Email
+                    </label>
+                    <input
+                      type="email"
+                      value={saasSettings.support_email || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          support_email: e.target.value,
+                        }))
+                      }
+                      placeholder="support@smartinventory.app"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Dispatched in ticket confirmation emails and support escalation notifications.
+                    </p>
+                  </div>
+
+                  {/* bKash Payment Number */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      bKash Payout / Send Money Number
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.bkash_number || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          bkash_number: e.target.value,
+                        }))
+                      }
+                      placeholder="01753082749"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Displayed in merchant subscription upgrade modal for manual bKash payments.
+                    </p>
+                  </div>
+
+                  {/* Nagad Payment Number */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Nagad Payout / Send Money Number
+                    </label>
+                    <input
+                      type="text"
+                      value={saasSettings.nagad_number || ""}
+                      onChange={(e) =>
+                        setSaasSettings((prev) => ({
+                          ...prev,
+                          nagad_number: e.target.value,
+                        }))
+                      }
+                      placeholder="01753082749"
+                      className="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition"
+                    />
+                    <p className="text-[11px] text-slate-500">
+                      Displayed in merchant subscription upgrade modal for manual Nagad payments.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-100">
+                  <div className="flex items-center gap-2 text-slate-500 text-[11px]">
+                    <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Instant propagation: Updates live across merchant dashboards immediately upon saving.</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSettings("Global Support & Contact Numbers")}
+                    disabled={savingSettings}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-500 btn-tactile transition disabled:opacity-50 cursor-pointer shrink-0"
+                  >
+                    <span>{savingSettings ? "Saving Settings…" : "Save Global Contact Settings"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Top Security Overview Banner */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
@@ -5008,6 +6227,75 @@ export default function SuperAdminDashboard() {
         )}
         </main>
       </div>
+
+      {/* ── MOBILE BOTTOM NAVIGATION BAR (lg:hidden) ─────────── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-1.5 py-1 flex items-center justify-around shadow-lg">
+        <button
+          type="button"
+          onClick={() => setActiveTab("overview")}
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium transition cursor-pointer ${
+            activeTab === "overview" ? "text-orange-600 font-bold" : "text-slate-500 hover:text-slate-900"
+          }`}
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          <span className="truncate">Overview</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("tenants")}
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium transition cursor-pointer ${
+            activeTab === "tenants" ? "text-orange-600 font-bold" : "text-slate-500 hover:text-slate-900"
+          }`}
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          <span className="truncate">Stores</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("pricing")}
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium transition cursor-pointer ${
+            activeTab === "pricing" ? "text-orange-600 font-bold" : "text-slate-500 hover:text-slate-900"
+          }`}
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="truncate">Billing</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("support")}
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium transition cursor-pointer ${
+            activeTab === "support" ? "text-orange-600 font-bold" : "text-slate-500 hover:text-slate-900"
+          }`}
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <span className="truncate">Support</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileSidebarOpen(true)}
+          className="flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium text-slate-500 hover:text-slate-900 transition cursor-pointer"
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <span className="truncate">More</span>
+        </button>
+      </nav>
+
+      {/* ── Mobile PWA Install Banner ─────────────────────────── */}
+      <PWAMobileBanner />
     </div>
   );
 }

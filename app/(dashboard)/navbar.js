@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 import { useBusinessContext } from "@/utils/supabase/business";
 import { useSidebar } from "./layout";
+import PWAInstallButton, { PWAMobileBanner } from "@/components/PWAInstallPrompt";
 
 // ── Categorized Navigation Groups ──────────────────────────────
 const NAV_GROUPS = [
@@ -436,6 +437,13 @@ export default function Navbar() {
             </div>
           )}
 
+          {/* Desktop PWA Install App Button */}
+          {!collapsed && (
+            <div className="pt-0.5">
+              <PWAInstallButton className="w-full justify-center" />
+            </div>
+          )}
+
           {/* User Profile Row */}
           <div className="flex items-center gap-2.5 px-1 py-1 min-w-0">
             <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xs shrink-0 shadow-xs">
@@ -484,6 +492,9 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
+          {/* Mobile Install App Button */}
+          <PWAInstallButton compact={true} />
+
           {/* Mobile Notification Bell */}
           <button
             type="button"
@@ -593,6 +604,7 @@ export default function Navbar() {
 
             {/* Bottom Footer */}
             <div className="p-3 border-t border-slate-200/80 bg-white space-y-3">
+              <PWAInstallButton className="w-full justify-center" />
               <div className="flex items-center gap-2.5 px-1 py-1">
                 <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xs">
                   {userInitial}
@@ -748,6 +760,73 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
+      {/* ── 5. MERCHANT MOBILE BOTTOM NAVIGATION BAR (lg:hidden) ── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-1 py-1 flex items-center justify-around shadow-lg">
+        <Link
+          href="/dashboard"
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium transition ${
+            pathname === "/dashboard" ? "text-[#EA580C] font-bold" : "text-slate-500 hover:text-slate-900"
+          }`}
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          <span className="truncate">Home</span>
+        </Link>
+
+        <Link
+          href="/bulk-orders"
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium transition ${
+            pathname === "/bulk-orders" ? "text-[#EA580C] font-bold" : "text-slate-500 hover:text-slate-900"
+          }`}
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+          </svg>
+          <span className="truncate">Orders</span>
+        </Link>
+
+        {/* Center Prominent Camera Barcode Gun */}
+        <Link
+          href="/dashboard/scanner"
+          className="flex flex-col items-center -mt-5 px-1.5 group"
+          title="Camera Barcode Scanner"
+        >
+          <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30 group-active:scale-95 transition">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+            </svg>
+          </div>
+          <span className="text-[10px] font-semibold text-orange-600 mt-0.5">Scan</span>
+        </Link>
+
+        <Link
+          href="/dashboard/piku"
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium transition ${
+            pathname === "/dashboard/piku" ? "text-[#EA580C] font-bold" : "text-slate-500 hover:text-slate-900"
+          }`}
+        >
+          <svg className="w-5 h-5 shrink-0 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span className="truncate">Piku AI</span>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[10px] font-medium text-slate-500 hover:text-slate-900 transition cursor-pointer"
+        >
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <span className="truncate">Menu</span>
+        </button>
+      </nav>
+
+      {/* ── Mobile PWA Install Banner ─────────────────────────── */}
+      <PWAMobileBanner />
     </>
   );
 }

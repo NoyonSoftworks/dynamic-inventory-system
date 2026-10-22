@@ -10,6 +10,12 @@ export default function MerchantSupportPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
+  const [supportInfo, setSupportInfo] = useState({
+    supportPhone: "01753082749",
+    whatsappNumber: "8801753082749",
+    supportEmail: "support@smartinventory.app",
+    supportHours: "10:00 AM - 11:00 PM (Daily)",
+  });
 
   // Form state
   const [subject, setSubject] = useState("");
@@ -31,6 +37,14 @@ export default function MerchantSupportPage() {
         const json = await res.json();
         if (json.success) {
           setTickets(json.tickets || []);
+          if (json.supportPhone || json.whatsappNumber) {
+            setSupportInfo({
+              supportPhone: json.supportPhone || "01753082749",
+              whatsappNumber: json.whatsappNumber || "8801753082749",
+              supportEmail: json.supportEmail || "support@smartinventory.app",
+              supportHours: json.supportHours || "10:00 AM - 11:00 PM (Daily)",
+            });
+          }
         }
       }
     } catch (err) {
@@ -118,7 +132,7 @@ export default function MerchantSupportPage() {
         {/* Live Chat & Hotline Banner */}
         <div className="flex flex-wrap items-center gap-2.5">
           <a
-            href="https://wa.me/8801753082749?text=Hello%20SmartInventory%20Support%2C%20I%20need%20assistance%20with%20my%20store"
+            href={`https://wa.me/${(supportInfo.whatsappNumber || "8801753082749").replace(/[^0-9]/g, "").startsWith("88") ? (supportInfo.whatsappNumber || "8801753082749").replace(/[^0-9]/g, "") : "88" + (supportInfo.whatsappNumber || "01753082749").replace(/[^0-9]/g, "")}?text=Hello%20SmartInventory%20Support%2C%20I%20need%20assistance%20with%20my%20store`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium shadow-2xs transition"
@@ -130,14 +144,23 @@ export default function MerchantSupportPage() {
           </a>
 
           <a
-            href="tel:01753082749"
+            href={`tel:${(supportInfo.supportPhone || "01753082749").replace(/[^0-9+]/g, "")}`}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-mono font-medium shadow-2xs transition"
           >
             <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
-            <span>Hotline: 01753082749</span>
+            <span>Hotline: {supportInfo.supportPhone || "01753082749"}</span>
           </a>
+
+          {supportInfo.supportHours && (
+            <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 text-[11px]">
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{supportInfo.supportHours}</span>
+            </div>
+          )}
         </div>
       </div>
 

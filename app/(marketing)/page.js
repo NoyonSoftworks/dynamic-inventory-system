@@ -43,6 +43,9 @@ export default function MarketingLandingPage() {
     freeLimit: 100,
     sslConfigured: false,
     stripeKey: "",
+    whatsappNumber: "8801753082749",
+    supportPhone: "01753082749",
+    supportEmail: "support@smartinventory.app",
   });
 
   const [currentYear, setCurrentYear] = useState(2026);
@@ -169,6 +172,9 @@ export default function MarketingLandingPage() {
               freeLimit: Number(json.settings.free_order_limit) || 100,
               sslConfigured: Boolean(json.settings.sslcommerz_configured),
               stripeKey: json.settings.stripe_public_key || "",
+              whatsappNumber: json.settings.support_whatsapp || json.settings.admin_phone || "8801753082749",
+              supportPhone: json.settings.support_phone || json.settings.admin_phone || "01753082749",
+              supportEmail: json.settings.support_email || "support@smartinventory.app",
             });
 
             if (json.settings.currency_mode === "USD") {
@@ -1903,7 +1909,7 @@ export default function MarketingLandingPage() {
                 <div className="pt-2 border-t border-slate-200/80 space-y-3">
                   {/* WhatsApp Direct */}
                   <a
-                    href="https://wa.me/8801700000000?text=Hi%20Noyon,%20I%20would%20like%20to%20discuss%20SmartInventory%20for%20my%20business."
+                    href={`https://wa.me/${(pricingData.whatsappNumber || "8801753082749").replace(/[^0-9]/g, "").startsWith("88") ? (pricingData.whatsappNumber || "8801753082749").replace(/[^0-9]/g, "") : "88" + (pricingData.whatsappNumber || "01753082749").replace(/[^0-9]/g, "")}?text=Hi%20Noyon,%20I%20would%20like%20to%20discuss%20SmartInventory%20for%20my%20business.`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-tactile flex items-center justify-between p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/60 text-emerald-950 transition group shadow-2xs"
@@ -1930,7 +1936,7 @@ export default function MarketingLandingPage() {
 
                   {/* Direct Support Email */}
                   <a
-                    href="mailto:support@smartinventory.io"
+                    href={`mailto:${pricingData.supportEmail || "support@smartinventory.app"}`}
                     className="btn-tactile flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 transition group shadow-2xs"
                   >
                     <div className="flex items-center gap-3">

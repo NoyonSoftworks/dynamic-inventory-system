@@ -53,7 +53,7 @@
     "author_role": "Founder & Lead Systems Architect",
     "reading_time": "6 min read",
     "created_at": "2026-03-08T11:00:00Z",
-    "updated_at": "2026-10-21T21:36:51.439Z",
+    "updated_at": "2026-03-10T14:15:00Z",
     "views_count": 980,
     "meta_title": "Smartphone Camera Barcode Scanner for Warehouses | SmartInventory",
     "meta_description": "Learn how in-browser WebAssembly barcode decoding allows warehouse workers to scan Code128 and QR codes from iOS or Android smartphones without buying expensive scanner guns.",
@@ -68,8 +68,7 @@
         "question": "Can smartphone cameras scan barcodes in low-light warehouse conditions?",
         "answer": "Yes. SmartInventory features an in-browser torch/flashlight toggle that illuminates barcodes when operating in dimly lit warehouse aisles."
       }
-    ],
-    "is_published": true
+    ]
   },
   {
     "id": "seed-post-3",
@@ -88,7 +87,7 @@
     "reading_time": "5 min read",
     "created_at": "2026-03-02T09:30:00Z",
     "updated_at": "2026-03-05T12:00:00Z",
-    "views_count": 1842,
+    "views_count": 1840,
     "meta_title": "Reduce E-Commerce RTO with Automated WhatsApp Tracking | SmartInventory",
     "meta_description": "Discover how automated WhatsApp parcel notifications and COD cash reminders reduce failed courier deliveries and improve customer trust for online merchants.",
     "canonical_url": "https://smartinventory.io/blog/reduce-rto-ecommerce-whatsapp-tracking-notifications",

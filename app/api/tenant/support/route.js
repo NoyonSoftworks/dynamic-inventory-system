@@ -1,9 +1,34 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import {
   getTenantSupportTickets,
   saveSupportTicket,
 } from "@/utils/storage/tenant-store";
+
+function getGlobalSupportSettings() {
+  try {
+    const settingsPath = path.join(process.cwd(), "data", "saas_settings.json");
+    if (fs.existsSync(settingsPath)) {
+      const data = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+      return {
+        supportPhone: data.support_phone || data.admin_recovery_phone || "01753082749",
+        whatsappNumber: data.support_whatsapp || "8801753082749",
+        supportEmail: data.support_email || "support@smartinventory.app",
+        supportHours: data.support_hours || "10:00 AM - 11:00 PM (Daily)",
+      };
+    }
+  } catch (err) {
+    console.warn("Error reading saas_settings in support route:", err);
+  }
+  return {
+    supportPhone: "01753082749",
+    whatsappNumber: "8801753082749",
+    supportEmail: "support@smartinventory.app",
+    supportHours: "10:00 AM - 11:00 PM (Daily)",
+  };
+}
 
 async function resolveTenantUser(request) {
   const supabase = await createClient();
@@ -63,12 +88,12 @@ export async function GET(request) {
     }
 
     const tickets = getTenantSupportTickets(authResult.businessId);
+    const contact = getGlobalSupportSettings();
 
     return NextResponse.json({
       success: true,
       tickets,
-      supportPhone: "01753082749",
-      whatsappNumber: "8801753082749",
+      ...contact,
     });
   } catch (err) {
     console.error("GET /api/tenant/support error:", err);

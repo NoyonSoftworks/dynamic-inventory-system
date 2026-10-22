@@ -24,8 +24,23 @@ const DEFAULT_SETTINGS = {
   sslcommerz_is_live: false,
   stripe_public_key: "",
   stripe_secret_key: "",
-  admin_recovery_email: "mdnoyon356268@gmail.com",
-  admin_recovery_phone: "",
+  admin_recovery_email: "hossainmdnoyon528@gmail.com",
+  admin_recovery_phone: "01753082749",
+  support_phone: "01753082749",
+  support_whatsapp: "8801753082749",
+  support_email: "support@smartinventory.app",
+  support_hours: "10:00 AM - 11:00 PM (Daily)",
+  bkash_number: "01753082749",
+  nagad_number: "01753082749",
+  starter_plan_price_bdt: 999,
+  starter_plan_price_usd: 19,
+  starter_order_limit: 300,
+  growth_plan_price_bdt: 1990,
+  growth_plan_price_usd: 39,
+  growth_order_limit: 1500,
+  enterprise_plan_price_bdt: 4990,
+  enterprise_plan_price_usd: 99,
+  enterprise_order_limit: 5000,
 };
 
 function readLocalSettings() {
@@ -110,6 +125,33 @@ export async function GET(request) {
         localSettings.admin_recovery_phone ||
         dbData?.admin_recovery_phone ||
         DEFAULT_SETTINGS.admin_recovery_phone,
+      support_phone:
+        localSettings.support_phone ||
+        dbData?.support_phone ||
+        localSettings.admin_recovery_phone ||
+        DEFAULT_SETTINGS.support_phone,
+      support_whatsapp:
+        localSettings.support_whatsapp ||
+        dbData?.support_whatsapp ||
+        DEFAULT_SETTINGS.support_whatsapp,
+      support_email:
+        localSettings.support_email ||
+        dbData?.support_email ||
+        DEFAULT_SETTINGS.support_email,
+      support_hours:
+        localSettings.support_hours ||
+        dbData?.support_hours ||
+        DEFAULT_SETTINGS.support_hours,
+      bkash_number:
+        localSettings.bkash_number ||
+        dbData?.bkash_number ||
+        localSettings.admin_recovery_phone ||
+        DEFAULT_SETTINGS.bkash_number,
+      nagad_number:
+        localSettings.nagad_number ||
+        dbData?.nagad_number ||
+        localSettings.admin_recovery_phone ||
+        DEFAULT_SETTINGS.nagad_number,
       whatsapp_api_url:
         dbData?.whatsapp_api_url ||
         localSettings.whatsapp_api_url ||
@@ -183,9 +225,22 @@ export async function GET(request) {
           stripe_public_key: mergedSettings.stripe_public_key || "",
           sslcommerz_configured: Boolean(mergedSettings.sslcommerz_store_id),
           sslcommerz_is_live: Boolean(mergedSettings.sslcommerz_is_live),
-          bkash_number: mergedSettings.bkash_number || mergedSettings.admin_recovery_phone || "01753082749",
-          nagad_number: mergedSettings.nagad_number || mergedSettings.admin_recovery_phone || "01753082749",
-          admin_phone: mergedSettings.admin_recovery_phone || "01753082749",
+          support_phone: mergedSettings.support_phone || "01753082749",
+          support_whatsapp: mergedSettings.support_whatsapp || "8801753082749",
+          support_email: mergedSettings.support_email || "support@smartinventory.app",
+          support_hours: mergedSettings.support_hours || "10:00 AM - 11:00 PM (Daily)",
+          starter_plan_price_bdt: Number(mergedSettings.starter_plan_price_bdt) || 999,
+          starter_plan_price_usd: Number(mergedSettings.starter_plan_price_usd) || 19,
+          starter_order_limit: Number(mergedSettings.starter_order_limit) || 300,
+          growth_plan_price_bdt: Number(mergedSettings.growth_plan_price_bdt) || 1990,
+          growth_plan_price_usd: Number(mergedSettings.growth_plan_price_usd) || 39,
+          growth_order_limit: Number(mergedSettings.growth_order_limit) || 1500,
+          enterprise_plan_price_bdt: Number(mergedSettings.enterprise_plan_price_bdt) || 4990,
+          enterprise_plan_price_usd: Number(mergedSettings.enterprise_plan_price_usd) || 99,
+          enterprise_order_limit: Number(mergedSettings.enterprise_order_limit) || 5000,
+          bkash_number: mergedSettings.bkash_number || mergedSettings.support_phone || "01753082749",
+          nagad_number: mergedSettings.nagad_number || mergedSettings.support_phone || "01753082749",
+          admin_phone: mergedSettings.support_phone || mergedSettings.admin_recovery_phone || "01753082749",
         },
       });
     }
@@ -194,7 +249,7 @@ export async function GET(request) {
     const auth = await verifyAdminRequest(request);
 
     if (!auth.isAuthorized) {
-      // Non-admin callers only get public pricing
+      // Non-admin callers only get public pricing & contacts
       return NextResponse.json({
         success: true,
         settings: {
@@ -205,9 +260,22 @@ export async function GET(request) {
           stripe_public_key: mergedSettings.stripe_public_key || "",
           sslcommerz_configured: Boolean(mergedSettings.sslcommerz_store_id),
           sslcommerz_is_live: Boolean(mergedSettings.sslcommerz_is_live),
-          bkash_number: mergedSettings.bkash_number || mergedSettings.admin_recovery_phone || "01753082749",
-          nagad_number: mergedSettings.nagad_number || mergedSettings.admin_recovery_phone || "01753082749",
-          admin_phone: mergedSettings.admin_recovery_phone || "01753082749",
+          support_phone: mergedSettings.support_phone || "01753082749",
+          support_whatsapp: mergedSettings.support_whatsapp || "8801753082749",
+          support_email: mergedSettings.support_email || "support@smartinventory.app",
+          support_hours: mergedSettings.support_hours || "10:00 AM - 11:00 PM (Daily)",
+          starter_plan_price_bdt: Number(mergedSettings.starter_plan_price_bdt) || 999,
+          starter_plan_price_usd: Number(mergedSettings.starter_plan_price_usd) || 19,
+          starter_order_limit: Number(mergedSettings.starter_order_limit) || 300,
+          growth_plan_price_bdt: Number(mergedSettings.growth_plan_price_bdt) || 1990,
+          growth_plan_price_usd: Number(mergedSettings.growth_plan_price_usd) || 39,
+          growth_order_limit: Number(mergedSettings.growth_order_limit) || 1500,
+          enterprise_plan_price_bdt: Number(mergedSettings.enterprise_plan_price_bdt) || 4990,
+          enterprise_plan_price_usd: Number(mergedSettings.enterprise_plan_price_usd) || 99,
+          enterprise_order_limit: Number(mergedSettings.enterprise_order_limit) || 5000,
+          bkash_number: mergedSettings.bkash_number || mergedSettings.support_phone || "01753082749",
+          nagad_number: mergedSettings.nagad_number || mergedSettings.support_phone || "01753082749",
+          admin_phone: mergedSettings.support_phone || mergedSettings.admin_recovery_phone || "01753082749",
         },
       });
     }
@@ -271,6 +339,21 @@ export async function POST(request) {
       stripe_secret_key,
       admin_recovery_email,
       admin_recovery_phone,
+      support_phone,
+      support_whatsapp,
+      support_email,
+      support_hours,
+      bkash_number,
+      nagad_number,
+      starter_plan_price_bdt,
+      starter_plan_price_usd,
+      starter_order_limit,
+      growth_plan_price_bdt,
+      growth_plan_price_usd,
+      growth_order_limit,
+      enterprise_plan_price_bdt,
+      enterprise_plan_price_usd,
+      enterprise_order_limit,
     } = body || {};
 
     const payload = {
@@ -328,6 +411,51 @@ export async function POST(request) {
     }
     if (admin_recovery_phone !== undefined) {
       payload.admin_recovery_phone = String(admin_recovery_phone).trim();
+    }
+    if (support_phone !== undefined) {
+      payload.support_phone = String(support_phone).trim();
+    }
+    if (support_whatsapp !== undefined) {
+      payload.support_whatsapp = String(support_whatsapp).trim();
+    }
+    if (support_email !== undefined) {
+      payload.support_email = String(support_email).trim().toLowerCase();
+    }
+    if (support_hours !== undefined) {
+      payload.support_hours = String(support_hours).trim();
+    }
+    if (bkash_number !== undefined) {
+      payload.bkash_number = String(bkash_number).trim();
+    }
+    if (nagad_number !== undefined) {
+      payload.nagad_number = String(nagad_number).trim();
+    }
+    if (starter_plan_price_bdt !== undefined) {
+      payload.starter_plan_price_bdt = Math.max(0, Number(starter_plan_price_bdt) || 999);
+    }
+    if (starter_plan_price_usd !== undefined) {
+      payload.starter_plan_price_usd = Math.max(0, Number(starter_plan_price_usd) || 19);
+    }
+    if (starter_order_limit !== undefined) {
+      payload.starter_order_limit = Math.max(1, parseInt(starter_order_limit, 10) || 300);
+    }
+    if (growth_plan_price_bdt !== undefined) {
+      payload.growth_plan_price_bdt = Math.max(0, Number(growth_plan_price_bdt) || 1990);
+    }
+    if (growth_plan_price_usd !== undefined) {
+      payload.growth_plan_price_usd = Math.max(0, Number(growth_plan_price_usd) || 39);
+    }
+    if (growth_order_limit !== undefined) {
+      payload.growth_order_limit = Math.max(1, parseInt(growth_order_limit, 10) || 1500);
+    }
+    if (enterprise_plan_price_bdt !== undefined) {
+      payload.enterprise_plan_price_bdt = Math.max(0, Number(enterprise_plan_price_bdt) || 4990);
+    }
+    if (enterprise_plan_price_usd !== undefined) {
+      payload.enterprise_plan_price_usd = Math.max(0, Number(enterprise_plan_price_usd) || 99);
+    }
+    if (enterprise_order_limit !== undefined) {
+      payload.enterprise_order_limit = Math.max(1, parseInt(enterprise_order_limit, 10) || 5000);
     }
 
     // 1. Persist full settings to local storage file
@@ -390,7 +518,7 @@ export async function POST(request) {
       businessId: "00000000-0000-0000-0000-000000000001",
       userEmail: ADMIN_EMAIL,
       actionType: AUDIT_ACTIONS.SETTINGS_UPDATED,
-      details: "Super Administrator updated dynamic SaaS pricing, payment gateways & recovery contacts",
+      details: "Super Administrator updated dynamic SaaS pricing, payment gateways, hotline & recovery contacts",
       metadata: {
         currency_mode: payload.currency_mode,
         bdt_exchange_rate: payload.bdt_exchange_rate,
@@ -398,6 +526,10 @@ export async function POST(request) {
         free_order_limit: payload.free_order_limit,
         admin_recovery_email: payload.admin_recovery_email,
         admin_recovery_phone: payload.admin_recovery_phone,
+        support_phone: payload.support_phone,
+        support_whatsapp: payload.support_whatsapp,
+        bkash_number: payload.bkash_number,
+        nagad_number: payload.nagad_number,
         sslcommerz_configured: Boolean(payload.sslcommerz_store_id),
         stripe_configured: Boolean(payload.stripe_public_key),
       },
