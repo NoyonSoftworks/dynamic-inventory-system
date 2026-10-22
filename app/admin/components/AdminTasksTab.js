@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { adminFetch } from "@/utils/admin-fetch";
 
 function SearchIcon({ className = "w-3.5 h-3.5 text-slate-400" }) {
   return (
@@ -100,7 +101,7 @@ export default function AdminTasksTab({ triggerToast }) {
   async function fetchTasks() {
     try {
       setRefreshing(true);
-      const res = await fetch("/api/admin/tasks");
+      const res = await adminFetch("/api/admin/tasks");
       if (res.ok) {
         const json = await res.json();
         if (json.tasks) {
@@ -124,7 +125,7 @@ export default function AdminTasksTab({ triggerToast }) {
     try {
       setAiLoading(true);
       setShowAiPanel(true);
-      const res = await fetch("/api/admin/tasks/ai-suggest", {
+      const res = await adminFetch("/api/admin/tasks/ai-suggest", {
         method: "POST",
       });
       if (res.ok) {
@@ -144,7 +145,7 @@ export default function AdminTasksTab({ triggerToast }) {
   // ── Adopt AI Suggestion ──────────────────────────────────────
   async function handleAdoptAiTask(suggestion) {
     try {
-      const res = await fetch("/api/admin/tasks", {
+      const res = await adminFetch("/api/admin/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -178,7 +179,7 @@ export default function AdminTasksTab({ triggerToast }) {
 
     try {
       setSubmitting(true);
-      const res = await fetch("/api/admin/tasks", {
+      const res = await adminFetch("/api/admin/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -212,7 +213,7 @@ export default function AdminTasksTab({ triggerToast }) {
   // ── Update Status ────────────────────────────────────────────
   async function handleUpdateStatus(id, newStatus) {
     try {
-      const res = await fetch("/api/admin/tasks", {
+      const res = await adminFetch("/api/admin/tasks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status: newStatus }),
@@ -242,7 +243,7 @@ export default function AdminTasksTab({ triggerToast }) {
     if (!confirm(`Purge task "${title}"?`)) return;
 
     try {
-      const res = await fetch(`/api/admin/tasks?id=${encodeURIComponent(id)}`, {
+      const res = await adminFetch(`/api/admin/tasks?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
 

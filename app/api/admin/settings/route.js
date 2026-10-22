@@ -5,7 +5,14 @@ import path from "path";
 import { logActivity, AUDIT_ACTIONS } from "@/utils/audit-logger";
 import { verifyAdminRequest, ADMIN_EMAIL } from "@/utils/admin-auth";
 
+const IS_SERVERLESS = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NEXT_RUNTIME === "edge"
+);
+
 const SETTINGS_FILE_PATH = path.join(process.cwd(), "data", "saas_settings.json");
+const TMP_SETTINGS_FILE_PATH = path.join("/tmp", "dynamic-inventory", "saas_settings.json");
 
 const DEFAULT_SETTINGS = {
   id: 1,
@@ -53,6 +60,10 @@ const DEFAULT_SETTINGS = {
 
 function readLocalSettings() {
   try {
+    if (IS_SERVERLESS && fs.existsSync(TMP_SETTINGS_FILE_PATH)) {
+      const raw = fs.readFileSync(TMP_SETTINGS_FILE_PATH, "utf8");
+      return JSON.parse(raw);
+    }
     if (fs.existsSync(SETTINGS_FILE_PATH)) {
       const raw = fs.readFileSync(SETTINGS_FILE_PATH, "utf8");
       return JSON.parse(raw);
@@ -65,11 +76,12 @@ function readLocalSettings() {
 
 function writeLocalSettings(settings) {
   try {
-    const dir = path.dirname(SETTINGS_FILE_PATH);
+    const targetPath = IS_SERVERLESS ? TMP_SETTINGS_FILE_PATH : SETTINGS_FILE_PATH;
+    const dir = path.dirname(targetPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(SETTINGS_FILE_PATH, JSON.stringify(settings, null, 2), "utf8");
+    fs.writeFileSync(targetPath, JSON.stringify(settings, null, 2), "utf8");
   } catch (err) {
     console.warn("Local settings write note:", err.message);
   }

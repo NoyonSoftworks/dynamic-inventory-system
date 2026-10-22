@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
+import { adminFetch } from "@/utils/admin-fetch";
 import AdminTasksTab from "./components/AdminTasksTab";
 import AdminBlogTab from "./components/AdminBlogTab";
 import AdminSupportTab from "./components/AdminSupportTab";
@@ -439,7 +440,7 @@ export default function SuperAdminDashboard() {
     if (!selectedTenantForGodMode) return;
     setGodModeSaving(true);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -568,7 +569,7 @@ export default function SuperAdminDashboard() {
 
   // ── Data Fetchers ──────────────────────────────────────────
   async function fetchTelemetryData() {
-    const res = await fetch("/api/admin/overview");
+    const res = await adminFetch("/api/admin/overview");
     if (!res.ok) {
       const errJson = await res.json().catch(() => null);
       throw new Error(errJson?.error || "Failed to load platform overview.");
@@ -579,7 +580,7 @@ export default function SuperAdminDashboard() {
   async function fetchSaasSettings() {
     try {
       setSettingsLoading(true);
-      const res = await fetch("/api/admin/settings");
+      const res = await adminFetch("/api/admin/settings");
       if (res.ok) {
         const json = await res.json();
         if (json.settings) {
@@ -599,7 +600,7 @@ export default function SuperAdminDashboard() {
   async function fetchActivityLogs() {
     try {
       setLogsLoading(true);
-      const res = await fetch("/api/admin/activity?limit=60");
+      const res = await adminFetch("/api/admin/activity?limit=60");
       if (res.ok) {
         const json = await res.json();
         if (json.logs) {
@@ -616,7 +617,7 @@ export default function SuperAdminDashboard() {
   async function fetchSupportTickets() {
     try {
       setTicketsLoading(true);
-      const res = await fetch("/api/admin/support");
+      const res = await adminFetch("/api/admin/support");
       if (res.ok) {
         const json = await res.json();
         if (json.tickets) {
@@ -633,7 +634,7 @@ export default function SuperAdminDashboard() {
   async function fetchAdminNotifications() {
     try {
       setLoadingAdminNotifs(true);
-      const res = await fetch("/api/admin/notifications");
+      const res = await adminFetch("/api/admin/notifications");
       if (res.ok) {
         const json = await res.json();
         if (json.sentNotifications) {
@@ -786,7 +787,7 @@ export default function SuperAdminDashboard() {
   async function handleSaveSettings(sectionName) {
     setSavingSettings(true);
     try {
-      const res = await fetch("/api/admin/settings", {
+      const res = await adminFetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(saasSettings),
@@ -844,7 +845,7 @@ export default function SuperAdminDashboard() {
     }
     setProvisioningStore(true);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newStoreForm),
@@ -875,7 +876,7 @@ export default function SuperAdminDashboard() {
   async function handleToggleTenantStatus(tenantId, currentStatus) {
     const nextStatus = currentStatus === "Active" ? "Suspended" : "Active";
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -905,7 +906,7 @@ export default function SuperAdminDashboard() {
     if (!selectedTenantForGodMode) return;
     setGodModeSaving(true);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -961,7 +962,7 @@ export default function SuperAdminDashboard() {
     if (!selectedTenantForGodMode) return;
     setGodModeSaving(true);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -996,7 +997,7 @@ export default function SuperAdminDashboard() {
     }
     setGodModeSaving(true);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1023,7 +1024,7 @@ export default function SuperAdminDashboard() {
   async function handleApprovePayment(paymentId, businessId) {
     setApprovingPaymentId(paymentId);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1055,7 +1056,7 @@ export default function SuperAdminDashboard() {
     const targetTenant = tenants.find((t) => t.id === offlinePaymentForm.tenantId);
     setRecordingPayment(true);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1100,7 +1101,7 @@ export default function SuperAdminDashboard() {
   async function handleQuickExtendTenant(tenantId, addDays = 30) {
     setExtendingTenantId(tenantId);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1126,7 +1127,7 @@ export default function SuperAdminDashboard() {
   async function handleQuickChangePlan(tenantId, newPlan) {
     setUpdatingPlanTenantId(tenantId);
     try {
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1158,7 +1159,7 @@ export default function SuperAdminDashboard() {
       return;
     }
     try {
-      const res = await fetch(`/api/admin/tenants?id=${tenantId}`, {
+      const res = await adminFetch(`/api/admin/tenants?id=${tenantId}`, {
         method: "DELETE",
       });
       const json = await res.json();
@@ -1226,7 +1227,7 @@ export default function SuperAdminDashboard() {
         features: editStoreForm.features,
       };
 
-      const res = await fetch("/api/admin/tenants", {
+      const res = await adminFetch("/api/admin/tenants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -1336,7 +1337,7 @@ export default function SuperAdminDashboard() {
         payload.target = notifyTargetType;
       }
 
-      const res = await fetch("/api/admin/notifications", {
+      const res = await adminFetch("/api/admin/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -1366,7 +1367,7 @@ export default function SuperAdminDashboard() {
   async function handleAutoAlertExpiringStores() {
     setAutoAlertRunning(true);
     try {
-      const res = await fetch("/api/admin/notifications", {
+      const res = await adminFetch("/api/admin/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

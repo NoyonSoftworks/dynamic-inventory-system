@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { adminFetch } from "@/utils/admin-fetch";
 
 function SearchIcon({ className = "w-3.5 h-3.5 text-slate-400" }) {
   return (
@@ -80,7 +81,7 @@ export default function AdminSupportTab({
   async function handleUpdateTicket(ticketId, newStatus, adminReply) {
     setUpdatingId(ticketId);
     try {
-      const res = await fetch("/api/admin/support", {
+      const res = await adminFetch("/api/admin/support", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

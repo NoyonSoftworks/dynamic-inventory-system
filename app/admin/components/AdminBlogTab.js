@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { calculateSeoScore, extractDefaultKeyword } from "@/utils/seo-analyzer";
 import { generateSmartSlug } from "@/utils/slug-generator";
+import { adminFetch } from "@/utils/admin-fetch";
 
 function formatRelativeTime(dateStr) {
   if (!dateStr || dateStr === "Recently") return "Recently";
@@ -416,7 +417,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   async function handleFetchTrafficBlueprint() {
     try {
       setLoadingTrafficBlueprint(true);
-      const res = await fetch("/api/admin/blog/ai", {
+      const res = await adminFetch("/api/admin/blog/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "suggest_traffic_growth" }),
@@ -508,7 +509,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   async function loadPosts() {
     try {
       setLoading(true);
-      const res = await fetch("/api/admin/blog");
+      const res = await adminFetch("/api/admin/blog");
       if (res.ok) {
         const json = await res.json();
         if (json.posts) {
@@ -526,7 +527,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   async function loadGscData() {
     try {
       setLoadingGsc(true);
-      const res = await fetch("/api/admin/blog/gsc");
+      const res = await adminFetch("/api/admin/blog/gsc");
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
@@ -548,7 +549,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
     try {
       setSavingWebmaster(true);
       setSettingsSaving(true);
-      const res = await fetch("/api/admin/blog/gsc", {
+      const res = await adminFetch("/api/admin/blog/gsc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -580,7 +581,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
     try {
       setInspecting(true);
       setInspectLoading(true);
-      const res = await fetch("/api/admin/blog/gsc", {
+      const res = await adminFetch("/api/admin/blog/gsc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -606,7 +607,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   async function handlePingSitemap() {
     try {
       setPingingSitemap(true);
-      const res = await fetch("/api/admin/blog/gsc", {
+      const res = await adminFetch("/api/admin/blog/gsc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "ping_sitemap" }),
@@ -762,7 +763,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
         seo_grade: liveSeo.grade,
       };
 
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -789,7 +790,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   async function handleDelete(id, title) {
     if (!window.confirm(`Delete article: "${title}"?`)) return;
     try {
-      const res = await fetch(`/api/admin/blog?id=${id}`, {
+      const res = await adminFetch(`/api/admin/blog?id=${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -806,7 +807,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
 
   async function handleTogglePublish(post) {
     try {
-      const res = await fetch("/api/admin/blog", {
+      const res = await adminFetch("/api/admin/blog", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -829,7 +830,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   async function handleDuplicate(post) {
     try {
       const newSlug = `${post.slug}-copy-${Math.random().toString(36).slice(2, 6)}`;
-      const res = await fetch("/api/admin/blog", {
+      const res = await adminFetch("/api/admin/blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -860,7 +861,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
     if (!window.confirm("Restore standard demo ecommerce articles?")) return;
     try {
       setLoading(true);
-      const res = await fetch("/api/admin/blog", {
+      const res = await adminFetch("/api/admin/blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "seed_defaults", overwrite: true }),
@@ -973,7 +974,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
 
     try {
       setAiGenerating(true);
-      const res = await fetch("/api/admin/blog/ai", {
+      const res = await adminFetch("/api/admin/blog/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1018,7 +1019,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
     const topicToUse = aiTopic.trim() || formData.title.trim() || "Cloud Inventory Management";
     try {
       setAiGenerating(true);
-      const res = await fetch("/api/admin/blog/ai", {
+      const res = await adminFetch("/api/admin/blog/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1044,7 +1045,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
     const titleToUse = formData.title || aiTopic;
     try {
       setAiGenerating(true);
-      const res = await fetch("/api/admin/blog/ai", {
+      const res = await adminFetch("/api/admin/blog/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1075,7 +1076,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
     const promptToUse = customPrompt || aiTopic || formData.title;
     try {
       setAiGenerating(true);
-      const res = await fetch("/api/admin/blog/ai", {
+      const res = await adminFetch("/api/admin/blog/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1101,7 +1102,7 @@ export default function AdminBlogTab({ triggerToast, initialOption = "articles",
   async function handleAiRunAudit() {
     try {
       setAiGenerating(true);
-      const res = await fetch("/api/admin/blog/ai", {
+      const res = await adminFetch("/api/admin/blog/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

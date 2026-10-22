@@ -4,12 +4,25 @@ import { createClient } from "@supabase/supabase-js";
 import { SEED_BLOG_POSTS } from "@/utils/blog-seed";
 import { calculateSeoScore, extractDefaultKeyword } from "@/utils/seo-analyzer";
 
+const IS_SERVERLESS = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NEXT_RUNTIME === "edge"
+);
+
 const DATA_DIR = path.join(process.cwd(), "data");
-const BLOG_FILE = path.join(DATA_DIR, "blog_posts.json");
+const BUNDLED_BLOG_FILE = path.join(DATA_DIR, "blog_posts.json");
+const TMP_BLOG_FILE = path.join("/tmp", "dynamic-inventory", "blog_posts.json");
+const BLOG_FILE = IS_SERVERLESS ? TMP_BLOG_FILE : BUNDLED_BLOG_FILE;
 
 function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    const dir = path.dirname(BLOG_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch (err) {
+    // Graceful on serverless
   }
 }
 
@@ -27,9 +40,15 @@ function getServiceSupabase() {
 
 function readJsonFile(filePath, defaultVal = []) {
   try {
-    if (!fs.existsSync(filePath)) return defaultVal;
-    const content = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(content) || defaultVal;
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, "utf8");
+      return JSON.parse(content) || defaultVal;
+    }
+    if (IS_SERVERLESS && fs.existsSync(BUNDLED_BLOG_FILE)) {
+      const content = fs.readFileSync(BUNDLED_BLOG_FILE, "utf8");
+      return JSON.parse(content) || defaultVal;
+    }
+    return defaultVal;
   } catch (err) {
     console.warn(`Failed to read ${filePath}:`, err.message);
     return defaultVal;
@@ -39,10 +58,11 @@ function readJsonFile(filePath, defaultVal = []) {
 function writeJsonFile(filePath, data) {
   try {
     ensureDataDir();
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+    const targetPath = IS_SERVERLESS ? TMP_BLOG_FILE : filePath;
+    fs.writeFileSync(targetPath, JSON.stringify(data, null, 2), "utf8");
     return true;
   } catch (err) {
-    console.error(`Failed to write ${filePath}:`, err.message);
+    console.warn(`Failed to write ${filePath}:`, err.message);
     return false;
   }
 }

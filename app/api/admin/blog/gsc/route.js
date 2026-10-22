@@ -4,14 +4,35 @@ import path from "path";
 import { verifyAdminRequest } from "@/utils/admin-auth";
 import { getAllBlogPosts } from "@/utils/storage/blog-store";
 
-const GSC_FILE = path.join(process.cwd(), "data", "gsc_analytics.json");
-const SETTINGS_FILE = path.join(process.cwd(), "data", "saas_settings.json");
+const IS_SERVERLESS = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NEXT_RUNTIME === "edge"
+);
+
+const BUNDLED_GSC_FILE = path.join(process.cwd(), "data", "gsc_analytics.json");
+const TMP_GSC_FILE = path.join("/tmp", "dynamic-inventory", "gsc_analytics.json");
+const GSC_FILE = IS_SERVERLESS ? TMP_GSC_FILE : BUNDLED_GSC_FILE;
+
+const BUNDLED_SETTINGS_FILE = path.join(process.cwd(), "data", "saas_settings.json");
+const TMP_SETTINGS_FILE = path.join("/tmp", "dynamic-inventory", "saas_settings.json");
+const SETTINGS_FILE = IS_SERVERLESS ? TMP_SETTINGS_FILE : BUNDLED_SETTINGS_FILE;
 
 function readJsonSafe(filePath, defaultVal = {}) {
   try {
-    if (!fs.existsSync(filePath)) return defaultVal;
-    const content = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(content) || defaultVal;
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, "utf8");
+      return JSON.parse(content) || defaultVal;
+    }
+    if (IS_SERVERLESS) {
+      const fileName = path.basename(filePath);
+      const bundled = path.join(process.cwd(), "data", fileName);
+      if (fs.existsSync(bundled)) {
+        const content = fs.readFileSync(bundled, "utf8");
+        return JSON.parse(content) || defaultVal;
+      }
+    }
+    return defaultVal;
   } catch {
     return defaultVal;
   }
@@ -19,12 +40,15 @@ function readJsonSafe(filePath, defaultVal = {}) {
 
 function writeJsonSafe(filePath, data) {
   try {
-    const dir = path.dirname(filePath);
+    const targetPath = IS_SERVERLESS
+      ? path.join("/tmp", "dynamic-inventory", path.basename(filePath))
+      : filePath;
+    const dir = path.dirname(targetPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+    fs.writeFileSync(targetPath, JSON.stringify(data, null, 2), "utf8");
     return true;
   } catch (err) {
-    console.error(`Failed to write ${filePath}:`, err.message);
+    console.warn(`Write notice (${filePath}):`, err.message);
     return false;
   }
 }

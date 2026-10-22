@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { adminFetch } from "@/utils/admin-fetch";
 
 function SearchIcon({ className = "w-3.5 h-3.5 text-slate-400" }) {
   return (
@@ -85,7 +86,7 @@ export default function AdminNotificationsTab({
     }
     setDeletingId(notifId);
     try {
-      const res = await fetch("/api/admin/notifications", {
+      const res = await adminFetch("/api/admin/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

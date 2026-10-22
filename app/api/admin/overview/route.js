@@ -227,7 +227,8 @@ export async function GET(request) {
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to load platform activity overview.",
+        error: `Failed to load platform activity overview: ${err?.message || "Internal error"}`,
+        details: process.env.NODE_ENV === "development" ? err?.stack : undefined,
       },
       { status: 500 }
     );

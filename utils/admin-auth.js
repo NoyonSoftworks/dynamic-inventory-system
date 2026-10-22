@@ -28,22 +28,26 @@ export async function verifyAdminRequest(request) {
   }
 
   try {
+    let currentUser = null;
+
     // 1. Check SSR session cookies
-    const ssrClient = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+    try {
+      const ssrClient = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll() {},
         },
-        setAll() {},
-      },
-    });
+      });
 
-    const {
-      data: { user },
-      error: authErr,
-    } = await ssrClient.auth.getUser();
-
-    let currentUser = user;
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
+      currentUser = user;
+    } catch {
+      // Gracefully continue to Bearer token fallback
+    }
 
     // 2. Fallback to Authorization Bearer token or sb-access-token cookie
     if (!currentUser) {

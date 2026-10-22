@@ -2,40 +2,108 @@ import fs from "fs";
 import path from "path";
 import { createAdminClient } from "@/utils/supabase/server";
 
-const DATA_BASE_DIR = path.join(process.cwd(), "data", "tenants");
+const IS_SERVERLESS = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NEXT_RUNTIME === "edge"
+);
+
+const DATA_ROOT_DIR = path.join(process.cwd(), "data");
+const DATA_BASE_DIR = path.join(DATA_ROOT_DIR, "tenants");
+const TMP_ROOT_DIR = path.join("/tmp", "dynamic-inventory");
+const TMP_BASE_DIR = path.join(TMP_ROOT_DIR, "tenants");
 
 function ensureDirectory(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+  } catch (err) {
+    // Graceful on read-only serverless cloud filesystems (e.g. Vercel)
   }
 }
 
 function getTenantFilePath(businessId, fileName) {
   const safeId = String(businessId).replace(/[^a-zA-Z0-9_-]/g, "");
-  const tenantDir = path.join(DATA_BASE_DIR, safeId);
-  ensureDirectory(tenantDir);
+  const baseDir = IS_SERVERLESS ? TMP_BASE_DIR : DATA_BASE_DIR;
+  const tenantDir = path.join(baseDir, safeId);
   return path.join(tenantDir, fileName);
 }
 
 function readJsonFile(filePath, defaultVal = []) {
   try {
-    if (!fs.existsSync(filePath)) return defaultVal;
-    const content = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(content) || defaultVal;
+    // 1. Direct check on the provided filePath (e.g. in /tmp or local dev)
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, "utf8");
+      return JSON.parse(content) || defaultVal;
+    }
+
+    // 2. Serverless fallback: if filePath was in /tmp, check bundled repo seed in process.cwd()/data
+    if (IS_SERVERLESS && filePath.startsWith(TMP_ROOT_DIR)) {
+      const relativeSub = path.relative(TMP_ROOT_DIR, filePath);
+      const bundledPath = path.join(DATA_ROOT_DIR, relativeSub);
+      if (fs.existsSync(bundledPath)) {
+        const content = fs.readFileSync(bundledPath, "utf8");
+        return JSON.parse(content) || defaultVal;
+      }
+    }
+
+    // 3. Serverless check if looking at bundled repo file directly, check /tmp first
+    if (IS_SERVERLESS && filePath.startsWith(DATA_ROOT_DIR)) {
+      const relativeSub = path.relative(DATA_ROOT_DIR, filePath);
+      const tmpPath = path.join(TMP_ROOT_DIR, relativeSub);
+      if (fs.existsSync(tmpPath)) {
+        const content = fs.readFileSync(tmpPath, "utf8");
+        return JSON.parse(content) || defaultVal;
+      }
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, "utf8");
+        return JSON.parse(content) || defaultVal;
+      }
+    }
+
+    return defaultVal;
   } catch (err) {
-    console.warn(`Failed to read tenant file ${filePath}:`, err.message);
+    console.warn(`Failed to read file ${filePath}:`, err.message);
     return defaultVal;
   }
 }
 
 function writeJsonFile(filePath, data) {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+    // If running on serverless and target is in read-only repo data, redirect to /tmp
+    let targetPath = filePath;
+    if (IS_SERVERLESS && filePath.startsWith(DATA_ROOT_DIR)) {
+      const relativeSub = path.relative(DATA_ROOT_DIR, filePath);
+      targetPath = path.join(TMP_ROOT_DIR, relativeSub);
+    }
+    const dir = path.dirname(targetPath);
+    ensureDirectory(dir);
+    fs.writeFileSync(targetPath, JSON.stringify(data, null, 2), "utf8");
     return true;
   } catch (err) {
-    console.error(`Failed to write tenant file ${filePath}:`, err.message);
+    console.warn(`Write file notice (${filePath}):`, err.message);
     return false;
   }
+}
+
+function getDiscoveredTenantIds() {
+  const ids = new Set();
+  try {
+    if (fs.existsSync(DATA_BASE_DIR)) {
+      const entries = fs.readdirSync(DATA_BASE_DIR, { withFileTypes: true });
+      entries.filter((e) => e.isDirectory()).forEach((e) => ids.add(e.name));
+    }
+  } catch {}
+  if (IS_SERVERLESS) {
+    try {
+      if (fs.existsSync(TMP_BASE_DIR)) {
+        const entries = fs.readdirSync(TMP_BASE_DIR, { withFileTypes: true });
+        entries.filter((e) => e.isDirectory()).forEach((e) => ids.add(e.name));
+      }
+    } catch {}
+  }
+  return Array.from(ids);
 }
 
 // ── Default Demonstration Expenses ─────────────────────────────
@@ -742,11 +810,8 @@ export function markNotificationRead(businessId, notificationId = "all") {
  * expiring within 5 days, expired, or with order quotas >= 85%.
  */
 export function dispatchAutoExpiryAlerts() {
-  const tenantsDir = DATA_BASE_DIR;
-  if (!fs.existsSync(tenantsDir)) return { scanned: 0, alerted: [] };
-
-  const entries = fs.readdirSync(tenantsDir, { withFileTypes: true });
-  const tenantIds = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+  const tenantIds = getDiscoveredTenantIds();
+  if (tenantIds.length === 0) return { scanned: 0, alerted: [] };
 
   const alertedStores = [];
   const now = Date.now();
@@ -819,11 +884,8 @@ export function dispatchAutoExpiryAlerts() {
  * Collect all notifications across all tenant stores for Super Admin delivery & read tracking.
  */
 export function getAllTenantNotifications() {
-  const tenantsDir = DATA_BASE_DIR;
-  if (!fs.existsSync(tenantsDir)) return [];
-
-  const entries = fs.readdirSync(tenantsDir, { withFileTypes: true });
-  const tenantIds = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+  const tenantIds = getDiscoveredTenantIds();
+  if (tenantIds.length === 0) return [];
 
   const all = [];
 
