@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
+import { saveProductMeta } from "@/utils/products-meta";
 
 /**
  * Generates an alphanumeric random code for barcode serialization.
@@ -177,12 +178,18 @@ export async function POST(request) {
         });
       }
 
+      if (matchedRow?.image_url) {
+        saveProductMeta(prod.id, { image_url: matchedRow.image_url });
+      }
+
       if (qty > 0) {
         transactionRows.push({
           product_id: prod.id,
           transaction_type: "IN",
           quantity: qty,
-          reference_note: `CSV Bulk Import (${qty} units)`,
+          reference_note: matchedRow?.platform
+            ? `${matchedRow.platform} Website Import (${qty} units)`
+            : `Bulk Catalog Import (${qty} units)`,
           business_id: businessId,
         });
       }

@@ -69,17 +69,17 @@ const COURIER_OPTIONS = [
   },
 ];
 
-export function UnifiedSettingsContent({ initialTab = "couriers" }) {
+export function UnifiedSettingsContent({ initialTab = "store" }) {
   const { businessId, businessName, loading: ctxLoading } = useBusinessContext();
   const origin = useOrigin();
   const searchParams = useSearchParams();
 
-  // ── Active Tab State ('couriers' | 'webhooks' | 'team') ──────
+  // ── Active Tab State ('store' | 'couriers' | 'webhooks' | 'team') ──────
   const requestedTab = searchParams?.get("tab");
   const [localTab, setLocalTab] = useState(null);
   const activeTab =
     localTab ??
-    (requestedTab && ["couriers", "webhooks", "team"].includes(requestedTab)
+    (requestedTab && ["store", "couriers", "webhooks", "team"].includes(requestedTab)
       ? requestedTab
       : initialTab);
   const setActiveTab = setLocalTab;
@@ -90,6 +90,97 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4500);
   };
+
+  // ─────────────────────────────────────────────────────────────
+  // 0. STORE PROFILE & WEBSITE STATE
+  // ─────────────────────────────────────────────────────────────
+  const [storeProfile, setStoreProfile] = useState({
+    name: "",
+    website_url: "",
+    phone: "",
+    division: "Dhaka",
+    address: "",
+    currency: "BDT",
+    tagline: "",
+    status: "Trial",
+    plan: "trial",
+  });
+  const [storeLoading, setStoreLoading] = useState(true);
+  const [storeSaving, setStoreSaving] = useState(false);
+
+  useEffect(() => {
+    if (!businessId) return;
+    let active = true;
+
+    async function fetchProfile() {
+      try {
+        setStoreLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch("/api/tenant/profile", {
+          headers: {
+            Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+          },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (active && json.success) {
+            setStoreProfile({
+              name: json.name || businessName || "",
+              website_url: json.website_url || "",
+              phone: json.phone || "",
+              division: json.division || "Dhaka",
+              address: json.address || "",
+              currency: json.currency || "BDT",
+              tagline: json.tagline || "",
+              status: json.status || "Trial",
+              plan: json.plan || "trial",
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load store profile:", err);
+      } finally {
+        if (active) setStoreLoading(false);
+      }
+    }
+
+    fetchProfile();
+    return () => {
+      active = false;
+    };
+  }, [businessId, businessName]);
+
+  async function handleSaveStoreProfile(e) {
+    e.preventDefault();
+    if (!storeProfile.name.trim() || !businessId) {
+      showToast("error", "Store name cannot be empty.");
+      return;
+    }
+
+    setStoreSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/tenant/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+        body: JSON.stringify(storeProfile),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to save store profile.");
+      }
+
+      showToast("success", "Store profile & website details saved successfully!");
+    } catch (err) {
+      showToast("error", err.message || "Failed to update store profile.");
+    } finally {
+      setStoreSaving(false);
+    }
+  }
 
   // ─────────────────────────────────────────────────────────────
   // 1. COURIER INTEGRATIONS STATE
@@ -428,8 +519,23 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
           </div>
         </div>
 
-        {/* ── Unified 3-Tab Navigation Bar ─────────────────── */}
+        {/* ── Unified 4-Tab Navigation Bar ─────────────────── */}
         <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setActiveTab("store")}
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition shrink-0 ${
+              activeTab === "store"
+                ? "bg-orange-600 text-white shadow-xs shadow-orange-600/30"
+                : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span>Store Profile &amp; Website</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab("couriers")}
@@ -472,7 +578,7 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            <span>Store Profile &amp; Team</span>
+            <span>Team &amp; Staff</span>
           </button>
         </div>
 
@@ -496,6 +602,268 @@ export function UnifiedSettingsContent({ initialTab = "couriers" }) {
             >
               <CloseIcon className="w-3.5 h-3.5" />
             </button>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════
+            TAB 0: STORE PROFILE & WEBSITE
+        ═══════════════════════════════════════════════════════ */}
+        {activeTab === "store" && (
+          <div className="space-y-6 animate-in fade-in duration-150">
+            {/* Store Subscription & Status Banner */}
+            <div className="rounded-2xl bg-white border border-slate-200/80 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center font-bold text-xl border border-orange-200">
+                  🏪
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base font-bold text-slate-900">
+                      {storeProfile.name || businessName || "My Store"}
+                    </h2>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                        storeProfile.status === "Active"
+                          ? "bg-emerald-500/10 text-emerald-700 border border-emerald-200"
+                          : "bg-amber-500/10 text-amber-700 border border-amber-200"
+                      }`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${storeProfile.status === "Active" ? "bg-emerald-500" : "bg-amber-500"}`} />
+                      {storeProfile.status === "Active" ? "Active Subscription" : "Free Trial Account"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                    <span>
+                      Plan Tier: <strong className="uppercase text-slate-800">{storeProfile.plan || "trial"}</strong>
+                    </span>
+                    <span>•</span>
+                    {storeProfile.website_url ? (
+                      <span className="text-emerald-700 font-medium inline-flex items-center gap-1">
+                        <span>🌐 Connected:</span>
+                        <a
+                          href={storeProfile.website_url.startsWith("http") ? storeProfile.website_url : `https://${storeProfile.website_url}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:underline font-mono"
+                        >
+                          {storeProfile.website_url.replace(/^https?:\/\//, "")}
+                        </a>
+                      </span>
+                    ) : (
+                      <span className="text-amber-600 font-medium">⚠️ No live website URL connected yet</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href={
+                    storeProfile.website_url
+                      ? `/dashboard/products/import?url=${encodeURIComponent(storeProfile.website_url)}`
+                      : "/dashboard/products/import"
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-orange-500 transition"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  <span>Import Products from Website →</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Store Information Form */}
+            <div className="rounded-2xl bg-white border border-slate-200/80 p-6 shadow-xs space-y-5">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span>Store Profile &amp; Live Website Settings</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Configure your business branding, e-commerce storefront domain, contact number, and default warehouse location.
+                </p>
+              </div>
+
+              {storeLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400 text-xs gap-2">
+                  <Spinner size={24} />
+                  <span>Loading store settings…</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSaveStoreProfile} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Store / Brand Name */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Store / Brand Name <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={storeProfile.name}
+                        onChange={(e) => setStoreProfile({ ...storeProfile, name: e.target.value })}
+                        placeholder="e.g. Dhaka Artisan Goods"
+                        className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
+                      />
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Shown on invoices, dispatch notes, and barcode labels.
+                      </p>
+                    </div>
+
+                    {/* Official Website URL */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Live E-Commerce Website URL
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={storeProfile.website_url}
+                          onChange={(e) => setStoreProfile({ ...storeProfile, website_url: e.target.value })}
+                          placeholder="https://yourstore.com or https://yourshop.myshopify.com"
+                          className="w-full rounded-xl border border-slate-300 pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
+                        />
+                        <span className="absolute left-3 top-2.5 text-slate-400 text-sm">
+                          🌐
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Shopify, WooCommerce, or custom web store URL for 1-click catalog import.
+                      </p>
+                    </div>
+
+                    {/* Contact Phone / WhatsApp */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Support Phone / WhatsApp
+                      </label>
+                      <input
+                        type="tel"
+                        value={storeProfile.phone}
+                        onChange={(e) => setStoreProfile({ ...storeProfile, phone: e.target.value })}
+                        placeholder="+880 1712-345678"
+                        className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Warehouse Division */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Warehouse Division / Region
+                      </label>
+                      <select
+                        value={storeProfile.division}
+                        onChange={(e) => setStoreProfile({ ...storeProfile, division: e.target.value })}
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
+                      >
+                        <option value="Dhaka">Dhaka (Default)</option>
+                        <option value="Chittagong">Chittagong</option>
+                        <option value="Sylhet">Sylhet</option>
+                        <option value="Khulna">Khulna</option>
+                        <option value="Rajshahi">Rajshahi</option>
+                        <option value="Barisal">Barisal</option>
+                        <option value="Rangpur">Rangpur</option>
+                        <option value="Mymensingh">Mymensingh</option>
+                      </select>
+                    </div>
+
+                    {/* Tagline / Bio */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Storefront Tagline / Bio
+                      </label>
+                      <input
+                        type="text"
+                        value={storeProfile.tagline}
+                        onChange={(e) => setStoreProfile({ ...storeProfile, tagline: e.target.value })}
+                        placeholder="e.g. Premium Lifestyle & Fashion Brand in Bangladesh"
+                        className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Currency */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Default Currency
+                      </label>
+                      <select
+                        value={storeProfile.currency}
+                        onChange={(e) => setStoreProfile({ ...storeProfile, currency: e.target.value })}
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
+                      >
+                        <option value="BDT">BDT (৳ Bangladeshi Taka)</option>
+                        <option value="USD">USD ($ United States Dollar)</option>
+                        <option value="EUR">EUR (€ Euro)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Physical Warehouse Address */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Warehouse / Dispatch Pickup Address
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={storeProfile.address}
+                      onChange={(e) => setStoreProfile({ ...storeProfile, address: e.target.value })}
+                      placeholder="e.g. House #14, Road #7, Dhanmondi, Dhaka 1205, Bangladesh"
+                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs sm:text-sm text-slate-900 focus:border-orange-600 focus:ring-1 focus:ring-orange-600/20 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-[11px] font-mono text-slate-400">
+                      Tenant ID: {businessId || "Unassigned"}
+                    </span>
+                    <button
+                      type="submit"
+                      disabled={storeSaving || !storeProfile.name.trim()}
+                      className="rounded-xl bg-orange-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/30 hover:bg-orange-500 disabled:opacity-50 transition"
+                    >
+                      {storeSaving ? "Saving Settings…" : "Save Store Profile"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            {/* Website Catalog Sync Shortcut Box */}
+            <div className="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50/70 to-amber-50/50 p-6 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🌐</span>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      Website Catalog &amp; Product Importer
+                    </h4>
+                    <span className="rounded-full bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 text-[10px] font-bold">
+                      Shopify · WooCommerce · Web Stores
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 max-w-2xl">
+                    Import your product catalog, prices, categories, and images directly from your live store website into this inventory system with 1 click.
+                  </p>
+                </div>
+
+                <Link
+                  href={
+                    storeProfile.website_url
+                      ? `/dashboard/products/import?url=${encodeURIComponent(storeProfile.website_url)}`
+                      : "/dashboard/products/import"
+                  }
+                  className="rounded-xl bg-slate-900 text-white px-5 py-2.5 text-xs font-bold shadow-sm hover:bg-slate-800 transition shrink-0 inline-flex items-center gap-2"
+                >
+                  <span>Launch Website Importer</span>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
           </div>
         )}
 
@@ -964,7 +1332,7 @@ export default function ClientSettingsPage() {
         </main>
       }
     >
-      <UnifiedSettingsContent initialTab="couriers" />
+      <UnifiedSettingsContent initialTab="store" />
     </Suspense>
   );
 }
