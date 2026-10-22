@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
+import { getProductsMeta, getProductMeta, saveProductMeta } from "@/utils/products-meta";
 
 function generateRandomCode(length = 5) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -87,9 +88,14 @@ export async function GET(request) {
         .select("*")
         .eq("product_id", targetProductId);
 
+      const meta = getProductMeta(targetProductId) || {};
+
       return NextResponse.json({
         success: true,
-        product: singleProd,
+        product: {
+          ...singleProd,
+          ...meta,
+        },
         items: invItems || [],
       });
     }
@@ -132,11 +138,36 @@ export async function GET(request) {
       }
     }
 
-    const enriched = prodList.map((p) => ({
-      ...p,
-      inStockCount: inStockCountMap[p.id] ?? 0,
-      totalCount: totalItemsMap[p.id] ?? 0,
-    }));
+    const allMeta = getProductsMeta();
+
+    const enriched = prodList.map((p) => {
+      const m = allMeta[p.id] || {};
+      const inStock = inStockCountMap[p.id] ?? 0;
+      const costPrice = m.cost_price !== undefined && m.cost_price !== null ? Number(m.cost_price) : null;
+      const sellingPrice = p.price !== undefined && p.price !== null ? Number(p.price) : 0;
+      const profitMargin = costPrice !== null ? Math.max(0, sellingPrice - costPrice) : null;
+      const profitPercentage = costPrice !== null && sellingPrice > 0 ? Math.round((profitMargin / sellingPrice) * 100) : null;
+      const lowThreshold = m.low_stock_threshold || 5;
+
+      return {
+        ...p,
+        inStockCount: inStock,
+        totalCount: totalItemsMap[p.id] ?? 0,
+        cost_price: costPrice,
+        image_url: m.image_url || null,
+        weight_kg: m.weight_kg !== undefined ? Number(m.weight_kg) : 0.3,
+        low_stock_threshold: lowThreshold,
+        rack_location: m.rack_location || null,
+        supplier: m.supplier || null,
+        description: m.description || null,
+        has_variants: m.has_variants || false,
+        variants: m.variants || [],
+        profit_margin: profitMargin,
+        profit_percentage: profitPercentage,
+        is_low_stock: inStock > 0 && inStock <= lowThreshold,
+        is_out_of_stock: inStock === 0,
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -222,13 +253,31 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { name, category, base_sku, price, quantity } = body || {};
+    const {
+      name,
+      category,
+      base_sku,
+      price,
+      cost_price,
+      quantity,
+      image_url,
+      weight_kg,
+      low_stock_threshold,
+      rack_location,
+      supplier,
+      description,
+      barcode_type,
+      variants,
+    } = body || {};
 
     const trimmedName = String(name || "").trim();
     const trimmedCategory = String(category || "General").trim();
     const formattedSku = String(base_sku || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
     const parsedPrice = parseFloat(price);
+    const parsedCostPrice = cost_price !== undefined && cost_price !== null && cost_price !== "" ? parseFloat(cost_price) : null;
     const parsedQty = parseInt(quantity, 10);
+    const parsedWeight = weight_kg !== undefined && weight_kg !== null && weight_kg !== "" ? parseFloat(weight_kg) : 0.3;
+    const parsedThreshold = low_stock_threshold ? parseInt(low_stock_threshold, 10) : 5;
 
     if (!trimmedName || !formattedSku || isNaN(parsedPrice) || isNaN(parsedQty) || parsedQty < 1) {
       return NextResponse.json(
@@ -237,7 +286,7 @@ export async function POST(request) {
       );
     }
 
-    // Insert into products
+    // Insert into products table
     const { data: product, error: prodErr } = await adminClient
       .from("products")
       .insert({
@@ -260,12 +309,17 @@ export async function POST(request) {
     // Generate barcodes and insert into inventory_items
     const inventoryRows = [];
     const usedBarcodes = new Set();
+    const isUniform = barcode_type === "UNIFORM";
 
     for (let i = 0; i < parsedQty; i++) {
       let uniqueBarcode;
-      do {
-        uniqueBarcode = `${formattedSku}-${generateRandomCode(5)}`;
-      } while (usedBarcodes.has(uniqueBarcode));
+      if (isUniform) {
+        uniqueBarcode = `${formattedSku}-${String(i + 1).padStart(3, "0")}`;
+      } else {
+        do {
+          uniqueBarcode = `${formattedSku}-${generateRandomCode(5)}`;
+        } while (usedBarcodes.has(uniqueBarcode));
+      }
 
       usedBarcodes.add(uniqueBarcode);
       inventoryRows.push({
@@ -284,6 +338,42 @@ export async function POST(request) {
       console.warn("Inventory items insertion notice:", itemsErr);
     }
 
+    // Insert variants if provided
+    if (Array.isArray(variants) && variants.length > 0) {
+      try {
+        const variantRows = variants.map((v, idx) => ({
+          product_id: product.id,
+          sku: v.sku || `${formattedSku}-${v.size || ""}-${v.color || ""}`.replace(/-+$/, "") || `${formattedSku}-V${idx + 1}`,
+          price: v.price ? parseFloat(v.price) : parsedPrice,
+          stock_quantity: v.quantity ? parseInt(v.quantity, 10) : 0,
+          attributes: {
+            size: v.size || null,
+            color: v.color || null,
+            cost_price: v.cost_price ? parseFloat(v.cost_price) : parsedCostPrice,
+          },
+          business_id: businessId,
+        }));
+
+        await adminClient.from("variants").insert(variantRows);
+      } catch (vErr) {
+        console.warn("Variants insertion notice:", vErr);
+      }
+    }
+
+    // Save extended metadata (cost, image, weight, shelf rack, supplier, description)
+    const savedMeta = saveProductMeta(product.id, {
+      cost_price: parsedCostPrice,
+      image_url: image_url ? String(image_url).trim() : null,
+      weight_kg: isNaN(parsedWeight) ? 0.3 : parsedWeight,
+      low_stock_threshold: isNaN(parsedThreshold) ? 5 : parsedThreshold,
+      rack_location: rack_location ? String(rack_location).trim() : null,
+      supplier: supplier ? String(supplier).trim() : null,
+      description: description ? String(description).trim() : null,
+      barcode_type: isUniform ? "UNIFORM" : "SERIALIZED",
+      has_variants: Array.isArray(variants) && variants.length > 0,
+      variants: Array.isArray(variants) ? variants : [],
+    });
+
     // Log stock transaction
     try {
       await adminClient.from("stock_transactions").insert({
@@ -297,9 +387,17 @@ export async function POST(request) {
       console.warn("Stock transaction notice:", txErr);
     }
 
+    const profitMargin = parsedCostPrice !== null ? Math.max(0, parsedPrice - parsedCostPrice) : null;
+    const profitPercentage = parsedCostPrice !== null && parsedPrice > 0 ? Math.round((profitMargin / parsedPrice) * 100) : null;
+
     return NextResponse.json({
       success: true,
-      product,
+      product: {
+        ...product,
+        ...savedMeta,
+        profit_margin: profitMargin,
+        profit_percentage: profitPercentage,
+      },
       itemsCount: inventoryRows.length,
     });
   } catch (error) {

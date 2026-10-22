@@ -406,12 +406,42 @@ export default function ProductsListPage() {
                       >
                         {/* 1. Product Name */}
                         <td className="px-4 py-3">
-                          <div className="font-medium text-slate-900 hover:text-orange-600 transition-colors">{p.name}</div>
-                          {p.created_at && (
-                            <div className="text-[11px] font-mono text-slate-400 mt-0.5">
-                              Added {new Date(p.created_at).toLocaleDateString()}
+                          <div className="flex items-center gap-3">
+                            {p.image_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={p.image_url}
+                                alt={p.name}
+                                className="h-10 w-10 rounded-lg object-cover shrink-0 border border-slate-200"
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-lg bg-orange-50 border border-orange-200/80 text-orange-600 flex items-center justify-center font-bold text-xs shrink-0">
+                                {p.name ? p.name.charAt(0).toUpperCase() : "P"}
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <div className="font-semibold text-slate-900 hover:text-orange-600 transition-colors truncate max-w-xs">
+                                {p.name}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                {p.rack_location && (
+                                  <span className="text-[10px] text-slate-500 font-mono bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                                    📍 {p.rack_location}
+                                  </span>
+                                )}
+                                {p.weight_kg && (
+                                  <span className="text-[10px] text-slate-500 font-mono bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                                    ⚖️ {p.weight_kg}kg
+                                  </span>
+                                )}
+                                {p.created_at && (
+                                  <span className="text-[10px] text-slate-400 font-mono">
+                                    Added {new Date(p.created_at).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          )}
+                          </div>
                         </td>
 
                         {/* 2. Category */}
@@ -428,29 +458,51 @@ export default function ProductsListPage() {
                           </span>
                         </td>
 
-                        {/* 4. Price */}
-                        <td className="px-4 py-3 font-mono text-slate-900 font-medium">
-                          {p.price !== undefined && p.price !== null
-                            ? `৳${Number(p.price).toLocaleString()}`
-                            : "—"}
+                        {/* 4. Price & Cost / Profit */}
+                        <td className="px-4 py-3">
+                          <div className="font-mono text-slate-900 font-bold text-xs">
+                            {p.price !== undefined && p.price !== null
+                              ? `৳${Number(p.price).toLocaleString()}`
+                              : "—"}
+                          </div>
+                          {p.cost_price !== undefined && p.cost_price !== null && (
+                            <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                              Cost: ৳{Number(p.cost_price).toLocaleString()}
+                              {p.profit_percentage !== undefined && p.profit_percentage !== null && (
+                                <span className="text-emerald-700 font-semibold ml-1">
+                                  ({p.profit_percentage}% mrg)
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </td>
 
-                        {/* 5. In Stock (High-contrast Status Badge) */}
+                        {/* 5. In Stock (High-contrast Status Badge with Low Stock Warning) */}
                         <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium border ${
-                              isAvailable
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-rose-50 text-rose-700 border-rose-200"
-                            }`}
-                          >
+                          <div className="space-y-1">
                             <span
-                              className={`h-1.5 w-1.5 rounded-full ${
-                                isAvailable ? "bg-emerald-500" : "bg-rose-500"
+                              className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium border ${
+                                isAvailable
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-rose-50 text-rose-700 border-rose-200"
                               }`}
-                            />
-                            {p.inStockCount.toLocaleString()} units
-                          </span>
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  isAvailable ? "bg-emerald-500" : "bg-rose-500"
+                                }`}
+                              />
+                              {p.inStockCount.toLocaleString()} units
+                            </span>
+
+                            {isAvailable && p.inStockCount <= (p.low_stock_threshold || 5) && (
+                              <div>
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
+                                  ⚠️ Low Stock
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </td>
 
                         {/* 6. Actions */}
